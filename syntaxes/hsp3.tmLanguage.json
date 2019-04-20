@@ -1,0 +1,227 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "HSP3",
+  "patterns": [
+    {"include": "#comments"},
+    {"include": "#keywords"},
+    {"include": "#constants"}
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.hsp3",
+          "match": "(;|//).*$"
+        },
+        {
+          "name": "comment.block.hsp3",
+          "begin": "/\\*",
+          "end": "\\*/",
+          "patterns": [
+            {"include": "text.hs"}
+          ]
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "comment": "文法コントロール",
+          "name": "keyword.control.hsp3",
+          "match": "\\b(if|else|repeat|loop|break|continue|foreach|while|wend|for|next|do|until|_break|_continue|switch|case|default|swbreak|swend|wait|await|stop|return|end|run|exgoto|on|goto|gosub)\\b"
+        },
+        {
+          "comment": "マルチメディア制御",
+          "name": "keyword.hsp3",
+          "match": "\\b(mci|mmload|mmplay|mmstop)\\b"
+        },
+        {
+          "comment": "メモリ管理",
+          "name": "keyword.hsp3",
+          "match": "\\b(comres|ddim|delmod|dim|dimtype|ldim|lpoke|memcpy|memexpand|memset|newlab|newmod|poke|sdim|wpoke|lpeek|peek|wpeek)\\b"
+        },
+        {
+          "comment": "alloc",
+          "name": "invalid.deprecated.hsp3",
+          "match": "\\b(alloc)\\b"
+        },
+        {
+          "comment": "基本入出力制御命令",
+          "name": "keyword.hsp3",
+          "match": "\\b(getkey|mcall|mouse|randomize|setease|sortget|sortstr|sortval|stick)\\b"
+        },
+        {
+          "comment": "基本入出力関数",
+          "name": "keyword.hsp3",
+          "match": "\\b(abs|absf|atan|stan|callfunc|cos|dirinfo|double|expf|getease|geteasef|gettime|ginfo|int|length|length2|length3|length4|libptr|limit|limitf|logf|objinfo|powf|rnd|sin|sqrt|str|strlen|sysinfo|tan|vartype|varuse|varptr|varsize)\\b"
+        },
+        {
+          "comment": "数学定数",
+          "name": "constant.language.hsp3",
+          "match": "\\b(M_PI)\\b"
+        },
+        {
+          "comment": "文字列操作",
+          "name": "keyword.hsp3",
+          "match": "\\b(cnvstoa|cnvstow|getstr|noteadd|notedel|noteget|noteload|notesave|notesel|noteunsel|sortnote|split|strrep|cnvatos|cnvwtos|getpath|instr|notefind|noteinfo|strf|strmid|strtrim)\\b"
+        },
+        {
+          "comment": "標準定義マクロ",
+          "name": "constant.language.hsp3",
+          "match": "\\b(__date__|__file__|__hsp30__|__hspver__|__line__|__time__|_debug|__hspdef__|and|deg2rad|font_antialias|font_bold|font_italic|font_normal|font_strikeout|font_underline|gmode_add|gmode_alpha|gmode_gdi|gmode_mem|gmode_pixela|gmode_rgb0|gmode_rgb0alpha|gmode_sub|not|objinfo_bmscr|objinfo_hwnd|objinfo_mode|objmode_guifont|objmode_normal|objmode_usefont|or|rad2deg|screen_fixedsize|screen_frame|screen_hide|screen_normal|screen_palette|screen_tool|xor|gsquare_grad|ease_linear|ease_quad_in|ease_quad_out|ease_quad_inout|ease_cubic_in|ease_cubic_out|ease_cubic_inout|ease_quartic_in|ease_quartic_out|ease_quartic_inout|ease_bounce_in|ease_bounce_out|ease_bounce_inout|ease_shake_in|ease_shake_out|ease_shake_inout|ease_loop|notefind_match|notefind_first|notefind_instr)\\b"
+        },
+        {
+          "comment": "特殊代入命令",
+          "name": "keyword.hsp3",
+          "match": "\\b(dup|dupptr|mref)\\b"
+        },
+        {
+          "comment": "画面制御命令",
+          "name": "keyword.hsp3",
+          "match": "\\b(axobj|bgscr|bmpsave|boxf|buffer|celdiv|celload|celput|chgdisp|circle|cls|color|dialog|font|gcopy|gmode|grect|gradf|groll|grotate|gsel|gsquare|gzoom|hsvcolor|line|mes|palcolor|palette|pget|picload|pos|print|pset|redraw|screen|sendmsg|syscolor|sysfont|title|width|winobj)\\b"
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {"include": "#numbers"},
+        {"include": "#strings"},
+        {"include": "#labels"}
+      ],
+      "repository": {
+        "numbers": {
+          "patterns": [
+            {
+              "comment": "実数",
+              "match": "\\b(?i)([0-9]+(?:\\.[0-9]+)?E?(\\+|-)?[0-9]*F?)\\b",
+              "captures": {
+                "1": {
+                  "name": "constant.numeric.double.hsp3"
+                }
+              }
+            },
+            {
+              "comment": "2進数",
+              "match": "((?:\\b0b|%)[01]+)\\b",
+              "captures": {
+                "1": {
+                  "name": "constant.numeric.binary.hsp3"
+                }
+              }
+            },
+            {
+              "comment": "10進数",
+              "match": "\\b([0-9]+)\\b",
+              "captures": {
+                "1": {
+                  "name": "constant.numeric.decimal.hsp3"
+                }
+              }
+            },
+            {
+              "comment": "16進数",
+              "match": "((?:\\b0x|\\$)[0-9a-fA-F]+)\\b",
+              "captures": {
+                "1": {
+                  "name": "constant.numeric.hex.hsp3"
+                }
+              }
+            },
+            {
+              "comment": "文字コード",
+              "match": "(?i)'(?:((?:\\\\|¥)[¥\\\\nrt\"'])|([^']))?(.*?)'",
+              "captures": {
+                "1": {
+                  "name": "constant.character.escape.hsp3"
+                },
+                "2": {
+                  "patterns": [
+                    {
+                      "match": "\\\\|¥",
+                      "name": "invalid.illegal.hsp3"
+                    }
+                  ]
+                },
+                "3": {
+                  "name": "invalid.deprecated.hsp3"
+                }
+              },
+              "name": "constant.character.hsp3"
+            },
+            {
+              "comment": "文字コードで円マーク",
+              "match": "'(\\\\|¥)'",
+              "name": "invalid.deprecated.character.not_escape_OnlyOneYenSign.hsp3"
+            }
+          ]
+        },
+        "strings": {
+          "patterns": [
+            {
+              "name": "string.quoted.double.hsp3",
+              "match": "\"((?:\\\\\"|\\\\\\\\|¥\"|¥¥|[^\"])*)\"",
+              "captures": {
+                "1": {
+                  "patterns": [
+                    {
+                      "name": "constant.character.escape.hsp3",
+                      "match": "\\\\."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "string.block.hsp3",
+              "begin": "\\{\"",
+              "end": "\"\\}",
+              "patterns": [
+                {
+                  "name": "constant.character.escape.hsp3",
+                  "match": "\\\\."
+                }
+              ]
+            }
+          ]
+        },
+        "labels": {
+          "patterns": [
+            {
+              "match": "(?<=^|:|=|\\{|\\}|\\(|,|goto|gosub|oncmd|onexit|onkey|onclick|onerror)\\s*(\\*)(\\S+?)(?=\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|\\:|;|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?|\\s|\\n)",
+              "captures": {
+                "1": {
+                  "name": "markup.bold.asterisk.hsp3"
+                },
+                "2": {
+                  "patterns": [
+                    {
+                      "match": "(\\S{1,59})(.*)",
+                      "captures": {
+                        "1": {
+                          "patterns": [
+                            {
+                              "match": "^([0-9]|\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%(?![niopsc]\\d*)|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?).*",
+                              "name": "invalid.illegal.hsp3"
+                            },
+                            {
+                              "include": "#namespace"
+                            }
+                          ]
+                        },
+                        "2": {
+                          "name": "invalid.deprecated.hsp3"
+                        }
+                      },
+                      "name": "markup.bold.labelname.hsp3"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "scopeName": "source.hsp3"
+}
