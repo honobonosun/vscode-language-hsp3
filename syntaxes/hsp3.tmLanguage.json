@@ -12,7 +12,8 @@
     {"include": "#preprocessors"},
     {"include": "#keywords"},
     {"include": "#constants"},
-    {"include": "#operators"}
+    {"include": "#operators"},
+    {"include": "#namespace"}
   ],
   "repository": {
     "comments": {
@@ -203,9 +204,6 @@
               }
             },
             {
-              "include": "#preprocessors_newline"
-            },
-            {
               "include": "#constants"
             },
             {
@@ -262,9 +260,6 @@
               "include": "#comments"
             },
             {
-              "include": "#preprocessors_newline"
-            },
-            {
               "include": "#constants"
             },
             {
@@ -311,9 +306,6 @@
           "patterns": [
             {
               "include": "#comments"
-            },
-            {
-              "include": "#preprocessors_newline"
             },
             {
               "include": "#constants"
@@ -401,9 +393,6 @@
               "include": "#comments"
             },
             {
-              "include": "#preprocessors_newline"
-            },
-            {
               "match": "(?i)\\b(local)\\s+(\\S+)(?=\\s|\\n|,|\\\\|¥|;|//|/\\*|\\*/)",
               "captures": {
                 "1": {
@@ -448,9 +437,6 @@
           "patterns": [
             {
               "include": "#comments"
-            },
-            {
-              "include": "#preprocessors_newline"
             },
             {
               "match": "(?i)(?<=^|\\s|\"|,)(int|var|str|wstr|sptr|wptr|double|float|pval|comobj|bmscr|prefstr|pexinfo|nullptr)(?=\\s|\\n|,|;|//|/\\*|\\*/|¥|\\\\)",
@@ -502,9 +488,6 @@
           "patterns": [
             {
               "include": "#comments"
-            },
-            {
-              "include": "#preprocessors_newline"
             },
             {
               "match": "(?i)(?<=^|\\s|\"|,)(int|var|str|wstr|sptr|wptr|double|float|pval|comobj|bmscr|prefstr|pexinfo|nullptr)(?=\\s|\\n|,|;|//|/\\*|\\*/|¥|\\\\)",
@@ -559,9 +542,6 @@
               "include": "#comments"
             },
             {
-              "include": "#preprocessors_newline"
-            },
-            {
               "match": "\\{\"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\"\\}",
               "name": "string.other.GUID.hsp3"
             },
@@ -596,9 +576,6 @@
               "include": "#comments"
             },
             {
-              "include": "#preprocessors_newline"
-            },
-            {
               "match": "(?i)(?<=^|\\s|,)(int|var|str|wstr|double|float|pval|bmscr|hwnd|hdc|hinst)(?=\\s|\\n|,|\\\\|¥|;|//|/\\*|\\*/)",
               "captures": {
                 "1": {
@@ -624,7 +601,7 @@
             "3": {
               "patterns": [
                 {
-                  "include": "#number"
+                  "include": "#numbers"
                 }
               ]
             }
@@ -709,9 +686,6 @@
           "include": "#comments"
         },
         {
-          "include": "#preprocessors_newline"
-        },
-        {
           "match": "(?:\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|~|=|\"|'|\\?|@).*",
           "name": "invalid.illegal.hsp3"
         },
@@ -775,9 +749,6 @@
       "patterns": [
         {
           "include": "#comments"
-        },
-        {
-          "include": "#preprocessors_newline"
         },
         {
           "match": "(?i)\\b(onexit)\\b",
@@ -913,12 +884,12 @@
     },
     "constants": {
       "patterns": [
-        {"include": "#numbers"},
-        {"include": "#strings"},
-        {"include": "#labels"}
+        {"include": "#number"},
+        {"include": "#string"},
+        {"include": "#label"}
       ],
       "repository": {
-        "numbers": {
+        "number": {
           "patterns": [
             {
               "comment": "実数",
@@ -984,7 +955,7 @@
             }
           ]
         },
-        "strings": {
+        "string": {
           "patterns": [
             {
               "name": "string.quoted.double.hsp3",
@@ -1013,7 +984,7 @@
             }
           ]
         },
-        "labels": {
+        "label": {
           "patterns": [
             {
               "match": "(?<=^|:|=|\\{|\\}|\\(|,|goto|gosub|oncmd|onexit|onkey|onclick|onerror)\\s*(\\*)(\\S+?)(?=\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|\\:|;|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?|\\s|\\n)",
@@ -1080,6 +1051,22 @@
         {
           "match": "\\(|\\)|\\{|\\}|\\[|\\]",
           "name": "meta.brackets.hsp3"
+        }
+      ]
+    },
+    "namespace": {
+      "patterns": [
+        {
+          "name": "entity.name.class.hsp3",
+          "match": "@\\S*?(?=\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?|\\s|\\n)"
+        },
+        {
+          "match": "(@\\S*)",
+          "captures": {
+            "1": {
+              "name": "entity.name.class.hsp3"
+            }
+          }
         }
       ]
     }
