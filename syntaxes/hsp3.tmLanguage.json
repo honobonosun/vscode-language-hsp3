@@ -1,1075 +1,672 @@
 {
-  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-  "name": "HSP3",
-  "fileTypes": [
-    "hsp",
-    "as"
-  ],
-  "foldingStartMarker": "\\{|\\{\"",
-  "foldingStopMarker": "\\}|\"\\}",
-  "patterns": [
-    {"include": "#comments"},
-    {"include": "#preprocessors"},
-    {"include": "#keywords"},
-    {"include": "#constants"},
-    {"include": "#operators"},
-    {"include": "#namespace"}
-  ],
-  "repository": {
-    "comments": {
-      "patterns": [
-        {
-          "name": "comment.line.hsp3",
-          "match": "(;|//).*$"
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "HSP3",
+	"patterns": [
+		{"include": "#comments"},
+		{"include": "#preprocessors"},
+		{"include": "#constants"},
+		{"include": "#label"},
+		{"include": "#operators"},
+		{"include": "#keywords"},
+		{"include": "#variable"},
+		{"include": "#command"},
+		{"include": "#identifier"}
+	],
+	"repository": {
+		"code": {
+			"patterns": [
+				{"include": "#comments"},
+				{"include": "#constants"},
+				{"include": "#label"},
+				{"include": "#operators"},
+				{"include": "#keywords"},
+				{"include": "#variable"},
+				{"include": "#command"},
+				{"include": "#identifier"}
+			]
+		},
+		"comments": {
+			"patterns": [
+				{
+					"name": "comment.line.hsp3",
+					"match": "(;|//).*$"
+				},
+				{
+					"begin": "/\\*",
+					"end": "\\*/",
+					"name": "comment.block.hsp3"
+				}
+			]
+		},
+		"preprocessors": {
+			"patterns": [
+				{
+					"comment": "#if 0 … #endif",
+					"begin": "(?i)^\\s*(#if)\\s+(0)\\s*$",
+					"end": "^\\s*(#endif)(?=[^\\w\\p{Cn}`＠])",
+					"beginCaptures": {
+						"1": {"name": "keyword.control.hsp3"},
+						"2": {"name": "constant.numeric.hsp3"}
+					},
+					"endCaptures": {"1": {"name": "keyword.control.hsp3"}},
+					"contentName": "comment.block.hsp3"
+				},
+				{
+					"comment": "#module name",
+					"begin": "(?i)^\\s*(#module)\\s+([\\w\\p{Cn}`＠@]{1,20})([\\w\\p{Cn}`＠@]*)",
+					"end": "(?<!\\\\|¥)\\n",
+					"beginCaptures": {
+						"1": {"name": "keyword.control.hsp3"},
+						"2": {
+							"name": "entity.name.class.hsp3",
+							"patterns": [{
+								"name": "invalid.illegal.hsp3",
+								"match": "(?<=\\s)[0-9].*"
+							}]
+						},
+						"3": {"name": "invalid.deprecated.hsp3"}
+					},
+					"patterns": [{"include": "#module_variable"}]
+				},
+				{
+					"comment": "#module \"name\"",
+					"begin": "(?i)^\\s*(#module)\\s*(\"([\\w\\p{Cn}`＠@]{1,20})([\\w\\p{Cn}`＠@]*)\")",
+					"end": "(?<!\\\\|¥)\\n",
+					"beginCaptures": {
+						"1": {"name": "keyword.control.hsp3"},
+						"2": {"name": "string.quoted.double.module.hsp3"},
+						"3": {
+							"name": "entity.name.class.hsp3",
+							"patterns": [{
+								"name": "invalid.illegal.hsp3",
+								"match": "(?<=\")[0-9]+.*"
+							}]
+						},
+						"4": {"name": "invalid.deprecated.hsp3"}
+					},
+					"patterns": [{"include": "#module_variable"}]
+				},
+				{
+					"begin": "(?i)^\\s*(#define)(?:\\s+(global))?(?:\\s+(ctype))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)",
+					"end": "(?<!\\\\|¥)\\n",
+					"beginCaptures": {
+						"1": {"name": "keyword.control.hsp3"},
+						"2": {"name": "storage.modifier.hsp3"},
+						"3": {"name": "storage.type.hsp3"},
+						"4": {
+							"name": "entity.name.function.preprocessor",
+							"patterns": [{"include": "#identifier_rule"}]
+						},
+						"5": {"name": "invalid.deprecated.hsp3"}
+					},
+					"patterns": [
+						{"include": "#comments"},
+						{
+							"name": "variable.parameter.hsp3",
+							"match": "%[0-9]+"
+						},
+						{
+							"name": "constant.character.escape.tag.hsp3",
+							"match": "(?i)%(?:n|i|o|p|s|c)([0-9]+)?",
+							"captures": {"1": {"name": "markup.italic.number.hsp3"}}
+						},
+						{
+							"name": "constant.character.escape.tag.hsp3",
+							"match": "(?i)%t([\\w\\p{Cn}`＠@]*)",
+							"captures": {"1": {"name": "entity.name.tag.hsp3"}}
+						},
+						{"include": "#code"}
+					]
+				},
+				{
+					"begin": "(?i)^\\s*(#const)(?:\\s(global))?(?:\\s+(double))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)",
+					"end": "(?<!\\\\|¥)\\n",
+					"beginCaptures": {
+						"1": {"name": "keyword.control.hsp3"},
+						"2": {"name": "storage.modifier.hsp3"},
+						"3": {"name": "storage.type.hsp3"},
+						"4": {
+							"name": "entity.name.section.hsp3",
+							"patterns": [{"include": "#identifier_rule"}]
+						}
+					},
+					"patterns": [
+						{"include": "#comments"},
+						{"include": "#constants"},
+						{"include": "#operators"}
+					]
+				},
+				{
+					"begin": "(?i)^\\s*(#enum)(?:\\s+(global))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)",
+					"end": "(?<!\\\\|¥)\\n",
+					"beginCaptures": {
+						"1": {"name": "keyword.control.hsp3"},
+						"2": {"name": "storage.modifier.hsp3"},
+						"3": {
+							"name": "entity.name.section.hsp3",
+							"patterns": [{"include": "#identifier_rule"}]
+						}
+					},
+					"patterns": [
+						{"include": "#comments"},
+						{"include": "#constants"},
+						{"include": "#operators"}
+					]
+				},
+				{
+					"begin": "(?i)^\\s*(#defc?func)(?:\\s+(local))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)(?:\\s+(onexit))?",
+					"end": "(?<!\\\\|¥)\\n",
+					"beginCaptures": {
+						"1": {"name": "keyword.control.hsp3"},
+						"2": {"name": "storage.modifier.hsp3"},
+						"3": {
+							"name": "entity.name.function.hsp3",
+							"patterns": [{"include": "#identifier_rule"}]
+						},
+						"4": {"name": "invalid.deprecated.hsp3"},
+						"5": {"name": "storage.modifier.hsp3"}
+					},
+					"patterns": [{"include": "#deffunc_argument"}]
+				},
+				{
+					"begin": "(?i)^\\s*(#modc?func)(?:\\s+(local))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)",
+					"end": "(?<!\\\\|¥)\\n",
+					"beginCaptures": {
+						"1": {"name": "keyword.control.hsp3"},
+						"2": {"name": "storage.modifier.hsp3"},
+						"3": {
+							"name": "entity.name.function.hsp3",
+							"patterns": [{"include": "#identifier_rule"}]
+						},
+						"4": {"name": "invalid.deprecated.hsp3"}
+					},
+					"patterns": [{"include": "#deffunc_argument"}]
+				},
+				{
+					"begin": "(?i)^\\s*(#modinit)(?=[^\\w\\p{Cn}`＠@])",
+					"end": "(?<!\\\\|¥)\\n",
+					"beginCaptures": {"1": {"name": "keyword.control.hsp3"}},
+					"patterns": [{"include": "#deffunc_argument"}]
+				},
+				{
+					"begin": "(?i)^\\s*(#modterm)(?=[^\\w\\p{Cn}`＠@])",
+					"end": "(?<!\\\\|¥)\\n",
+					"beginCaptures": {"1": {"name": "keyword.control.hsp3"}},
+					"patterns": [
+						{"include": "#comments"},
+						{
+							"match": "(?i)(?<=^|\\s|,)(local)(?:\\s([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*))?",
+							"captures": {
+								"1": {"name": "support.type.hsp3"},
+								"2": {
+									"name": "variable.parameter.hsp3",
+									"patterns": [
+										{
+											"name": "invalid.illegal.hsp3",
+											"match": "(?<=\\s)[0-9].*"
+										},
+										{
+											"name": "invalid.illegal.hsp3",
+											"match": "(?<=\\s).*@.*"
+										}
+									]
+								},
+								"3": {"name": "invalid.deprecated.hsp3"}
+							}
+						}
+					]
+				},
+				{
+					"begin": "(?i)^\\s*(#c?func)(?:\\s+(global))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)(?:\\s+(onexit))?\\s*(\"[\\w\\p{Cn}＠@]+\")",
+					"end": "(?<!\\\\|¥)\\n",
+					"beginCaptures": {
+						"1": {"name": "keyword.control.hsp3"},
+						"2": {"name": "storage.modifier.hsp3"},
+						"3": {
+							"name": "entity.name.function.hsp3",
+							"patterns": [{"include": "#identifier_rule"}]
+						},
+						"4": {"name": "invalid.deprecated.hsp3"},
+						"5": {"name": "storage.modifier.hsp3"},
+						"6": {"name": "string.import.hsp3"}
+					},
+					"patterns": [{"include": "#func_argument"}]
+				},
+				{
+					"begin": "(?i)^\\s*(#c?func)(?:\\s+(global))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)(?:\\s+(onexit))?\\s+([\\w\\p{Cn}]+)",
+					"end": "(?<!\\\\|¥)\\n",
+					"beginCaptures": {
+						"1": {"name": "keyword.control.hsp3"},
+						"2": {"name": "storage.modifier.hsp3"},
+						"3": {
+							"name": "entity.name.function.hsp3",
+							"patterns": [{"include": "#identifier_rule"}]
+						},
+						"4": {"name": "invalid.deprecated.hsp3"},
+						"5": {"name": "storage.modifier.hsp3"},
+						"6": {"name": "string.import.hsp3"}
+					},
+					"patterns": [{"include": "#func_argument"}]
+				},
+				{
+					"begin": "(?i)^\\s*(#usecom)(?:\\s+(global))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)",
+					"end": "(?<!\\\\|¥)\\n",
+					"beginCaptures": {
+						"1": {"name": "keyword.control.hsp3"},
+						"2": {"name": "storage.modifier.hsp3"},
+						"3": {
+							"name": "entity.name.section",
+							"patterns": [{"include": "#identifier_rule"}]
+						},
+						"4": {"name": "invalid.deprecated.hsp3"}
+					},
+					"patterns": [
+						{"include": "#comments"},
+						{"include": "#strings"}
+					]
+				},
+				{
+					"begin": "(?i)^\\s*(#comfunc)(?:\\s+(global))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)\\s+([0-9]+)",
+					"end": "(?<!\\\\|¥)\\n",
+					"beginCaptures": {
+						"1": {"name": "keyword.control.hsp3"},
+						"2": {"name": "storage.modifier.hsp3"},
+						"3": {
+							"name": "entity.name.function.hsp3",
+							"patterns": [{"include": "#identifier_rule"}]
+						},
+						"4": {"name": "invalid.deprecated.hsp3"},
+						"5": {"name": "constant.numeric.hsp3"}
+					},
+					"patterns": [
+						{"include": "#comments"},
+						{
+							"match": "(?i)(?<=^|\\s|,)(int|var|str|wstr|double|float|pval|bmscr|hwnd|hdc|hinst)(?=\\s|\\n|,|\\\\|¥|;|//|/\\*|\\*/)",
+							"captures": {"1": {"name": "support.type.hsp3"}}
+						}
+					]
+				},
+				{
+					"begin": "(?i)^\\s*(#cmd)\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)",
+					"end": "(?<!\\\\|¥)\\n",
+					"beginCaptures": {
+						"1": {"name": "keyword.control.hsp3"},
+						"2": {"name": "entity.name.function.hsp3"},
+						"3": {"name": "invalid.deprecated.hsp3"}
+					},
+					"patterns": [
+						{"include": "#comments"},
+						{"include": "#numbers"}
+					]
+				},
+				{
+					"match": "^\\s*(#else|#endif|#epack|#if|#ifdef|#ifndef|#pack|#runtime|#undef|#uselib|#regcmd|#module|#global|#include|#addition|#uselib|#ahtmes)(?=[^\\w\\p{Cn}`＠])",
+					"captures": {"1": {"name": "keyword.control.hsp3"}}
+				},
+				{
+					"match": "^\\s*(##)([0-9]+)",
+					"captures": {
+						"1": {"name": "keyword.control.hsp3"},
+						"2": {"name": "constant.numeric.hsp3"}
+					}
+				},
+				{
+					"match": "(?i)^\\s*(#aht)\\s+(class|name|author|ver|exp|icon|iconid)(?=[\\s|\\n|;|//|/*|*/])",
+					"captures": {
+						"1": {"name": "keyword.control.hsp3"},
+						"2": {"name": "support.constant.hsp3"}
+					}
+				},
+				{
+					"match": "(?i)^\\s*(#bootopt)\\s+(notime|utf8|hsp64)(?=[\\s|\\n|;|//|/*|*/])",
+					"captures": {
+						"1": {"name": "keyword.control.hsp3"},
+						"2": {"name": "support.constant.hsp3"}
+					}
+				},
+				{
+					"match": "(?i)^\\s*(#packopt)\\s+(name|runtime|type|xsize|ysize|hide|orgpath|icon|lang|version|manifest)(?=[\\s|\\n|;|//|/*|*/])",
+					"captures": {
+						"1": {"name": "keyword.control.hsp3"},
+						"2": {"name": "support.constant.hsp3"}
+					}
+				},
+				{
+					"match": "(?i)^\\s*(#cmpopt)\\s+(ppout|optcode|optinfo|varname|varinit|optprm|skipjpspc|utf8)(?=[\\s|\\n|;|//|/*|*/])",
+					"captures": {
+						"1": {"name": "keyword.control.hsp3"},
+						"2": {"name": "support.constant.hsp3"}
+					}
+				},
+				{
+					"match": "^\\s*(#\\S+)",
+					"captures": {"1": {"name": "support.other.preprocessor.hsp3"}}
+				}
+			]
+		},
+		"module_variable": {
+			"patterns": [
+				{"include": "#comments"},
+				{
+					"name": "invalid.illegal.hsp3",
+					"match": "(?<=^|\\s|,)[0-9]+[\\w\\p{Cn}]*"
+				},
+				{
+					"match": "([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)",
+					"captures": {
+						"1": {"name": "variable.name.hsp3"},
+						"2": {"name": "invalid.deprecated.hsp3"}
+					}
+				}
+			]
+		},
+		"identifier_rule": {
+			"patterns": [
+				{
+					"name": "invalid.illegal.hsp3",
+					"match": "(?<=\\s)[0-9].*"
+				},
+				{
+					"name": "entity.name.class.hsp3",
+					"match": "@.+"
+				}
+			]
+		},
+		"deffunc_argument": {
+			"patterns": [
+				{"include": "#comments"},
+				{
+					"match": "(?i)(?<=^|[^\\w\\p{Cn}`＠])\\s*((?:onexit)(?:@hsp)?)(?=[^\\w\\p{Cn}`＠])",
+					"captures": {"1": {"name": "invalid.deprecated.hsp3"}}
+				},
+				{
+					"match": "(?i)(?<=^|\\s|,)(int|var|array|str|double|label|local)(?:\\s([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*))?",
+					"captures": {
+						"1": {"name": "support.type.hsp3"},
+						"2": {
+							"name": "variable.parameter.hsp3",
+							"patterns": [
+								{
+									"name": "invalid.illegal.hsp3",
+									"match": "(?<=\\s)[0-9].*"
+								},
+								{
+									"name": "invalid.illegal.hsp3",
+									"match": "(?<=\\s).*@.*"
+								}
+							]
+						},
+						"3": {"name": "invalid.deprecated.hsp3"}
+					}
+				}
+			]
+		},
+		"func_argument": {
+			"patterns": [
+				{"include": "#comments"},
+				{
+					"match": "(?<=^|[^\\w\\p{Cn}`＠])\\s*(int|var|str|wstr|sptr|wptr|double|float|pval|comobj|bmscr|prefstr|pexinfo|nullptr)(?=[^\\w\\p{Cn}`＠])",
+					"captures": {"1": {"name": "support.type.hsp3"}}
+				},
+				{"include": "#numbers"}
+			]
+		},
+		"constants": {
+			"patterns": [
+				{"include": "#numbers"},
+				{"include": "#strings"}
+			]
+		},
+		"numbers": {
+			"patterns": [
+				{
+					"name": "constant.numeric.hex.hsp3",
+					"match": "(?i)(\\b0x|\\$)[0-9a-fA-F]+\\b"
+				},
+				{
+					"name": "constant.numeric.binary.hsp3",
+					"match": "(?i)(\\b0b|%)[01]+\\b"
+				},
+				{
+					"name": "constant.numeric.double.hsp3",
+					"match": "\\b[0-9]+(\\.[0-9]+)?(E(\\+|-)?[0-9]*)?\\b"
+				},
+				{
+					"name": "constant.numeric.double.hsp3",
+					"match": "\\b[0-9]+(\\.[0-9]+)?F\\b"
+				},
+				{
+					"name": "constant.numeric.decimal.hsp3",
+					"match": "\\b[0-9]+\\b"
+				},
+				{
+					"name": "constant.character.hsp3",
+					"match": "'([¥\\\\].|[^¥\\\\])'",
+					"captures": {"1": {"patterns": [{"match": "[¥\\\\].", "name": "constant.character.escape.hsp3"}]}}
+				}
+			]
+		},
+		"strings": {
+			"patterns": [
+				{
+					"name": "string.quoted.double.hsp3",
+          "match": "\"((?:\\\\\"|\\\\\\\\|¥\"|¥¥|[^\"])*)\"",
+          "captures": {"1": {"patterns": [{
+						"name": "constant.character.escape.hsp3",
+						"match": "[¥\\\\]."
+					}]}}
         },
-        {
-          "name": "comment.block.hsp3",
-          "begin": "/\\*",
-          "end": "\\*/",
-          "patterns": [
-            {"include": "text.hs"}
-          ]
-        }
-      ]
-    },
-    "preprocessors": {
-      "patterns": [
-        {
-          "comment": "#if 0 ... #endif",
-          "begin": "(?i:(#if)\\s+(0))(\\s.*)?$",
-          "end": "(?i:(#endif))",
-          "contentName": "comment.block.preprocessor",
-          "beginCaptures": {
-            "1": {
-              "name": "keyword.control.hsp3"
-            },
-            "2": {
-              "name": "constant.numeric.hsp3"
-            },
-            "3": {
-              "patterns": [
-                {
-                  "include": "#comments"
-                },
-                {
-                  "include": "#constants"
-                },
-                {
-                  "include": "#operators"
-                },
-                {
-                  "include": "#rules"
-                },
-                {
-                  "include": "#namespace"
-                }
-              ]
-            }
-          },
-          "endCaptures": {
-            "1": {
-              "name": "keyword.control.hsp3"
-            }
-          }
-        },
-        {
-          "begin": "(?i)^\\s*(#module)\\s+(?!\")(\\S+?)(?=\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?|\\s|\\n)",
-          "beginCaptures": {
-            "1": {
-              "name": "keyword.control.hsp3"
-            },
-            "2": {
-              "patterns": [
-                {
-                  "match": "(\\S{1,20})(.*)",
-                  "captures": {
-                    "1": {
-                      "name": "entity.name.class.hsp3",
-                      "patterns": [
-                        {
-                          "match": "^([0-9]|\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|'|\\?).*",
-                          "name": "invalid.illegal.hsp3"
-                        }
-                      ]
-                    },
-                    "2": {
-                      "name": "invalid.deprecated.hsp3"
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "end": "(?<!\\\\|¥)\\n",
-          "patterns": [
-            {
-              "include": "#pp_module_variable"
-            }
-          ]
-        },
-        {
-          "begin": "(?i)^\\s*(#module)(\\s*\\S+)(?<=\")",
-          "beginCaptures": {
-            "1": {
-              "name": "keyword.control.hsp3"
-            },
-            "2": {
-              "name": "meta.module.hsp3",
-              "patterns": [
-                {
-                  "match": "^\\s*(\")(\\S{1,20})(.*)(\")",
-                  "captures": {
-                    "1": {
-                      "name": "string.quoted.double.begin.hsp3"
-                    },
-                    "2": {
-                      "name": "entity.name.class.hsp3",
-                      "patterns": [
-                        {
-                          "match": "^([0-9]|\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|'|\\?).*",
-                          "name": "invalid.illegal.hsp3"
-                        }
-                      ]
-                    },
-                    "3": {
-                      "name": "invalid.deprecated.hsp3"
-                    },
-                    "4": {
-                      "name": "string.quoted.double.end.hsp3"
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "end": "(?<!\\\\|¥)\\n",
-          "patterns": [
-            {
-              "include": "#pp_module_variable"
-            }
-          ]
-        },
-        {
-          "begin": "(?i)^\\s*(#define)(?:\\s+(global))?(?:\\s+(ctype))?\\s+(\\S+?)(?=\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?|\\s|\\n)",
-          "beginCaptures": {
-            "1": {
-              "name": "keyword.control.hsp3"
-            },
-            "2": {
-              "name": "storage.modifier.hsp3"
-            },
-            "3": {
-              "name": "storage.type.hsp3"
-            },
-            "4": {
-              "name": "entity.name.section.hsp3",
-              "patterns": [
-                {
-                  "match": "^([0-9]|\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?).*",
-                  "name": "invalid.illegal.hsp3"
-                },
-                {
-                  "include": "#namespace"
-                }
-              ]
-            }
-          },
-          "end": "(?<!\\\\|¥)\\n",
-          "patterns": [
-            {
-              "include": "#comments"
-            },
-            {
-              "match": "%[0-9]+",
-              "name": "variable.other.hsp3"
-            },
-            {
-              "match": "(?i)%(?:n|i|o|p|s|c)([0-9]+)?",
-              "name": "constant.character.escape.tag.hsp3",
-              "captures": {
-                "1": {
-                  "name": "markup.italic.number.hsp3"
-                }
-              }
-            },
-            {
-              "match": "(?i)(%t(\\S*?))(?=\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?|\\s|\\n|@)",
-              "captures": {
-                "1": {
-                  "name": "constant.character.escape.tag.hsp3"
-                },
-                "2": {
-                  "name": "entity.name.tag.hsp3"
-                }
-              }
-            },
-            {
-              "include": "#constants"
-            },
-            {
-              "include": "#operators"
-            },
-            {
-              "include": "#keywords"
-            },
-            {
-              "include": "#namespace"
-            }
-          ]
-        },
-        {
-          "begin": "(?i)^\\s*(#const)(?:\\s+(global))?(?:\\s+(double))?\\s+(\\S+?)(?=\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?|\\s|\\n)",
-          "beginCaptures": {
-            "1": {
-              "name": "storage.type.hsp3"
-            },
-            "2": {
-              "name": "storage.modifier.hsp3"
-            },
-            "3": {
-              "name": "storage.type.hsp3"
-            },
-            "4": {
-              "patterns": [
-                {
-                  "match": "(\\S{1,60})(.*)",
-                  "captures": {
-                    "1": {
-                      "name": "entity.name.section.hsp3",
-                      "patterns": [
-                        {
-                          "match": "^(?:[0-9]|\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?).*",
-                          "name": "invalid.illegal.hsp3"
-                        },
-                        {
-                          "include": "#namespace"
-                        }
-                      ]
-                    },
-                    "2": {
-                      "name": "invalid.deprecated.hsp3"
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "end": "(?<!\\\\|¥)\\n",
-          "patterns": [
-            {
-              "include": "#comments"
-            },
-            {
-              "include": "#constants"
-            },
-            {
-              "include": "#operators"
-            }
-          ]
-        },
-        {
-          "begin": "(?i)^\\s*(#enum)(?:\\s+(global))?\\s+(\\S+?)(?=\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?|\\s|\\n)",
-          "beginCaptures": {
-            "1": {
-              "name": "storage.type.hsp3"
-            },
-            "2": {
-              "name": "storage.modifier.hsp3"
-            },
-            "3": {
-              "patterns": [
-                {
-                  "match": "(\\S{1,59})(.*)",
-                  "captures": {
-                    "1": {
-                      "name": "entity.name.section.hsp3",
-                      "patterns": [
-                        {
-                          "match": "^([0-9]|\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?).*",
-                          "name": "invalid.illegal.hsp3"
-                        },
-                        {
-                          "match": "(?:\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?).*",
-                          "name": "invalid.illegal.hsp3"
-                        },
-                        {
-                          "include": "#namespace"
-                        }
-                      ]
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "end": "(?<!\\\\|¥)\\n",
-          "patterns": [
-            {
-              "include": "#comments"
-            },
-            {
-              "include": "#constants"
-            },
-            {
-              "include": "#operators"
-            }
-          ]
-        },
-        {
-          "begin": "(?i)^\\s*(#defc?func)(?:\\s+(local))?\\s+(?!;|//|/\\*|\\*/)(\\S+?)(?:\\s+(onexit))?(?=\\s|\\n|\\\\|¥|;|//|/\\*|\\*/)",
-          "beginCaptures": {
-            "1": {
-              "name": "storage.type.hsp3"
-            },
-            "2": {
-              "name": "storage.modifier.hsp3"
-            },
-            "3": {
-              "patterns": [
-                {
-                  "include": "#pp_function_name"
-                }
-              ]
-            },
-            "4": {
-              "name": "storage.modifier.hsp3"
-            }
-          },
-          "end": "(?<!\\\\|¥)\\n",
-          "patterns": [
-            {
-              "include": "#pp_deffunc_argument"
-            }
-          ]
-        },
-        {
-          "begin": "(?i)^\\s*(#modc?func)(?:\\s+(local))?\\s+(?!;|//|/\\*|\\*/)(\\S+?)(?=\\s|\\n|\\\\|¥|;|//|/\\*|\\*/)",
-          "beginCaptures": {
-            "1": {
-              "name": "storage.type.hsp3"
-            },
-            "2": {
-              "name": "storage.modifier.hsp3"
-            },
-            "3": {
-              "patterns": [
-                {
-                  "include": "#pp_function_name"
-                }
-              ]
-            }
-          },
-          "end": "(?<!\\\\|¥)\\n",
-          "patterns": [
-            {
-              "include": "#pp_deffunc_argument"
-            }
-          ]
-        },
-        {
-          "begin": "(?i)^\\s*(#modinit)(?=\\s|\\n|\\\\|¥|;|//|/\\*|\\*/)",
-          "beginCaptures": {
-            "1": {
-              "name": "storage.type.hsp3"
-            }
-          },
-          "end": "(?<!\\\\|¥)\\n",
-          "patterns": [
-            {
-              "include": "#pp_deffunc_argument"
-            }
-          ]
-        },
-        {
-          "begin": "(?i)^\\s*(#modterm)(?=\\s|\\n|\\\\|¥|;|//|/\\*|\\*/)",
-          "beginCaptures": {
-            "1": {
-              "name": "storage.type.hsp3"
-            }
-          },
-          "end": "(?<!\\\\|¥)\\n",
-          "patterns": [
-            {
-              "include": "#comments"
-            },
-            {
-              "match": "(?i)\\b(local)\\s+(\\S+)(?=\\s|\\n|,|\\\\|¥|;|//|/\\*|\\*/)",
-              "captures": {
-                "1": {
-                  "name": "storage.type.hsp3"
-                },
-                "2": {
-                  "name": "variable.other.hsp3"
-                }
-              }
-            }
-          ]
-        },
-        {
-          "begin": "(?i)^\\s*(#c?func)(?:\\s+(global))?\\s+(\\S+?)(?=\"|\\s+)(?:(?:\\s+(onexit))?\\s*(\\S+)(?<=\"))",
-          "beginCaptures": {
-            "1": {
-              "name": "storage.type.hsp3"
-            },
-            "2": {
-              "name": "storage.modifier.hsp3"
-            },
-            "3": {
-              "patterns": [
-                {
-                  "include": "#pp_function_name"
-                }
-              ]
-            },
-            "4": {
-              "name": "storage.modifier.hsp3"
-            },
-            "5": {
-              "name": "markup.raw.hsp3",
-              "patterns": [
-                {
-                  "include": "#escaped_char"
-                }
-              ]
-            }
-          },
-          "end": "(?<!\\\\|¥)\\n",
-          "patterns": [
-            {
-              "include": "#comments"
-            },
-            {
-              "match": "(?i)(?<=^|\\s|\"|,)(int|var|str|wstr|sptr|wptr|double|float|pval|comobj|bmscr|prefstr|pexinfo|nullptr)(?=\\s|\\n|,|;|//|/\\*|\\*/|¥|\\\\)",
-              "captures": {
-                "1": {
-                  "name": "storage.type.hsp3"
-                }
-              }
-            },
-            {
-              "include": "#number"
-            }
-          ]
-        },
-        {
-          "begin": "(?i)^\\s*(#c?func)(?:\\s+(global))?\\s+(?!;|//|/\\*)(\\S+)(?:\\s+(onexit))?(?:\\s+(\\S+?)(?=\\s|\\n|;|//|/\\*|\\\\|¥))",
-          "beginCaptures": {
-            "1": {
-              "name": "storage.type.hsp3"
-            },
-            "2": {
-              "name": "storage.modifier.hsp3"
-            },
-            "3": {
-              "patterns": [
-                {
-                  "include": "#pp_function_name"
-                }
-              ]
-            },
-            "4": {
-              "name": "storage.modifier.hsp3"
-            },
-            "5": {
-              "name": "markup.raw.hsp3",
-              "patterns": [
-                {
-                  "match": "^\\d+(\\S+)$",
-                  "captures": {
-                    "1": {
-                      "name": "invalid.illegal.hsp3"
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "end": "(?<!\\\\|¥)\\n",
-          "patterns": [
-            {
-              "include": "#comments"
-            },
-            {
-              "match": "(?i)(?<=^|\\s|\"|,)(int|var|str|wstr|sptr|wptr|double|float|pval|comobj|bmscr|prefstr|pexinfo|nullptr)(?=\\s|\\n|,|;|//|/\\*|\\*/|¥|\\\\)",
-              "captures": {
-                "1": {
-                  "name": "storage.type.hsp3"
-                }
-              }
-            },
-            {
-              "include": "#number"
-            }
-          ]
-        },
-        {
-          "begin": "(?i)^\\s*(#usecom)(?:\\s+(global))?\\s+(?!;|//|/\\*)(\\S+?)(?=\\s|\\n|\\\\|¥|;|//|/\\*|\")",
-          "beginCaptures": {
-            "1": {
-              "name": "storage.type.hsp3"
-            },
-            "2": {
-              "name": "storage.modifier.hsp3"
-            },
-            "3": {
-              "patterns": [
-                {
-                  "match": "(\\S{1,59})(.*)",
-                  "captures": {
-                    "1": {
-                      "name": "entity.name.section.hsp3",
-                      "patterns": [
-                        {
-                          "match": "^(?:[0-9]|\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?).*",
-                          "name": "invalid.illegal.hsp3"
-                        },
-                        {
-                          "include": "#namespace"
-                        }
-                      ]
-                    },
-                    "2": {
-                      "name": "invalid.deprecated.hsp3"
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "end": "(?<!\\\\|¥)\\n",
-          "patterns": [
-            {
-              "include": "#comments"
-            },
-            {
-              "match": "\\{\"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\"\\}",
-              "name": "string.other.GUID.hsp3"
-            },
-            {
-              "include": "#string_quoted_double"
-            }
-          ]
-        },
-        {
-          "begin": "(?i)^\\s*(#com?func)(?:\\s+(global))?\\s+(?!;|//|/\\*)(\\S+?)\\s+([0-9]+)",
-          "beginCaptures": {
-            "1": {
-              "name": "storage.type.hsp3"
-            },
-            "2": {
-              "name": "storage.modifier.hsp3"
-            },
-            "3": {
-              "patterns": [
-                {
-                  "include": "#pp_function_name"
-                }
-              ]
-            },
-            "4": {
-              "name": "constant.numeric.hsp3"
-            }
-          },
-          "end": "(?<!\\\\|¥)\\n",
-          "patterns": [
-            {
-              "include": "#comments"
-            },
-            {
-              "match": "(?i)(?<=^|\\s|,)(int|var|str|wstr|double|float|pval|bmscr|hwnd|hdc|hinst)(?=\\s|\\n|,|\\\\|¥|;|//|/\\*|\\*/)",
-              "captures": {
-                "1": {
-                  "name": "storage.type.hsp3"
-                }
-              }
-            }
-          ]
-        },
-        {
-          "match": "(?i)^\\s*(#cmd)\\s+(?!;|//|/\\*)(\\S+)\\s+(?!;|//|/\\*)(\\S+?)(?=\\s|\\n|;|//|/\\*|\")",
-          "captures": {
-            "1": {
-              "name": "storage.type.hsp3"
-            },
-            "2": {
-              "patterns": [
-                {
-                  "include": "#pp_function_name"
-                }
-              ]
-            },
-            "3": {
-              "patterns": [
-                {
-                  "include": "#numbers"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "match": "^\\s*(#else|#endif|#epack|#if|#ifdef|#ifndef|#pack|#runtime|#undef|#uselib|#regcmd|#module|#global|#include|#addition|#uselib|#ahtmes)(?=\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?|\\s|\\n)",
-          "captures": {
-            "1": {
-              "name": "keyword.control.hsp3"
-            }
-          }
-        },
-        {
-          "match": "^\\s*(##)([0-9]+)",
-          "captures": {
-            "1": {
-              "name": "keyword.control.hsp3"
-            },
-            "2": {
-              "name": "constant.numeric.line.hsp3"
-            }
-          }
-        },
-        {
-          "match": "(?i)^\\s*(#aht)\\s+(class|name|author|ver|exp|icon|iconid)(?=\\s|\\n|;|//|/\\*|\\*/)",
-          "captures": {
-            "1": {
-              "name": "keyword.control.hsp3"
-            },
-            "2": {
-              "name": "support.constant.hsp3"
-            }
-          }
-        },
-        {
-          "match": "(?i)^\\s*(#bootopt)\\s+(notime|utf8|hsp64)(?=\\s|\\n|;|//|/\\*|\\*/)",
-          "captures": {
-            "1": {
-              "name": "keyword.control.hsp3"
-            },
-            "2": {
-              "name": "support.constant.hsp3"
-            }
-          }
-        },
-        {
-          "match": "(?i)^\\s*(#packopt)\\s+(name|runtime|type|xsize|ysize|hide|orgpath|icon|lang|version|manifest)(?=\\s|\\n|;|//|/\\*|\\*/)",
-          "captures": {
-            "1": {
-              "name": "keyword.control.hsp3"
-            },
-            "2": {
-              "name": "support.constant.hsp3"
-            }
-          }
-        },
-        {
-          "match": "(?i)^\\s*(#cmpopt)\\s+(ppout|optcode|optinfo|varname|varinit|optprm|skipjpspc|utf8)(?=\\s|\\n|;|//|/\\*|\\*/)",
-          "captures": {
-            "1": {
-              "name": "keyword.control.hsp3"
-            },
-            "2": {
-              "name": "support.constant.hsp3"
-            }
-          }
-        },
-        {
-          "match": "^\\s*(#\\S+)",
-          "captures": {
-            "1": {
-              "name": "support.other.preprocessor.hsp3"
-            }
-          }
-        }
-      ]
-    },
-    "pp_module_variable": {
-      "patterns": [
-        {
-          "include": "#comments"
-        },
-        {
-          "match": "(?:\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|~|=|\"|'|\\?|@).*",
-          "name": "invalid.illegal.hsp3"
-        },
-        {
-          "match": "(?!\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?|@)(\\S+?)(?=\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?|\\s|\\n|@)",
-          "captures": {
-            "1": {
-              "patterns": [
-                {
-                  "match": "(.{1,59})(.*)",
-                  "captures": {
-                    "1": {
-                      "name": "variable.other.hsp3",
-                      "patterns": [
-                        {
-                          "match": "^[0-9].*",
-                          "name": "invalid.illegal.hsp3"
-                        }
-                      ]
-                    },
-                    "2": {
-                      "name": "invalid.deprecated.hsp3"
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "pp_function_name": {
-      "patterns": [
-        {
-          "match": "(\\S{1,59})(.*)",
-          "captures": {
-            "1": {
-              "patterns": [
-                {
-                  "match": "^([0-9]|\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?|@).*",
-                  "name": "invalid.illegal.hsp3"
-                },
-                {
-                  "match": "(\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?).*",
-                  "name": "invalid.illegal.hsp3"
-                },
-                {
-                  "include": "#namespace"
-                }
-              ],
-              "name": "entity.name.function.hsp3"
-            },
-            "2": {
-              "name": "invalid.deprecated.hsp3"
-            }
-          }
-        }
-      ]
-    },
-    "pp_deffunc_argument": {
-      "patterns": [
-        {
-          "include": "#comments"
-        },
-        {
-          "match": "(?i)\\b(onexit)\\b",
-          "captures": {
-            "1": {
-              "name": "invalid.deprecated.hsp3"
-            }
-          }
-        },
-        {
-          "match": "(?i)(?<=^|\\s|,)(int|var|array|str|double|label|local)(?:\\s+(?!;|//|/\\*|\\*/|,|¥|\\\\)(\\S+?)(?=\\s|\\n|,|\\\\|¥|;|//|/\\*|\\*/))?",
-          "captures": {
-            "1": {
-              "name": "storage.type.hsp3"
-            },
-            "2": {
-              "patterns": [
-                {
-                  "match": "(\\S{1,59})(.*)",
-                  "captures": {
-                    "1": {
-                      "name": "variable.other.hsp3",
-                      "patterns": [
-                        {
-                          "match": "^([0-9]|\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?|@).*",
-                          "name": "invalid.illegal.hsp3"
-                        },
-                        {
-                          "match": "(\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?|@).*",
-                          "name": "invalid.illegal.hsp3"
-                        }
-                      ]
-                    },
-                    "2": {
-                      "name": "invalid.deprecated.hsp3"
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "keywords": {
-      "patterns": [
-        {
-          "comment": "COMオブジェクト系",
-          "name": "keyword.hsp3",
-          "match": "(?i)\\b(comevarg|comevent|delcom|newcom|querycom|sarrayconv|comevdisp)\\b"
-        },
-        {
-          "comment": "HSPシステム制御",
-          "name": "keyword.hsp3",
-          "match": "(?i)\\b(assert|logmes)\\b"
-        },
-        {
-          "comment": "オブジェクト系",
-          "name": "keyword.hsp3",
-          "match": "(?i)\\b(button|chkbox|clrobj|combox|input|listbox|mesbox|objnable|objimage|objmode|objprm|objsel|objsize|objskip|objenable)\\b"
-        },
-        {
-          "comment": "システム変数",
-          "name": "variable.language.hsp3",
-          "match": "(?i)\\b(cnt|dir_cmdline|dir_cur|dir_desktop|dir_exe|dir_mydoc|dir_sys|dir_tv|dir_win|err|ginfo_accx|ginfo_accy|ginfo_accz|ginfo_act|ginfo_b|ginfo_cx|ginfo_cy|ginfo_dispx|ginfo_dispy|ginfo_g|ginfo_intid|ginfo_mesx|ginfo_mesy|ginfo_mx|ginfo_my|ginfo_newid|ginfo_paluse|ginfo_r|ginfo_sel|ginfo_sizex|ginfo_sizey|ginfo_sx|ginfo_sy|ginfo_vx|ginfo_vy|ginfo_winx|ginfo_winy|ginfo_wx1|ginfo_wx2|ginfo_wy1|ginfo_wy2|hdc|hinstance|hspstat|hspver|hwnd|iparam|looplev|lparam|mousew|mousex|mousey|msgothic|msmincho|notemax|notesize|refdval|refstr|stat|strsize|sublev|thismod|wparam)\\b"
-        },
-        {
-          "comment": "ファイル制御",
-          "name": "keyword.hsp3",
-          "match": "(?i)\\b(bcopy|bload|bsave|chdir|chdpm|delete|dirlist|exist|memfile|mkdir)\\b"
-        },
-        {
-          "comment": "プログラム制御",
-          "name": "keyword.hsp3",
-          "match": "(?i)\\b(exec)\\b"
-        },
-        {
-          "comment": "文法コントロール",
-          "name": "keyword.control.hsp3",
-          "match": "(?i)\\b(if|else|repeat|loop|break|continue|foreach|while|wend|for|next|do|until|_break|_continue|switch|case|default|swbreak|swend|wait|await|stop|return|end|run|exgoto|on|goto|gosub)\\b"
-        },
-        {
-          "comment": "マルチメディア制御",
-          "name": "keyword.hsp3",
-          "match": "(?i)\\b(mci|mmload|mmplay|mmstop)\\b"
-        },
-        {
-          "comment": "メモリ管理",
-          "name": "keyword.hsp3",
-          "match": "(?i)\\b(comres|ddim|delmod|dim|dimtype|ldim|lpoke|memcpy|memexpand|memset|newlab|newmod|poke|sdim|wpoke|lpeek|peek|wpeek)\\b"
-        },
-        {
-          "comment": "alloc",
-          "name": "invalid.deprecated.hsp3",
-          "match": "(?i)\\b(alloc)\\b"
-        },
-        {
-          "comment": "基本入出力制御命令",
-          "name": "keyword.hsp3",
-          "match": "(?i)\\b(getkey|mcall|mouse|randomize|setease|sortget|sortstr|sortval|stick)\\b"
-        },
-        {
-          "comment": "基本入出力関数",
-          "name": "keyword.hsp3",
-          "match": "(?i)\\b(abs|absf|atan|stan|callfunc|cos|dirinfo|double|expf|getease|geteasef|gettime|ginfo|int|length|length2|length3|length4|libptr|limit|limitf|logf|objinfo|powf|rnd|sin|sqrt|str|strlen|sysinfo|tan|vartype|varuse|varptr|varsize)\\b"
-        },
-        {
-          "comment": "数学定数",
-          "name": "constant.language.hsp3",
-          "match": "(?i)\\b(M_PI)\\b"
-        },
-        {
-          "comment": "文字列操作",
-          "name": "keyword.hsp3",
-          "match": "(?i)\\b(cnvstoa|cnvstow|getstr|noteadd|notedel|noteget|noteload|notesave|notesel|noteunsel|sortnote|split|strrep|cnvatos|cnvwtos|getpath|instr|notefind|noteinfo|strf|strmid|strtrim)\\b"
-        },
-        {
-          "comment": "標準定義マクロ",
-          "name": "constant.language.hsp3",
-          "match": "(?i)\\b(__date__|__file__|__hsp30__|__hspver__|__line__|__time__|_debug|__hspdef__|and|deg2rad|font_antialias|font_bold|font_italic|font_normal|font_strikeout|font_underline|gmode_add|gmode_alpha|gmode_gdi|gmode_mem|gmode_pixela|gmode_rgb0|gmode_rgb0alpha|gmode_sub|not|objinfo_bmscr|objinfo_hwnd|objinfo_mode|objmode_guifont|objmode_normal|objmode_usefont|or|rad2deg|screen_fixedsize|screen_frame|screen_hide|screen_normal|screen_palette|screen_tool|xor|gsquare_grad|ease_linear|ease_quad_in|ease_quad_out|ease_quad_inout|ease_cubic_in|ease_cubic_out|ease_cubic_inout|ease_quartic_in|ease_quartic_out|ease_quartic_inout|ease_bounce_in|ease_bounce_out|ease_bounce_inout|ease_shake_in|ease_shake_out|ease_shake_inout|ease_loop|notefind_match|notefind_first|notefind_instr)\\b"
-        },
-        {
-          "comment": "特殊代入命令",
-          "name": "keyword.hsp3",
-          "match": "(?i)\\b(dup|dupptr|mref)\\b"
-        },
-        {
-          "comment": "画面制御命令",
-          "name": "keyword.hsp3",
-          "match": "(?i)\\b(axobj|bgscr|bmpsave|boxf|buffer|celdiv|celload|celput|chgdisp|circle|cls|color|dialog|font|gcopy|gmode|grect|gradf|groll|grotate|gsel|gsquare|gzoom|hsvcolor|line|mes|palcolor|palette|pget|picload|pos|print|pset|redraw|screen|sendmsg|syscolor|sysfont|title|width|winobj)\\b"
-        }
-      ]
-    },
-    "constants": {
-      "patterns": [
-        {"include": "#number"},
-        {"include": "#string"},
-        {"include": "#label"}
-      ],
-      "repository": {
-        "number": {
-          "patterns": [
-            {
-              "comment": "実数",
-              "match": "\\b(?i)([0-9]+(?:\\.[0-9]+)?E?(\\+|-)?[0-9]*F?)\\b",
-              "captures": {
-                "1": {
-                  "name": "constant.numeric.double.hsp3"
-                }
-              }
-            },
-            {
-              "comment": "2進数",
-              "match": "((?:\\b0b|%)[01]+)\\b",
-              "captures": {
-                "1": {
-                  "name": "constant.numeric.binary.hsp3"
-                }
-              }
-            },
-            {
-              "comment": "10進数",
-              "match": "\\b([0-9]+)\\b",
-              "captures": {
-                "1": {
-                  "name": "constant.numeric.decimal.hsp3"
-                }
-              }
-            },
-            {
-              "comment": "16進数",
-              "match": "((?:\\b0x|\\$)[0-9a-fA-F]+)\\b",
-              "captures": {
-                "1": {
-                  "name": "constant.numeric.hex.hsp3"
-                }
-              }
-            },
-            {
-              "comment": "文字コード",
-              "match": "(?i)'(?:((?:\\\\|¥)[¥\\\\nrt\"'])|([^']))?(.*?)'",
-              "captures": {
-                "1": {
-                  "name": "constant.character.escape.hsp3"
-                },
-                "2": {
-                  "patterns": [
-                    {
-                      "match": "\\\\|¥",
-                      "name": "invalid.illegal.hsp3"
-                    }
-                  ]
-                },
-                "3": {
-                  "name": "invalid.deprecated.hsp3"
-                }
-              },
-              "name": "constant.character.hsp3"
-            },
-            {
-              "comment": "文字コードで円マーク",
-              "match": "'(\\\\|¥)'",
-              "name": "invalid.deprecated.character.not_escape_OnlyOneYenSign.hsp3"
-            }
-          ]
-        },
-        "string": {
-          "patterns": [
-            {
-              "name": "string.quoted.double.hsp3",
-              "match": "\"((?:\\\\\"|\\\\\\\\|¥\"|¥¥|[^\"])*)\"",
-              "captures": {
-                "1": {
-                  "patterns": [
-                    {
-                      "name": "constant.character.escape.hsp3",
-                      "match": "\\\\."
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "name": "string.block.hsp3",
-              "begin": "\\{\"",
-              "end": "\"\\}",
-              "patterns": [
-                {
-                  "name": "constant.character.escape.hsp3",
-                  "match": "\\\\."
-                }
-              ]
-            }
-          ]
-        },
-        "label": {
-          "patterns": [
-            {
-              "match": "(?<=^|:|=|\\{|\\}|\\(|,|goto|gosub|oncmd|onexit|onkey|onclick|onerror)\\s*(\\*)(\\S+?)(?=\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|\\:|;|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?|\\s|\\n)",
-              "captures": {
-                "1": {
-                  "name": "markup.bold.asterisk.hsp3"
-                },
-                "2": {
-                  "patterns": [
-                    {
-                      "match": "(\\S{1,59})(.*)",
-                      "captures": {
-                        "1": {
-                          "patterns": [
-                            {
-                              "match": "^([0-9]|\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%(?![niopsc]\\d*)|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?).*",
-                              "name": "invalid.illegal.hsp3"
-                            },
-                            {
-                              "include": "#namespace"
-                            }
-                          ]
-                        },
-                        "2": {
-                          "name": "invalid.deprecated.hsp3"
-                        }
-                      },
-                      "name": "markup.bold.labelname.hsp3"
-                    }
-                  ]
-                }
-              }
-            }
-          ]
-        }
-      }
-    },
-    "operators": {
-      "patterns": [
-        {
-          "match": "<>|%\\=|\\*\\*\\=|~|\\*\\*",
-          "name": "invalid.illegal.operator.hsp3"
-        },
-        {
-          "match": "\\!|<=|>=|==|\\!=|<|>",
-          "name": "keyword.operator.comparison.hsp3"
-        },
-        {
-          "match": "\\+=|-\\=|\\*=|/=|//=|&=|\\|¥|=|\\^=|>>=|<<=",
-          "name": "keyword.operator.assignment.augmented.hsp3"
-        },
-        {
-          "match": "\\+|\\-|\\*|/|%|<<|>>|&|\\||\\^",
-          "name": "keyword.operator.arithmetic.hsp3"
-        },
-        {
-          "match": "=",
-          "name": "keyword.operator.assignment.hsp3"
-        },
-        {
-          "match": ":",
-          "name": "keyword.operator.delimiter.hsp3"
-        },
-        {
-          "match": "\\(|\\)|\\{|\\}|\\[|\\]",
-          "name": "meta.brackets.hsp3"
-        }
-      ]
-    },
-    "namespace": {
-      "patterns": [
-        {
-          "name": "entity.name.class.hsp3",
-          "match": "@\\S*?(?=\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?|\\s|\\n)"
-        },
-        {
-          "match": "(@\\S*)",
-          "captures": {
-            "1": {
-              "name": "entity.name.class.hsp3"
-            }
-          }
-        }
-      ]
-    }
-  },
-  "scopeName": "source.hsp3"
+				{
+					"name": "string.braces.hsp3",
+					"begin": "\\{\"",
+					"end": "\"\\}",
+					"patterns": [{
+						"name": "constant.character.escape.hsp3",
+						"match": "[¥\\\\]."
+					}]
+				}
+			]
+		},
+		"label": {
+			"patterns": [
+				{
+					"name": "markup.bold.hsp3",
+					"match": "(?i)(?<=^|:|=|\\{|\\}|\\(|,|goto|gosub|oncmd|onexit|onkey|onclick|onerror)\\s*\\*([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)",
+					"captures": {
+						"1": {
+							"patterns": [
+								{
+									"name": "invalid.illegal.hsp3",
+									"match": "(?<=\\*)[0-9].*"
+								},
+								{
+									"name": "entity.name.class.hsp3",
+									"match": "@.*"
+								}
+							]
+						},
+						"2": {"name": "invalid.deprecated.hsp3"}
+					}
+				}
+			]
+		},
+		"operators": {
+			"patterns": [
+				{
+					"name": "invalid.illegal.hsp3",
+					"match": "<>|%\\=|\\*\\*\\=|~|\\*\\*"
+				},
+				{	"comment": "comparison",
+					"name": "keyword.operator.hsp3",
+					"match": "\\!|<=|>=|==|\\!=|<|>"
+				},
+				{	"comment": "assignment & augmented",
+					"name": "keyword.operator.hsp3",
+					"match": "\\+=|-\\=|\\*=|/=|//=|&=|\\|¥|=|\\^=|>>=|<<="
+				},
+				{	"comment": "arithmetic",
+					"name": "keyword.operator.hsp3",
+					"match": "\\+|\\-|\\*|/|%|<<|>>|&|\\||\\^"
+				},
+				{	"comment": "increment",
+					"name": "keyword.operator.hsp3",
+					"match": "\\-\\-|\\+\\+"
+				},
+				{	"comment": "assignment",
+					"name": "keyword.operator.hsp3",
+					"match": "="
+				},
+				{	"comment": "delimiter",
+					"name": "keyword.operator.hsp3",
+					"match": ":"
+				},
+				{
+					"name": "meta.brackets.hsp3",
+					"match": "\\(|\\)|\\{|\\}|\\[|\\]"
+				}
+			]
+		},
+		"keywords": {
+			"patterns": [
+				{
+					"name": "keyword.control.hsp3",
+					"match": "(?i)(?<=^|[^\\w\\p{Cn}`＠])\\s*(if|else|repeat|loop|break|continue|foreach|while|wend|for|next|do|until|_break|_continue|switch|case|default|swbreak|swend|wait|await|stop|return|end|run|exgoto|on|goto|gosub)(@hsp)?(?=[^\\w\\p{Cn}`＠])"
+				},
+				{
+					"name": "keyword.hsp3",
+					"match": "(?i)(?<=^|[^\\w\\p{Cn}`＠])\\s*(comevarg|comevent|delcom|newcom|querycom|sarrayconv|comevdisp|assert|logmes|button|chkbox|clrobj|combox|input|listbox|mesbox|objnable|objimage|objmode|objprm|objsel|objsize|objskip|objenable|bcopy|bload|bsave|chdir|chdpm|delete|dirlist|exist|memfile|mkdir|mci|mmload|mmplay|mmstop|comres|ddim|delmod|dim|dimtype|ldim|lpoke|memcpy|memexpand|memset|newlab|newmod|poke|sdim|wpoke|lpeek|peek|wpeek|getkey|mcall|mouse|randomize|setease|sortget|sortstr|sortval|stick|abs|absf|atan|stan|callfunc|cos|dirinfo|double|expf|getease|geteasef|gettime|ginfo|int|length|length2|length3|length4|libptr|limit|limitf|logf|objinfo|powf|rnd|sin|sqrt|str|strlen|sysinfo|tan|vartype|varuse|varptr|varsize|cnvstoa|cnvstow|getstr|noteadd|notedel|noteget|noteload|notesave|notesel|noteunsel|sortnote|split|strrep|cnvatos|cnvwtos|getpath|instr|notefind|noteinfo|strf|strmid|strtrim|dup|dupptr|mref|axobj|bgscr|bmpsave|boxf|buffer|celdiv|celload|celput|chgdisp|circle|cls|color|dialog|font|gcopy|gmode|grect|gradf|groll|grotate|gsel|gsquare|gzoom|hsvcolor|line|mes|palcolor|palette|pget|picload|pos|print|pset|redraw|screen|sendmsg|syscolor|sysfont|title|width|winobj)(@hsp)?(?=[^\\w\\p{Cn}`＠])"
+				},
+				{
+					"match": "(?i)(?<=^|[^\\w\\p{Cn}`＠])\\s*((?:oncmd|onclick|onerror|onexit|onkey)(?:@hsp)?)(?:\\s*(goto|gosub))?(?=[^\\w\\p{Cn}`＠])",
+					"captures": {
+						"1": {"name": "keyword.control.hsp3"},
+						"2": {"name": "keyword.method.hsp3"}
+					}
+				},
+				{
+					"name": "invalid.deprecated.hsp3",
+					"match": "(?i)(?<=^|[^\\w\\p{Cn}`＠])\\s*(alloc)(?=[^\\w\\p{Cn}`＠])"
+				},
+				{
+					"name": "constant.language.hsp3",
+					"match": "(?i)(?<=^|[^\\w\\p{Cn}`＠])\\s*(M_PI|__date__|__file__|__hsp30__|__hspver__|__line__|__time__|_debug|__hspdef__|and|deg2rad|font_antialias|font_bold|font_italic|font_normal|font_strikeout|font_underline|gmode_add|gmode_alpha|gmode_gdi|gmode_mem|gmode_pixela|gmode_rgb0|gmode_rgb0alpha|gmode_sub|not|objinfo_bmscr|objinfo_hwnd|objinfo_mode|objmode_guifont|objmode_normal|objmode_usefont|or|rad2deg|screen_fixedsize|screen_frame|screen_hide|screen_normal|screen_palette|screen_tool|xor|gsquare_grad|ease_linear|ease_quad_in|ease_quad_out|ease_quad_inout|ease_cubic_in|ease_cubic_out|ease_cubic_inout|ease_quartic_in|ease_quartic_out|ease_quartic_inout|ease_bounce_in|ease_bounce_out|ease_bounce_inout|ease_shake_in|ease_shake_out|ease_shake_inout|ease_loop|notefind_match|notefind_first|notefind_instr)(?=[^\\w\\p{Cn}`＠])"
+				},
+				{
+					"name": "variable.language.hsp3",
+					"match": "(?i)(?<=^|[^\\w\\p{Cn}`＠])\\s*(cnt|dir_cmdline|dir_cur|dir_desktop|dir_exe|dir_mydoc|dir_sys|dir_tv|dir_win|err|ginfo_accx|ginfo_accy|ginfo_accz|ginfo_act|ginfo_b|ginfo_cx|ginfo_cy|ginfo_dispx|ginfo_dispy|ginfo_g|ginfo_intid|ginfo_mesx|ginfo_mesy|ginfo_mx|ginfo_my|ginfo_newid|ginfo_paluse|ginfo_r|ginfo_sel|ginfo_sizex|ginfo_sizey|ginfo_sx|ginfo_sy|ginfo_vx|ginfo_vy|ginfo_winx|ginfo_winy|ginfo_wx1|ginfo_wx2|ginfo_wy1|ginfo_wy2|hdc|hinstance|hspstat|hspver|hwnd|iparam|looplev|lparam|mousew|mousex|mousey|msgothic|msmincho|notemax|notesize|refdval|refstr|stat|strsize|sublev|thismod|wparam)(?=[^\\w\\p{Cn}`＠])"
+				}
+			]
+		},
+		"variable": {
+			"patterns": [
+				{
+					"match": "(?i)(?<=dim|sdim|ddim|ldim|dimtype|alloc)\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)",
+					"captures": {
+						"1": {
+							"name": "variable.hsp3",
+							"patterns": [{"name": "entity.name.class.hsp3", "match": "@.*"}]
+						},
+						"2": {"name": "invalid.deprecated.hsp3"}
+					}
+				},
+				{
+					"comment": "配列変数への代入文",
+					"match": "(?<=^|:|\\{|\\})\\s*([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)(\\([^;|//|/*|*/]+\\))\\s*(?==|\\+=|-=|\\+\\+|--)",
+					"captures": {
+						"1": {
+							"name": "variable.hsp3",
+							"patterns": [{"name": "entity.name.class.hsp3", "match": "@.*"}]
+						},
+						"2": {"name": "invalid.deprecated.hsp3"},
+						"3": {"patterns": [{"include": "#code"}]}
+					}
+				},
+				{
+					"comment": "旧式の配列変数への代入文",
+					"match": "(?<=^|:|\\{|\\})\\s*([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)(\\.[^;|//|/*|*/]+){1,4}\\s*(?==|\\+=|-=|\\+\\+|--)",
+					"captures": {
+						"1": {
+							"name": "variable.hsp3",
+							"patterns": [{"name": "entity.name.class.hsp3", "match": "@.*"}]
+						},
+						"2": {"name": "invalid.deprecated.hsp3"},
+						"3": {
+							"patterns": [
+								{"name": "meta.dot.hsp3", "match": "\\.(?<=[^;|//|/*|*/])"},
+								{"match": "(?<=\\.)(\\(.+\\))", "captures": {"1": {"patterns": [{"include": "#code"}]}}},
+								{"name": "constant.numeric.hex.hsp3", "match": "(?i)(?<=\\.)(0x|\\$)[0-9a-fA-F]+"},
+								{"name": "constant.numeric.binary.hsp3", "match": "(?i)(?<=\\.)(0b|%)[01]+"},
+								{"name": "constant.numeric.decimal.hsp3", "match": "(?<=\\.)[0-9]+"},
+								{"include": "#identifier"}
+							]
+						}
+					}
+				},
+				{
+					"comment": "変数への代入文",
+					"match": "(?<=^|:|\\{|\\})\\s*([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)\\s*(?==|\\+=|-=|\\+\\+|--)",
+					"captures": {
+						"1": {
+							"name": "variable.hsp3",
+							"patterns": [{"name": "entity.name.class.hsp3", "match": "@.*" }]
+						},
+						"2": {"name": "invalid.deprecated.hsp3"}
+					}
+				}
+			]
+		},
+		"command": {
+			"patterns": [
+				{
+					"name": "invalid.illegal.hsp3",
+					"match": "(?<=^|:|\\{|\\})\\s*[0-9]+\\S*"
+				},
+				{
+					"match": "(?<=^|:|\\{|\\})\\s*([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)(?:(\\s*\\*[\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*))?",
+					"captures": {
+						"1": {
+							"name": "entity.name.function.hsp3",
+							"patterns": [{
+								"name": "entity.name.class.hsp3",
+								"match": "@.*"
+							}]
+						},
+						"2": {"name": "invalid.deprecated.hsp3"},
+						"3": {
+							"name": "markup.bold.hsp3",
+							"patterns": [{
+								"name": "entity.name.class.hsp3",
+								"match": "@.*"
+							}]
+						},
+						"4": {"name": "invalid.deprecated"}
+					}
+				}
+			]
+		},
+		"identifier": {
+			"patterns": [
+				{
+					"name": "meta.identifier.hsp3",
+					"match": "([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)",
+					"captures": {
+						"1": {
+							"patterns": [
+								{
+									"name": "invalid.illegal.hsp3",
+									"match": "(?<=\\\\|¥|\\(|\\)|\\<|\\>|\\{|\\}|\\[|\\]|&|#|\\||\\^|;|\\:|\\$|%|!|-|\\+|/|\\*|\\.|,|~|=|\"|'|\\?|\\s)[0-9].*"
+								},
+								{
+									"name": "entity.name.class.hsp3",
+									"match": "@.*"
+								}
+							]
+						},
+						"2": {"name": "invalid.deprecated.hsp3"}
+					}
+				}
+			]
+		}
+	},
+	"scopeName": "source.hsp3"
 }
