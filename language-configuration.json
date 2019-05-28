@@ -1,7 +1,7 @@
 {
     "comments": {
         // symbol used for single line comment. Remove this entry if your language does not support line comments
-        "lineComment": "//",
+        "lineComment": ";",
         // symbols used for start and end a block comment. Remove this entry if your language does not support block comments
         "blockComment": [ "/*", "*/" ]
     },
@@ -10,16 +10,16 @@
         ["{", "}"],
         ["[", "]"],
         ["(", ")"],
-        ["{\"","\"}"]
+        ["{\"", "\"}"]
     ],
     // symbols that are auto closed when typing
     "autoClosingPairs": [
-        ["{", "}"],
-        ["[", "]"],
-        ["(", ")"],
-        ["\"", "\""],
-        ["'", "'"],
-        ["{\"","\"}"]
+        { "open": "{", "close": "}" },
+        { "open": "[", "close": "]" },
+        { "open": "(", "close": ")" },
+        { "open": "'", "close": "'", "notIn": ["string", "comment"] },
+        { "open": "\"", "close": "\"", "notIn": ["string"] },
+        { "open": "/**", "close": " */", "notIn": ["string"] }
     ],
     // symbols that that can be used to surround a selection
     "surroundingPairs": [
@@ -27,7 +27,17 @@
         ["[", "]"],
         ["(", ")"],
         ["\"", "\""],
-        ["'", "'"],
-        ["{\"","\"}"]
-    ]
+        ["'", "'"]
+    ],
+    "folding": {
+        "markers": {
+            "start": "^\\s*#module\\b",
+            "end": "^\\s*#global\\b"
+        }
+    },
+    "wordPattern": "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+    "indentationRules": {
+        "increaseIndentPattern": "^\\s*(.*\\{\\s*$|\\*[^:]*$|\\#(if|ifdef|ifndef).*$|\\#module.*$|\\#(def|mod)c?func.*$|\\#mod(init|term).*$|\\#(define|const|enum).*(\\\\|¥)$|\\#(com)?(c?func).*(\\\\|¥)$|(repeat|foreach|for|do|while)[^:]*$)",
+        "decreaseIndentPattern": "^\\s*(\\}|#endif|#global|return|loop|next|(until.*)|wend)$"
+    }
 }

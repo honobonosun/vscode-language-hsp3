@@ -1,36 +1,29 @@
 {
-  "name": "vscode-hsp3",
-  "displayName": "vscode-hsp3",
-  "description": "Language Syntax Support for Hot Soup Processor 3 by Honobono",
-  "version": "0.0.1",
+  "name": "language-hsp3",
+  "publisher": "Honobono",
+  "displayName": "language-hsp3",
+  "description": "language-hsp3 for VSCode",
+  "version": "0.0.0",
+  "license": "MIT",
+  "repository": "https://github.com/honobonosun/vscode-language-hsp3",
   "engines": {
-    "vscode": "^1.29.0"
+    "vscode": "^1.33.0"
   },
   "categories": [
+    "Programming Languages"
   ],
   "contributes": {
     "languages": [
       {
         "id": "hsp3",
-        "aliases": [
-          "HSP3",
-          "hsp3",
-          "hsp"
-        ],
-        "extensions": [
-          ".hsp",
-          ".as"
-        ],
+        "aliases": ["HSP3", "hsp3", "HSP", "hsp"],
+        "extensions": [".hsp",".hsp.i",".as",".as.i"],
         "configuration": "./language-configuration.json"
       },
       {
         "id": "hs",
-        "aliases": [
-          "hs"
-        ],
-        "extensions": [
-          ".hs"
-        ]
+        "aliases": ["hs"],
+        "extensions": [".hs"]
       }
     ],
     "grammars": [
@@ -45,7 +38,5 @@
         "path": "./syntaxes/hs.tmLanguage.json"
       }
     ]
-  },
-  "devDependencies": {
   }
 }
