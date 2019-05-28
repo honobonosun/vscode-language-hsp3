@@ -5,7 +5,13 @@
   "description": "language-hsp3 for VSCode",
   "version": "0.0.0",
   "license": "MIT",
-  "repository": "https://github.com/honobonosun/vscode-language-hsp3",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/honobonosun/vscode-language-hsp3"
+  },
+  "bugs": {
+    "url": "https://github.com/honobonosun/vscode-language-hsp3/issues"
+  },
   "engines": {
     "vscode": "^1.33.0"
   },
