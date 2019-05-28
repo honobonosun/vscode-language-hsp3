@@ -1,65 +1,99 @@
-# dev-vscode-language-hsp3 README
+# language-hsp3 README
 
-This is the README for your extension "dev-vscode-language-hsp3". After writing up a brief description, we recommend including the following sections.
+これは、atom版 [language-hsp3](https://github.com/honobonosun/language-hsp3) の移植です。  
+This is porting extension of the "language-hsp3" for [atom](https://atom.io/).
 
-## Features
+![ss](./2019-05-28.png)
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+注意、このバージョンはプレビューです！  
+**ATTENTION**, This version is preview!
 
-For example if there is an image subfolder under your extension project workspace:
+<kbd>F5</kbd> キーを押しても、HSPプログラムは実行されません。  
+Push <kbd>F5</kbd> key is no running the HSP program.
 
-\!\[feature X\]\(images/feature-x.png\)
+代わりにターミナル タスクを使います。  
+Use be substituted with terminal task.
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## Setting terminal task for Windows OS
+ターミナルタスクを設定する（Windows版）
 
-## Requirements
+既にHSP3とhspcをインストールしているなら、４番まで飛ばしてください。  
+If you installed HSP3 and hspc, please skip 3 steps.
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+以下の手順に従ってコンピューターを設定してください。  
+Please setting your computer by following the steps below.
 
-## Extension Settings
+1. HSP3とhspcをダウンロードしてください。  
+   Please Download [HSP3](http://hsp.tv/) and [hspc](http://dev.onionsoft.net/seed/info.ax?id=1392)
+2. HSP3をインストール（または解凍してC:\ディレクトリに配置）してください。  
+   Install HSP3 (or Extract, paste to path C:\\)
+3. インストールしたHSP3にhspc.exeファイルを挿入してください。  
+   Insert "hspc.exe" file on the install HSP3 path.
+4. インストールしたHSP3のパスを通してください。  
+   Set PATH through HSP3 install directory path.
+   - または、tasks.json の "command" をhspc.exeファイルの絶対パスに書き換えます。  
+   Or "tasks.json" in "command" char to you write "hspc.exe" file absolute path.
+5. 作業用ディレクトリに ".vscode" ディレクトリを作ってください。  
+   You create ".vscode" directory to working directory.
+6. 下記のコードで ".\\.vscode\tasks.json" ファイルを作って書い（または張り付け）てください。  
+   Use below json code, please you create and    (or paste) ".\\.vscode\tasks.json" file.
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+```json tasks.json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "hsp: run",
+      "type": "shell",
+      "command": "hspc",
+      "args": [
+        "-dwrCa",
+        {
+          "value": "${file}",
+          "quoting": "escape"
+        }
+      ],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "hsp: build",
+      "type": "shell",
+      "command": "hspc",
+      "args": [
+        "-PmCa",
+        {
+          "value": "${file}",
+          "quoting": "escape"
+        }
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    }
+  ]
+}
+```
 
-For example:
+<kbd>shift+p</kbd> で `task run` を入力して <kbd>enter</kbd> すれば、デバッグ実行が開始されます。  
+Start HSP program command steps.
+1. Push <kbd>shift+p</kbd> key
+2. Char input `task run` and push <kbd>enter</kbd> key.
+3. Can it one moer push <kbd>enter</kbd> key.
 
-This extension contributes the following settings:
-
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
------------------------------------------------------------------------------------------------------------
-
-## Working with Markdown
-
-**Note:** You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (macOS) to see a list of Markdown snippets
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
+楽しもう！  
 **Enjoy!**
+
+あなたはタスクを設定しなおすことができます。もっとVSCodeのヒントを読む。  
+You can task customize. more read hint in [VSCode document](https://code.visualstudio.com/docs/editor/tasks#_custom-tasks).

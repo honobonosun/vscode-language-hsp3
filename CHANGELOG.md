@@ -7,3 +7,6 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## [Unreleased]
 
 - Initial release
+
+## 2019/05/28 - 0.0.1
+- 最初のバージョンを公開。
