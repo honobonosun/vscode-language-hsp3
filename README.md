@@ -17,21 +17,21 @@ Use be substituted with terminal task.
 ## Setting terminal task for Windows OS
 ターミナルタスクを設定する（Windows版）
 
-既にHSP3とhspcをインストールしているなら、４番まで飛ばしてください。  
-If you installed HSP3 and hspc, please skip 3 steps.
+既にatomで language-hsp3 をインストールしているなら、４番まで飛ばしてください。  
+If you installed HSP3 and hspc.exe, please skip 3 steps.
 
 以下の手順に従ってコンピューターを設定してください。  
 Please setting your computer by following the steps below.
 
-1. HSP3とhspcをダウンロードしてください。  
-   Please Download [HSP3](http://hsp.tv/) and [hspc](http://dev.onionsoft.net/seed/info.ax?id=1392)
+1. HSP3とhspc.exeをダウンロードしてください。  
+   Please Download [HSP3](http://hsp.tv/) and [hspc.exe](http://dev.onionsoft.net/seed/info.ax?id=1392)
 2. HSP3をインストール（または解凍してC:\ディレクトリに配置）してください。  
    Install HSP3 (or Extract, paste to path C:\\)
-3. インストールしたHSP3にhspc.exeファイルを挿入してください。  
-   Insert "hspc.exe" file on the install HSP3 path.
+3. インストールしたHSP3にhspc.exeを挿入してください。  
+   Insert hspc.exe file on the install HSP3 path.
 4. インストールしたHSP3のパスを通してください。  
    Set PATH through HSP3 install directory path.
-   - または、tasks.json の "command" をhspc.exeファイルの絶対パスに書き換えます。  
+   - または、tasks.json の "command" を hspc.exe の絶対パスに書き換えます。  
    Or "tasks.json" in "command" char to you write "hspc.exe" file absolute path.
 5. 作業用ディレクトリに ".vscode" ディレクトリを作ってください。  
    You create ".vscode" directory to working directory.
@@ -97,3 +97,6 @@ Start HSP program command steps.
 
 あなたはタスクを設定しなおすことができます。もっとVSCodeのヒントを読む。  
 You can task customize. more read hint in [VSCode document](https://code.visualstudio.com/docs/editor/tasks#_custom-tasks).
+
+## todo ライセンス表記
+runner,
