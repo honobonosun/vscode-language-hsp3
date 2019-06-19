@@ -3,7 +3,7 @@
   "publisher": "Honobono",
   "displayName": "language-hsp3",
   "description": "language-hsp3 for VSCode",
-  "version": "0.0.0",
+  "version": "0.1.1",
   "license": "MIT",
   "repository": "https://github.com/honobonosun/vscode-language-hsp3",
   "engines": {
@@ -21,12 +21,24 @@
       {
         "command": "language-hsp3.run",
         "title": "Run HSP program",
-        "category": "hsp"
+        "category": "hsp",
+        "enablement": "editorLangId == hsp3"
       },
       {
         "command": "language-hsp3.make",
         "title": "Automatic exe file creation",
-        "category": "hsp"
+        "category": "hsp",
+        "enablement": "editorLangId == hsp3"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "language-hsp3.run",
+        "key": "ctrl+k f5"
+      },
+      {
+        "command": "language-hsp3.make",
+        "key": "ctrl+f9"
       }
     ],
     "menus": {

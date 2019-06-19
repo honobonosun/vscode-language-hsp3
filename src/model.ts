@@ -46,12 +46,8 @@ export class Model implements vscode.Disposable {
     return result;
   }
 
-  private updateConfig(fileUri: vscode.Uri) {
-    if (fileUri) {
-      this._config = vscode.workspace.getConfiguration("language-hsp3", fileUri);
-    } else {
-      this._config = vscode.workspace.getConfiguration("language-hsp3");
-    }
+  private updateConfig(fileUri: vscode.Uri | null) {
+    this._config = vscode.workspace.getConfiguration("language-hsp3", fileUri);
   }
 
   private async isLegacyHspc(compilerPath: string): Promise<boolean> {
@@ -103,7 +99,7 @@ export class Model implements vscode.Disposable {
     }
 
     // 3. get config
-    this.updateConfig(fileUri);
+    if (!fileUri) { this.updateConfig(null); } else { this.updateConfig(fileUri); }
     let compilerPath = this._config.get<string>("compiler");
     if (!compilerPath) {
       this._output.appendLine("Compiler path is not registered.");

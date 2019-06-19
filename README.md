@@ -71,6 +71,11 @@ You can set the following properties in the settings.json file:
 |language-hsp3.run | Run HSP program | アクティブなエディタで開いているファイルをHSPプログラムとして実行します。<br>Runs the file open in the active editor as an HSP program.|
 |language-hsp3.make | Automatic exe file creation | アクティブなエディタで開いているファイルに対して自動実行ファイル作成を行います。<br>Automatic executable creation for files opened in the active editor.|
 
+| command | default key |
+|:--------|:------------|
+|language-hsp3.run|Ctrl+K F5|
+|language-hsp3.make|Ctrl+F9|
+
 アクティブなエディタがない場合、コマンドは失敗します。  
 If no editor is active, the command fails.
 

@@ -561,7 +561,7 @@
     "variable": {
       "patterns": [
         {
-          "match": "(?i)(?<=dim|sdim|ddim|ldim|dimtype|alloc)\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)",
+          "match": "(?i)(?<=dim|sdim|ddim|ldim|dimtype|dupptr|dup|alloc)\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)",
           "captures": {
             "1": {
               "name": "variable.hsp3",

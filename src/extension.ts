@@ -22,8 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
     // The code you place here will be executed every time your command is executed
     model.run(fileUri);
   });
-  let make = vscode.commands.registerCommand('language-hsp3.make',
-  (fileUri: vscode.Uri) => {
+  let make = vscode.commands.registerCommand('language-hsp3.make', (fileUri: vscode.Uri) => {
     model.make(fileUri);
   });
 
