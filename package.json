@@ -1,35 +1,129 @@
 {
   "name": "language-hsp3",
-  "publisher": "honobonosun",
+  "publisher": "Honobono",
   "displayName": "language-hsp3",
   "description": "language-hsp3 for VSCode",
-  "version": "0.0.0",
+  "version": "0.1.1",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/honobonosun/vscode-language-hsp3"
-  },
-  "bugs": {
-    "url": "https://github.com/honobonosun/vscode-language-hsp3/issues"
-  },
+  "repository": "https://github.com/honobonosun/vscode-language-hsp3",
   "engines": {
     "vscode": "^1.33.0"
   },
   "categories": [
     "Programming Languages"
   ],
+  "activationEvents": [
+    "onLanguage:hsp3"
+  ],
+  "main": "./out/extension.js",
   "contributes": {
+    "commands": [
+      {
+        "command": "language-hsp3.run",
+        "title": "Run HSP program",
+        "category": "hsp",
+        "enablement": "editorLangId == hsp3"
+      },
+      {
+        "command": "language-hsp3.make",
+        "title": "Automatic exe file creation",
+        "category": "hsp",
+        "enablement": "editorLangId == hsp3"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "language-hsp3.run",
+        "key": "ctrl+k f5"
+      },
+      {
+        "command": "language-hsp3.make",
+        "key": "ctrl+f9"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "when": "resourceLangId == hsp3",
+          "command": "language-hsp3.run",
+          "group": "navigation",
+          "alt": "language-hsp3.make"
+        }
+      ]
+    },
+    "configuration": {
+      "type": "object",
+      "title": "HSP",
+      "properties": {
+        "language-hsp3.compiler": {
+          "type": "string",
+          "default": "C:\\hsp351\\hspcmp.exe",
+          "description": "Sets the full path of the compiler.",
+          "scope": "resource"
+        },
+        "language-hsp3.runCommands": {
+          "type": "array",
+          "default": [
+            "-dwCra",
+            "%FILEPATH%"
+          ],
+          "description": "Set run command.",
+          "scope": "resource"
+        },
+        "language-hsp3.makeCommands": {
+          "type": "array",
+          "default": [
+            "-PmCa",
+            "%FILEPATH%"
+          ],
+          "description": "Set auto make exe file command.",
+          "scope": "resource"
+        },
+        "language-hsp3.wineMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use wine. The file path is converted to a winepath.",
+          "scope": "machine"
+        },
+        "language-hsp3.encoding": {
+          "type": "string",
+          "default": "Shift_JIS",
+          "description": "Sets the encoding of the characters output by the compiler.",
+          "scope": "resource"
+        },
+        "language-hsp3.MaxBuffer": {
+          "type": "integer",
+          "default": 204800,
+          "markdownDescription": "Sets the maximum number of bytes of characters received from the compiler. If exceeded, the child process is terminated and any output is truncated. [this at doc, more read hint.](https://nodejs.org/api/child_process.html#child_process_maxbuffer_and_unicode)",
+          "scope": "resource"
+        }
+      }
+    },
     "languages": [
       {
         "id": "hsp3",
-        "aliases": ["HSP3", "hsp3", "HSP", "hsp"],
-        "extensions": [".hsp",".hsp.i",".as",".as.i"],
+        "aliases": [
+          "HSP",
+          "HSP3",
+          "hsp",
+          "hsp3"
+        ],
+        "extensions": [
+          ".hsp",
+          ".hsp.i",
+          ".as",
+          ".as.i"
+        ],
         "configuration": "./language-configuration.json"
       },
       {
         "id": "hs",
-        "aliases": ["hs"],
-        "extensions": [".hs"]
+        "aliases": [
+          "hs"
+        ],
+        "extensions": [
+          ".hs"
+        ]
       }
     ],
     "grammars": [
@@ -44,5 +138,23 @@
         "path": "./syntaxes/hs.tmLanguage.json"
       }
     ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "npm run compile && node ./node_modules/vscode/bin/test"
+  },
+  "devDependencies": {
+    "@types/iconv-lite": "0.0.1",
+    "@types/mocha": "^2.2.42",
+    "@types/node": "^10.12.21",
+    "tslint": "^5.12.1",
+    "typescript": "^3.3.1",
+    "vscode": "^1.1.28"
+  },
+  "dependencies": {
+    "iconv-lite": "^0.4.24"
   }
 }
