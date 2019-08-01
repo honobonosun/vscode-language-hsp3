@@ -4,7 +4,8 @@ All notable changes to the "dev-vscode-language-hsp3" extension will be document
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [Unreleased]
+## 2019/08/01 - 0.1.3
+- _fix_ [指数表記に小文字を使うとハイライトされません。 #8](https://github.com/honobonosun/vscode-language-hsp3/issues/8)を修正しました。
 
 ## 2019/06/27 - 0.1.2
 - _fix_ [変数初期化文にハイライトされない複合代入文があります。 #7](https://github.com/honobonosun/vscode-language-hsp3/issues/7)を修正しました。
