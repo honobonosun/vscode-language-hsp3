@@ -25,6 +25,15 @@
         {"include": "#identifier"}
       ]
     },
+    "expression": {
+      "patterns": [
+        {"include": "#constants"},
+        {"include": "#operators"},
+        {"include": "#keywords"},
+        {"include": "#variable"},
+        {"include": "#identifier"}
+      ]
+    },
     "comments": {
       "patterns": [
         {
@@ -579,12 +588,12 @@
               "patterns": [{"name": "entity.name.class.hsp3", "match": "@.*"}]
             },
             "2": {"name": "invalid.deprecated.hsp3"},
-            "3": {"patterns": [{"include": "#code"}]}
+            "3": {"patterns": [{"include": "#expression"}]}
           }
         },
         {
           "comment": "旧式の配列変数への代入文",
-          "match": "(?<=^|:|\\{|\\})\\s*([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)(\\.[^;|//|/*|*/|:]+){1,4}\\s*(?==|\\|=|\\\\=|¥=|&=|\\^=|\\*=|/=|-=|\\+=|!=|==|<<=|>>=|\\+\\+|--)",
+          "match": "(?<=^|:|\\{|\\})\\s*([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)(\\.[^;|//|/*|*/|:]+?){1,4}\\s*(?==|\\|=|\\\\=|¥=|&=|\\^=|\\*=|/=|-=|\\+=|!=|==|<<=|>>=|\\+\\+|--)",
           "captures": {
             "1": {
               "name": "variable.hsp3",
@@ -594,12 +603,8 @@
             "3": {
               "patterns": [
                 {"name": "meta.dot.hsp3", "match": "\\.(?<=[^;|//|/*|*/])"},
-                {"match": "(?<=\\.)(\\(.+\\))", "captures": {"1": {"patterns": [{"include": "#code"}]}}},
-                {"name": "constant.numeric.hex.hsp3", "match": "(?i)(?<=\\.)(0x|\\$)[0-9a-fA-F]+"},
-                {"name": "constant.numeric.binary.hsp3", "match": "(?i)(?<=\\.)(0b|%)[01]+"},
-                {"name": "constant.numeric.decimal.hsp3", "match": "(?<=\\.)[0-9]+"},
-                {"include": "#keywords"},
-                {"include": "#identifier"}
+                {"match": "(?<=\\.)(\\(.+\\))", "captures": {"1": {"patterns": [{"include": "#expression"}]}}},
+                {"include": "#expression"}
               ]
             }
           }
