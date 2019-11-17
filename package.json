@@ -3,7 +3,7 @@
   "publisher": "honobonosun",
   "displayName": "language-hsp3",
   "description": "language-hsp3 for VSCode",
-  "version": "0.1.4",
+  "version": "1.0.0",
   "license": "MIT",
   "repository": "https://github.com/honobonosun/vscode-language-hsp3",
   "engines": {
@@ -29,16 +29,41 @@
         "title": "Automatic exe file creation",
         "category": "hsp",
         "enablement": "editorLangId == hsp3"
+      },
+      {
+        "command": "language-hsp3.RunWithArgs",
+        "title": "Execution \"Run\" with arguments",
+        "category": "hsp",
+        "enablement": "editorLangId == hsp3"
+      },
+      {
+        "command": "language-hsp3.changeOfExecutor",
+        "title": "Change of Executor",
+        "category": "hsp",
+        "enablement": "editorLangId == hsp3"
+      },
+      {
+        "command": "language-hsp3.helpman.search",
+        "title": "Search for keyword in HDL.",
+        "category": "hsp",
+        "enablement": "editorLangId == hsp3"
       }
     ],
     "keybindings": [
       {
         "command": "language-hsp3.run",
-        "key": "ctrl+k f5"
+        "key": "ctrl+k f5",
+        "when": "editorLangId == hsp3"
       },
       {
         "command": "language-hsp3.make",
-        "key": "ctrl+f9"
+        "key": "ctrl+f9",
+        "when": "editorLangId == hsp3"
+      },
+      {
+        "command": "language-hsp3.helpman.search",
+        "key": "ctrl+f1",
+        "when": "editorLangId == hsp3"
       }
     ],
     "menus": {
@@ -57,7 +82,7 @@
       "properties": {
         "language-hsp3.compiler": {
           "type": "string",
-          "default": "C:\\hsp351\\hspcmp.exe",
+          "default": "C:\\hsp351\\hspc.exe",
           "description": "Sets the full path of the compiler.",
           "scope": "resource"
         },
@@ -95,6 +120,90 @@
           "type": "integer",
           "default": 204800,
           "markdownDescription": "Sets the maximum number of bytes of characters received from the compiler. If exceeded, the child process is terminated and any output is truncated. [this at doc, more read hint.](https://nodejs.org/api/child_process.html#child_process_maxbuffer_and_unicode)",
+          "scope": "resource"
+        },
+        "language-hsp3.choiceWorkDirCur": {
+          "type": "boolean",
+          "default": false,
+          "description": "Specify the current directory as your working directory.",
+          "scope": "resource"
+        },
+        "language-hsp3.executor.enable": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Enables new command execution capabilities for executor.",
+          "scope": "resource"
+        },
+        "language-hsp3.executor.index": {
+          "type": "string",
+          "default": "3.51",
+          "scope": "resource"
+        },
+        "language-hsp3.executor.paths": {
+          "type": "object",
+          "default": {
+            "3.51": {
+              "hide": false,
+              "path": "C:\\hsp351\\hspc.exe",
+              "encoding": "Shift_JIS",
+              "buffer": 204800,
+              "helpman": "C:\\hsp351\\helphsp\\helpman.exe",
+              "commands": {
+                "run": [
+                  "-dwCra",
+                  "%FILEPATH%"
+                ],
+                "make": [
+                  "-PmCa",
+                  "%FILEPATH%"
+                ]
+              }
+            }
+          },
+          "scope": "resource"
+        },
+        "language-hsp3.outline.enable": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Enable the outline. *Caution* This feature uses a lot of CPU and memory.",
+          "scope": "resource"
+        },
+        "language-hsp3.outline.masks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "markdownDescription": "Sets the attributes to exclude from displaying the outline.  \n['label', 'deffunc'...]",
+          "scope": "resource"
+        },
+        "language-hsp3.helpman.enable": {
+          "type": "string",
+          "enum": [
+            "disable",
+            "online",
+            "local"
+          ],
+          "default": "local",
+          "markdownDescription": "Searches HDL for a word selected in the editor or placed in the cursor.",
+          "scope": "resource"
+        },
+        "language-hsp3.helpman.useExecutor": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Use `executor.paths.helpman` specified in `helpman.exe`.",
+          "scope": "resource"
+        },
+        "language-hsp3.helpman.path.local": {
+          "type": "string",
+          "default": "C:\\hsp351\\hsphelp\\helpman.exe",
+          "markdownDescription": "You must specify an absolute path to `helpman.exe`.",
+          "scope": "resource"
+        },
+        "language-hsp3.helpman.path.online": {
+          "type": "string",
+          "default": "http://ohdl.hsproom.me/?q=%s",
+          "markdownDescription": "Specify the URL for the online help. `%s` is replaced by the search character. The code page is UTF-8 fixed.",
           "scope": "resource"
         }
       }
@@ -139,22 +248,52 @@
       }
     ]
   },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "transform": {
+      "^.+\\.(ts|tsx)$": "ts-jest"
+    },
+    "globals": {
+      "ts-jest": {
+        "tsConfigFile": "tsconfig.json"
+      }
+    },
+    "testMatch": [
+      "**/tests/*.spec.+(ts|tsx|js)"
+    ]
+  },
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "npm run compile && node ./node_modules/vscode/bin/test"
+    "lint": "npx eslint src/*"
   },
   "devDependencies": {
+    "@types/emoji-regex": "^8.0.0",
     "@types/iconv-lite": "0.0.1",
-    "@types/mocha": "^2.2.42",
+    "@types/jest": "^24.0.20",
     "@types/node": "^10.12.21",
-    "tslint": "^5.12.1",
+    "@types/opener": "^1.4.0",
+    "@typescript-eslint/eslint-plugin": "^2.3.3",
+    "@typescript-eslint/parser": "^2.3.3",
+    "eslint": "^6.6.0",
+    "eslint-config-prettier": "^6.4.0",
+    "eslint-plugin-prettier": "^3.1.1",
+    "jest": "^24.9.0",
+    "prettier": "^1.18.2",
+    "ts-jest": "^24.1.0",
+    "tslint": "^5.20.0",
     "typescript": "^3.3.1",
-    "vscode": "^1.1.28"
+    "vscode": "^1.1.36"
   },
   "dependencies": {
-    "iconv-lite": "^0.4.24"
+    "emoji-regex": "^8.0.0",
+    "iconv-lite": "^0.4.24",
+    "opener": "^1.5.1"
   }
 }

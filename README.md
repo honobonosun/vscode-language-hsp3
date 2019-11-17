@@ -88,6 +88,51 @@ Command buttons appear while editing in the HSP language.
 コマンドは、Altキーを押している間だけ切り替わります。  
 The command switches only while you hold down the Alt key.
 
+## Command execution with a new executor
+
+v1.0.0からは、executorモジュールでコマンドが実行されます。  
+Starting with v 1.0. 0, commands are executed in the executor module.
+
+このモジュールは従来のコマンド実行と、hspc v2以降のhspc v2用引数付き実行コマンド、ステータスバーから使用するコンパイル設定の変更に対応します。  
+This module supports legacy command execution, new argued execution commands since hspc v2, and changes to compilation setting from the status bar.
+
+既定値では、従来と同じ動作に設定されています。  
+By default, the behavior is set to the same as before.
+
+新しいexecutorを有効化すると、従来の設定から新しい設定へ切り替わります。  
+Enabling the new executor switches from the old setting to the new setting.
+
+なので、複数のバージョンのHSPを使用しない場合、従来のコマンド実行から移行しなくても大丈夫です。  
+So if you don't want to use multiple versions of HSP, you don't have to migrate from running traditional commands.
+
+executorをカスタマイズする場合、json形式でキーと値を正しく設定する必要があります。  
+If you customize executor, you must set keys and values correctly in json format.
+
+### executor customize
+
+```json
+"language-hsp3.executor.paths": {
+  // 実行ファイル単位で設定します。同じ実行ファイルでも、キーさえ違えば大丈夫です。
+  "3.51": { // キーが切り替えの名前になります。
+    "hide": false,  // trueにすると、このキーを切り替え候補に表示しません。
+    "path": "C:\\hsp351\\hspc.exe", // 使用する実行ファイルの絶対パスを指定してください。
+    "encoding": "Shift_JIS",  // 実行ファイルから返されるコードページを指定してください。
+    "buffer": 204800, // 最大で受け取るbyte数を指定してください。
+    "helpman": "C:\\hsp351\\helphsp\\helpman.exe",  // helpman.exeの絶対パスを指定してください。
+    "commands": {
+      "run": [  // デバッグ実行に相当するコマンド引数を指定してください。
+        "-dwCra",
+        "%FILEPATH%"
+      ],
+      "make": [ // 自動実行ファイル作成に相当するコマンド引数を指定してください。
+        "-PmCa",
+        "%FILEPATH%"
+      ]
+    }
+  }
+}
+```
+
 ## License
 
 ### [language-hsp3 for VSCode](https://github.com/honobonosun/vscode-language-hsp3)
@@ -112,6 +157,56 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 MIT License
 
 Copyright (c) 2017 Jun Han
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+### [opener](https://github.com/domenic/opener)
+
+Dual licensed under WTFPL and MIT:
+
+---
+
+Copyright Â© 2012â€“2018 Domenic Denicola <d@domenic.me>
+
+This work is free. You can redistribute it and/or modify it under the
+terms of the Do What The Fuck You Want To Public License, Version 2,
+as published by Sam Hocevar. See below for more details.
+
+        DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+                    Version 2, December 2004
+
+ Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>
+
+ Everyone is permitted to copy and distribute verbatim or modified
+ copies of this license document, and changing it is allowed as long
+ as the name is changed.
+
+            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+   TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+
+  0. You just DO WHAT THE FUCK YOU WANT TO.
+
+---
+
+The MIT License (MIT)
+
+Copyright Â© 2012â€“2018 Domenic Denicola <d@domenic.me>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
