@@ -23,6 +23,8 @@ export enum kinds {
   module = "module",
   global = "global",
   define = "define",
+  const = "const",
+  enum = "enum",
   deffunc = "deffunc",
   defcfunc = "defcfunc",
   modfunc = "modfunc",
@@ -186,6 +188,61 @@ export function parse(tokens: Token[]) {
       const { location, literal } = r.result[3][2];
       return <IOutlineElement>{
         kind: kinds.define,
+        literal: `${literal}`,
+        position: {
+          literal: [location[1], location[1]],
+          entire: [r.location[1], r.location[2]]
+        }
+      };
+    }
+  );
+
+  let dire_const = map(
+    seq(
+      sharp,
+      keyword("const"),
+      dire_space,
+      seq(
+        option(seq(keyword("global"), dire_space)),
+        option(seq(keyword("double"), dire_space)),
+        map(literal, r => ({ location: r.location, literal: r.result }))
+      ),
+      many(
+        choice(dire_separator, seq(dire_skip, any())),
+        r => r.result !== "dire_separator"
+      )
+    ),
+    r => {
+      const { location, literal } = r.result[3][2];
+      return <IOutlineElement>{
+        kind: kinds.const,
+        literal: `${literal}`,
+        position: {
+          literal: [location[1], location[1]],
+          entire: [r.location[1], r.location[2]]
+        }
+      };
+    }
+  );
+
+  let dire_enum = map(
+    seq(
+      sharp,
+      keyword("enum"),
+      dire_space,
+      seq(
+        option(seq(keyword("global"), dire_space)),
+        map(literal, r => ({ location: r.location, literal: r.result }))
+      ),
+      many(
+        choice(dire_separator, seq(dire_skip, any())),
+        r => r.result !== "dire_separator"
+      )
+    ),
+    r => {
+      const { location, literal } = r.result[3][1];
+      return <IOutlineElement>{
+        kind: kinds.enum,
         literal: `${literal}`,
         position: {
           literal: [location[1], location[1]],
@@ -377,6 +434,8 @@ export function parse(tokens: Token[]) {
       seq(skip, dire_modinit),
       seq(skip, dire_modterm),
       seq(skip, dire_define),
+      seq(skip, dire_const),
+      seq(skip, dire_enum),
       seq(skip, dire_func),
       seq(skip, dire_cmd)
     ),

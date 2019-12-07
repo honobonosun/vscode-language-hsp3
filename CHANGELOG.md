@@ -4,11 +4,15 @@ All notable changes to the "dev-vscode-language-hsp3" extension will be document
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 2019/12/07 - 1.0.1
+- _fix_ [プリプロセス命令は小文字です。 #13](https://github.com/honobonosun/vscode-language-hsp3/issues/13) を修正しました。
+- _add_ Outlineに`#const`と`#enum`を追加しました。
+
 ## 2019/11/17 - 1.0.0
-  - [Outline機能を作る #10](https://github.com/honobonosun/vscode-language-hsp3/issues/10) を実装しました。
-  - [Statusbar機能を作る #11](https://github.com/honobonosun/vscode-language-hsp3/issues/11) を実装しました。
-  - [Helpman機能を作る。 #12](https://github.com/honobonosun/vscode-language-hsp3/issues/12) を実装しました。
-  - _update_ ステータスバーにコマンド実行中が表示されるようになりました。
+- [Outline機能を作る #10](https://github.com/honobonosun/vscode-language-hsp3/issues/10) を実装しました。
+- [Statusbar機能を作る #11](https://github.com/honobonosun/vscode-language-hsp3/issues/11) を実装しました。
+- [Helpman機能を作る。 #12](https://github.com/honobonosun/vscode-language-hsp3/issues/12) を実装しました。
+- _update_ ステータスバーにコマンド実行中が表示されるようになりました。
 
 ## 2019/08/25 - 0.1.4
 - _fix_ `array.value = "--"`で正しくハイライトされない問題を修正しました。

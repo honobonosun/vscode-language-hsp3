@@ -15,6 +15,10 @@ function symbolKind(kind: kinds): vscode.SymbolKind {
       return vscode.SymbolKind.Class;
     case kinds.define:
       return vscode.SymbolKind.Object;
+    case kinds.const:
+      return vscode.SymbolKind.Constant;
+    case kinds.enum:
+      return vscode.SymbolKind.Enum;
     case kinds.deffunc:
     case kinds.defcfunc:
     case kinds.modfunc:

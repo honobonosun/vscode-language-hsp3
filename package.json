@@ -3,7 +3,7 @@
   "publisher": "honobonosun",
   "displayName": "language-hsp3",
   "description": "language-hsp3 for VSCode",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "repository": "https://github.com/honobonosun/vscode-language-hsp3",
   "engines": {
@@ -289,6 +289,7 @@
     "ts-jest": "^24.1.0",
     "tslint": "^5.20.0",
     "typescript": "^3.3.1",
+    "vsce": "^1.69.0",
     "vscode": "^1.1.36"
   },
   "dependencies": {

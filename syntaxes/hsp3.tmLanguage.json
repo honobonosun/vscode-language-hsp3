@@ -52,7 +52,7 @@
       "patterns": [
         {
           "comment": "#if 0 … #endif",
-          "begin": "(?i)^\\s*(#if)\\s+(0)\\s*$",
+          "begin": "^\\s*(#if)\\s+(0)\\s*$",
           "end": "^\\s*(#endif)(?=[^\\w\\p{Cn}`＠])",
           "beginCaptures": {
             "1": {"name": "keyword.control.hsp3"},
@@ -63,7 +63,7 @@
         },
         {
           "comment": "#module name",
-          "begin": "(?i)^\\s*(#module)\\s+([\\w\\p{Cn}`＠@]{1,20})([\\w\\p{Cn}`＠@]*)",
+          "begin": "^\\s*(#module)\\s+([\\w\\p{Cn}`＠@]{1,20})([\\w\\p{Cn}`＠@]*)",
           "end": "(?<!\\\\|¥)\\n",
           "beginCaptures": {
             "1": {"name": "keyword.control.hsp3"},
@@ -80,7 +80,7 @@
         },
         {
           "comment": "#module \"name\"",
-          "begin": "(?i)^\\s*(#module)\\s*(\"([\\w\\p{Cn}`＠@]{1,20})([\\w\\p{Cn}`＠@]*)\")",
+          "begin": "^\\s*(#module)\\s*(\"([\\w\\p{Cn}`＠@]{1,20})([\\w\\p{Cn}`＠@]*)\")",
           "end": "(?<!\\\\|¥)\\n",
           "beginCaptures": {
             "1": {"name": "keyword.control.hsp3"},
@@ -97,7 +97,7 @@
           "patterns": [{"include": "#module_variable"}]
         },
         {
-          "begin": "(?i)^\\s*(#define)(?:\\s+(global))?(?:\\s+(ctype))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)",
+          "begin": "^\\s*(#define)(?i:\\s+(global))?(?i:\\s+(ctype))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)",
           "end": "(?<!\\\\|¥)\\n",
           "beginCaptures": {
             "1": {"name": "keyword.control.hsp3"},
@@ -129,7 +129,7 @@
           ]
         },
         {
-          "begin": "(?i)^\\s*(#const)(?:\\s(global))?(?:\\s+(double))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)",
+          "begin": "^\\s*(#const)(?i:\\s(global))?(?i:\\s+(double))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)",
           "end": "(?<!\\\\|¥)\\n",
           "beginCaptures": {
             "1": {"name": "keyword.control.hsp3"},
@@ -147,7 +147,7 @@
           ]
         },
         {
-          "begin": "(?i)^\\s*(#enum)(?:\\s+(global))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)",
+          "begin": "^\\s*(#enum)(?i:\\s+(global))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)",
           "end": "(?<!\\\\|¥)\\n",
           "beginCaptures": {
             "1": {"name": "keyword.control.hsp3"},
@@ -164,7 +164,7 @@
           ]
         },
         {
-          "begin": "(?i)^\\s*(#defc?func)(?:\\s+(local))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)(?:\\s+(onexit))?",
+          "begin": "^\\s*(#defc?func)(?i:\\s+(local))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)(?:\\s+(onexit))?",
           "end": "(?<!\\\\|¥)\\n",
           "beginCaptures": {
             "1": {"name": "keyword.control.hsp3"},
@@ -179,7 +179,7 @@
           "patterns": [{"include": "#deffunc_argument"}]
         },
         {
-          "begin": "(?i)^\\s*(#modc?func)(?:\\s+(local))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)",
+          "begin": "^\\s*(#modc?func)(?i:\\s+(local))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)",
           "end": "(?<!\\\\|¥)\\n",
           "beginCaptures": {
             "1": {"name": "keyword.control.hsp3"},
@@ -193,13 +193,13 @@
           "patterns": [{"include": "#deffunc_argument"}]
         },
         {
-          "begin": "(?i)^\\s*(#modinit)(?=[^\\w\\p{Cn}`＠@])",
+          "begin": "^\\s*(#modinit)(?=[^\\w\\p{Cn}`＠@])",
           "end": "(?<!\\\\|¥)\\n",
           "beginCaptures": {"1": {"name": "keyword.control.hsp3"}},
           "patterns": [{"include": "#deffunc_argument"}]
         },
         {
-          "begin": "(?i)^\\s*(#modterm)(?=[^\\w\\p{Cn}`＠@])",
+          "begin": "^\\s*(#modterm)(?=[^\\w\\p{Cn}`＠@])",
           "end": "(?<!\\\\|¥)\\n",
           "beginCaptures": {"1": {"name": "keyword.control.hsp3"}},
           "patterns": [
@@ -227,7 +227,7 @@
           ]
         },
         {
-          "begin": "(?i)^\\s*(#c?func)(?:\\s+(global))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)(?:\\s+(onexit))?\\s*(\"[\\w\\p{Cn}＠@]+\")",
+          "begin": "^\\s*(#c?func)(?i:\\s+(global))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)(?i:\\s+(onexit))?\\s*(\"[\\w\\p{Cn}＠@]+\")",
           "end": "(?<!\\\\|¥)\\n",
           "beginCaptures": {
             "1": {"name": "keyword.control.hsp3"},
@@ -243,7 +243,7 @@
           "patterns": [{"include": "#func_argument"}]
         },
         {
-          "begin": "(?i)^\\s*(#c?func)(?:\\s+(global))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)(?:\\s+(onexit))?\\s+([\\w\\p{Cn}]+)",
+          "begin": "^\\s*(#c?func)(?i:\\s+(global))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)(?i:\\s+(onexit))?\\s+([\\w\\p{Cn}]+)",
           "end": "(?<!\\\\|¥)\\n",
           "beginCaptures": {
             "1": {"name": "keyword.control.hsp3"},
@@ -259,7 +259,7 @@
           "patterns": [{"include": "#func_argument"}]
         },
         {
-          "begin": "(?i)^\\s*(#usecom)(?:\\s+(global))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)",
+          "begin": "^\\s*(#usecom)(?i:\\s+(global))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)",
           "end": "(?<!\\\\|¥)\\n",
           "beginCaptures": {
             "1": {"name": "keyword.control.hsp3"},
@@ -276,7 +276,7 @@
           ]
         },
         {
-          "begin": "(?i)^\\s*(#comfunc)(?:\\s+(global))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)\\s+([0-9]+)",
+          "begin": "^\\s*(#comfunc)(?i:\\s+(global))?\\s+([\\w\\p{Cn}`＠@]{1,59})([\\w\\p{Cn}`＠@]*)\\s+([0-9]+)",
           "end": "(?<!\\\\|¥)\\n",
           "beginCaptures": {
             "1": {"name": "keyword.control.hsp3"},
@@ -321,28 +321,28 @@
           }
         },
         {
-          "match": "(?i)^\\s*(#aht)\\s+(class|name|author|ver|exp|icon|iconid)(?=[\\s|\\n|;|//|/*|*/])",
+          "match": "^\\s*(#aht)\\s+(?i:(class|name|author|ver|exp|icon|iconid))(?=[\\s|\\n|;|//|/*|*/])",
           "captures": {
             "1": {"name": "keyword.control.hsp3"},
             "2": {"name": "support.constant.hsp3"}
           }
         },
         {
-          "match": "(?i)^\\s*(#bootopt)\\s+(notime|utf8|hsp64)(?=[\\s|\\n|;|//|/*|*/])",
+          "match": "^\\s*(#bootopt)\\s+(?i:(notime|utf8|hsp64))(?=[\\s|\\n|;|//|/*|*/])",
           "captures": {
             "1": {"name": "keyword.control.hsp3"},
             "2": {"name": "support.constant.hsp3"}
           }
         },
         {
-          "match": "(?i)^\\s*(#packopt)\\s+(name|runtime|type|xsize|ysize|hide|orgpath|icon|lang|version|manifest)(?=[\\s|\\n|;|//|/*|*/])",
+          "match": "^\\s*(#packopt)\\s+(?i:(name|runtime|type|xsize|ysize|hide|orgpath|icon|lang|version|manifest))(?=[\\s|\\n|;|//|/*|*/])",
           "captures": {
             "1": {"name": "keyword.control.hsp3"},
             "2": {"name": "support.constant.hsp3"}
           }
         },
         {
-          "match": "(?i)^\\s*(#cmpopt)\\s+(ppout|optcode|optinfo|varname|varinit|optprm|skipjpspc|utf8)(?=[\\s|\\n|;|//|/*|*/])",
+          "match": "^\\s*(#cmpopt)\\s+(?i:(ppout|optcode|optinfo|varname|varinit|optprm|skipjpspc|utf8))(?=[\\s|\\n|;|//|/*|*/])",
           "captures": {
             "1": {"name": "keyword.control.hsp3"},
             "2": {"name": "support.constant.hsp3"}
