@@ -4,6 +4,9 @@ All notable changes to the "dev-vscode-language-hsp3" extension will be document
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 2020/03/20 - 1.0.2
+- _fix_ GitHubのSecurity Alertsを受けて、依存関係を更新しました。
+
 ## 2019/12/07 - 1.0.1
 - _fix_ [プリプロセス命令は小文字です。 #13](https://github.com/honobonosun/vscode-language-hsp3/issues/13) を修正しました。
 - _add_ Outlineに`#const`と`#enum`を追加しました。
