@@ -289,7 +289,7 @@
     "ts-jest": "^24.1.0",
     "tslint": "^5.20.0",
     "typescript": "^3.3.1",
-    "vsce": "^1.69.0",
+    "vsce": "^1.74.0",
     "vscode": "^1.1.36"
   },
   "dependencies": {
