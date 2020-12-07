@@ -4,6 +4,9 @@ All notable changes to the "dev-vscode-language-hsp3" extension will be document
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 2020/12/07 - 1.0.3
+- _fix_ Outlineで認識した定義位置が実際の位置とずれていたのを修正しました。
+
 ## 2020/03/20 - 1.0.2
 - _fix_ GitHubのSecurity Alertsを受けて、依存関係を更新しました。
 
