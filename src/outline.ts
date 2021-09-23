@@ -68,10 +68,9 @@ export default class Outline implements vscode.Disposable {
   }
 
   private provideDocumentSymbols(
-    document: vscode.TextDocument,
-    _token: vscode.CancellationToken
+    document: vscode.TextDocument
   ): Promise<vscode.DocumentSymbol[]> {
-    return new Promise((resolve, _reject) => {
+    return new Promise((resolve) => {
       const result: vscode.DocumentSymbol[] = [];
 
       const tokens = tokenizer(document.getText());
@@ -92,7 +91,7 @@ export default class Outline implements vscode.Disposable {
         end: (i: number): vscode.Position => {
           const { end } = tokens[i].location;
           return new vscode.Position(end.row, end.column);
-        }
+        },
       };
 
       const range = {
@@ -105,7 +104,7 @@ export default class Outline implements vscode.Disposable {
           new vscode.Range(
             position.begin(elm.position.literal[0]),
             position.end(elm.position.literal[1])
-          )
+          ),
       };
 
       const documentSymbol = (elm: IOutlineElement): vscode.DocumentSymbol =>
@@ -139,7 +138,7 @@ export default class Outline implements vscode.Disposable {
             if (elm.kind === kinds.module) {
               continue;
             } // モジュール入れ子は除外
-            if (this.masks.find(v => v === elm.kind)) {
+            if (this.masks.find((v) => v === elm.kind)) {
               continue;
             } // this.masks にあるなら除外
             group.children.push(documentSymbol(elm));
@@ -156,9 +155,9 @@ export default class Outline implements vscode.Disposable {
                   kinds.modinit,
                   kinds.modterm,
                   kinds.modfunc,
-                  kinds.modcfunc
+                  kinds.modcfunc,
                 ])
-                .find(v => v === elm.kind)
+                .find((v) => v === elm.kind)
             ) {
               continue;
             }

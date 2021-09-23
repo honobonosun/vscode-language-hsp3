@@ -335,7 +335,7 @@
           }
         },
         {
-          "match": "^\\s*(#packopt)\\s+(?i:(name|runtime|type|xsize|ysize|hide|orgpath|icon|lang|version|manifest))(?=[\\s|\\n|;|//|/*|*/])",
+          "match": "^\\s*(#packopt)\\s+(?i:(name|runtime|type|xsize|ysize|hide|orgpath|icon|lang|version|manifest|upx))(?=[\\s|\\n|;|//|/*|*/])",
           "captures": {
             "1": {"name": "keyword.control.hsp3"},
             "2": {"name": "support.constant.hsp3"}
@@ -544,7 +544,7 @@
         },
         {
           "name": "keyword.hsp3",
-          "match": "(?i)(?<=^|[^\\w\\p{Cn}`＠])\\s*(comevarg|comevent|delcom|newcom|querycom|sarrayconv|comevdisp|assert|logmes|button|chkbox|clrobj|combox|input|listbox|mesbox|objnable|objimage|objmode|objprm|objsel|objsize|objskip|objenable|bcopy|bload|bsave|chdir|chdpm|delete|dirlist|exist|memfile|mkdir|mci|mmload|mmplay|mmstop|comres|ddim|delmod|dim|dimtype|ldim|lpoke|memcpy|memexpand|memset|newlab|newmod|poke|sdim|wpoke|lpeek|peek|wpeek|getkey|mcall|mouse|randomize|setease|sortget|sortstr|sortval|stick|abs|absf|atan|stan|callfunc|cos|dirinfo|double|expf|getease|geteasef|gettime|ginfo|int|length|length2|length3|length4|libptr|limit|limitf|logf|objinfo|powf|rnd|sin|sqrt|str|strlen|sysinfo|tan|vartype|varuse|varptr|varsize|cnvstoa|cnvstow|getstr|noteadd|notedel|noteget|noteload|notesave|notesel|noteunsel|sortnote|split|strrep|cnvatos|cnvwtos|getpath|instr|notefind|noteinfo|strf|strmid|strtrim|dup|dupptr|mref|axobj|bgscr|bmpsave|boxf|buffer|celdiv|celload|celput|chgdisp|circle|cls|color|dialog|font|gcopy|gmode|grect|gradf|groll|grotate|gsel|gsquare|gzoom|hsvcolor|line|mes|palcolor|palette|pget|picload|pos|print|pset|redraw|screen|sendmsg|syscolor|sysfont|title|width|winobj)(@hsp)?(?=[^\\w\\p{Cn}`＠])"
+          "match": "(?i)(?<=^|[^\\w\\p{Cn}`＠])\\s*(comevarg|comevent|delcom|newcom|querycom|sarrayconv|comevdisp|assert|logmes|button|chkbox|clrobj|combox|input|listbox|mesbox|objnable|objimage|objmode|objprm|objsel|objsize|objskip|objenable|bcopy|bload|bsave|chdir|chdpm|delete|dirlist|exist|memfile|mkdir|mci|mmload|mmplay|mmstop|comres|ddim|delmod|dim|dimtype|ldim|lpoke|memcpy|memexpand|memset|newlab|newmod|poke|sdim|wpoke|lpeek|peek|wpeek|getkey|mcall|mouse|randomize|setease|sortget|sortstr|sortval|stick|abs|absf|atan|stan|callfunc|cos|dirinfo|double|expf|getease|geteasef|gettime|ginfo|int|length|length2|length3|length4|libptr|limit|limitf|logf|objinfo|powf|rnd|sin|sqrt|str|strlen|sysinfo|tan|vartype|varuse|varptr|varsize|cnvstoa|cnvstow|getstr|noteadd|notedel|noteget|noteload|notesave|notesel|noteunsel|sortnote|split|strrep|cnvatos|cnvwtos|getpath|instr|notefind|noteinfo|strf|strmid|strtrim|dup|dupptr|mref|axobj|bgscr|bmpsave|boxf|buffer|celdiv|celload|celput|chgdisp|circle|cls|color|dialog|font|gcopy|gmode|grect|gradf|groll|grotate|gsel|gsquare|gzoom|hsvcolor|line|mes|palcolor|palette|pget|picload|pos|print|pset|redraw|screen|sendmsg|syscolor|sysfont|title|width|winobj|objcolor|layerobj|rgbcolor|strexchange)(@hsp)?(?=[^\\w\\p{Cn}`＠])"
         },
         {
           "match": "(?i)(?<=^|[^\\w\\p{Cn}`＠])\\s*((?:oncmd|onclick|onerror|onexit|onkey)(?:@hsp)?)(?:\\s*(goto|gosub))?(?=[^\\w\\p{Cn}`＠])",
@@ -559,7 +559,7 @@
         },
         {
           "name": "constant.language.hsp3",
-          "match": "(?i)(?<=^|[^\\w\\p{Cn}`＠])\\s*(M_PI|__date__|__file__|__hsp30__|__hspver__|__line__|__time__|_debug|__hspdef__|and|deg2rad|font_antialias|font_bold|font_italic|font_normal|font_strikeout|font_underline|gmode_add|gmode_alpha|gmode_gdi|gmode_mem|gmode_pixela|gmode_rgb0|gmode_rgb0alpha|gmode_sub|not|objinfo_bmscr|objinfo_hwnd|objinfo_mode|objmode_guifont|objmode_normal|objmode_usefont|or|rad2deg|screen_fixedsize|screen_frame|screen_hide|screen_normal|screen_palette|screen_tool|xor|gsquare_grad|ease_linear|ease_quad_in|ease_quad_out|ease_quad_inout|ease_cubic_in|ease_cubic_out|ease_cubic_inout|ease_quartic_in|ease_quartic_out|ease_quartic_inout|ease_bounce_in|ease_bounce_out|ease_bounce_inout|ease_shake_in|ease_shake_out|ease_shake_inout|ease_loop|notefind_match|notefind_first|notefind_instr)(?=[^\\w\\p{Cn}`＠])"
+          "match": "(?i)(?<=^|[^\\w\\p{Cn}`＠])\\s*(M_PI|__date__|__file__|__hsp30__|__hspver__|__line__|__time__|_debug|__hspdef__|and|deg2rad|font_antialias|font_bold|font_italic|font_normal|font_strikeout|font_underline|gmode_add|gmode_alpha|gmode_gdi|gmode_mem|gmode_pixela|gmode_rgb0|gmode_rgb0alpha|gmode_sub|not|objinfo_bmscr|objinfo_hwnd|objinfo_mode|objmode_guifont|objmode_normal|objmode_usefont|objmode_usecolor|or|rad2deg|screen_fixedsize|screen_frame|screen_hide|screen_normal|screen_palette|screen_tool|xor|gsquare_grad|ease_linear|ease_quad_in|ease_quad_out|ease_quad_inout|ease_cubic_in|ease_cubic_out|ease_cubic_inout|ease_quartic_in|ease_quartic_out|ease_quartic_inout|ease_bounce_in|ease_bounce_out|ease_bounce_inout|ease_shake_in|ease_shake_out|ease_shake_inout|ease_loop|notefind_match|notefind_first|notefind_instr|objlayer_min|objlayer_bg|objlayer_normal|objlayer_posteff|objlayer_max|objlayer_multi|mesopt_nocr|mesopt_shadow|mesopt_outline|mesopt_light|mesopt_gmode)(?=[^\\w\\p{Cn}`＠])"
         },
         {
           "name": "variable.language.hsp3",
