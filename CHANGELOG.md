@@ -4,6 +4,13 @@ All notable changes to the "dev-vscode-language-hsp3" extension will be document
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 2021/09/30 - 1.0.4
+- _fix_ パッケージの依存関係を更新しました。
+- _fix_ VSCodeの対応エンジンを最新へ変更しました。
+- _add_ ベータ版hspcのバージョンに対応しました。
+- _update_ HSP3のコーディングインデントルールをgingier-hsp3寄りに変更しました。
+- _update_ HSP3.6で追加されたキーワードを色分けできるようになりました。
+
 ## 2020/12/07 - 1.0.3
 - _fix_ Outlineで認識した定義位置が実際の位置とずれていたのを修正しました。
 
