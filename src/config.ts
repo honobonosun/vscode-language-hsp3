@@ -59,9 +59,9 @@ export default class Config {
       validate(executor);
     } catch (e) {
       console.log("err validate", e);
-      if (this.timeID) { clearTimeout(this.timeID); }
+      if (this.timeID) clearTimeout(this.timeID);
       this.timeID = setTimeout(
-        () => vscode.window.showErrorMessage(e.message),
+        () => vscode.window.showErrorMessage((e as Error).message),
         500
       );
       executor = this.recover("executor") as ExecutorBody;

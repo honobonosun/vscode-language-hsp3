@@ -20,6 +20,7 @@ export async function convertPath(
     );
     return stdout.split("\n");
   } catch (err) {
-    return Promise.resolve(err);
+    console.log(err);
+    return [];
   }
 }
