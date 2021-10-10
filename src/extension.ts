@@ -95,7 +95,7 @@ export function activate(context: vscode.ExtensionContext): void {
         uri = safeUri(fileUri);
       } catch (e) {
         console.log(e);
-        output.appendLine(e.message);
+        output.appendLine((e as Error).message);
         return;
       }
       config.refresh(uri);
@@ -120,7 +120,7 @@ export function activate(context: vscode.ExtensionContext): void {
         uri = safeUri(fileUri);
       } catch (e) {
         console.log(e);
-        output.appendLine(e.message);
+        output.appendLine((e as Error).message);
         return;
       }
       config.refresh(uri);
@@ -151,7 +151,7 @@ export function activate(context: vscode.ExtensionContext): void {
             uri = safeUri(fileUri);
           } catch (e) {
             console.log(e);
-            output.appendLine(e.message);
+            output.appendLine((e as Error).message);
             return;
           }
           config.refresh(uri);
@@ -206,7 +206,7 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.commands.registerCommand("language-hsp3.helpman.search", () => {
       const editor = vscode.window.activeTextEditor;
-      if (!editor) {return;}
+      if (!editor) return;
       helpmanCall(editor);
     })
   );

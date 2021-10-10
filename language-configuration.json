@@ -35,9 +35,10 @@
             "end": "^\\s*#global\\b"
         }
     },
-    "wordPattern": "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+    "wordPattern": "((0[xX]|\\$)[0-9A-Fa-f]{0,8})|((0[bB]|%)[01]{0,99})|(-?\\d{1,20}(\\.\\d{0,20})?([eE][-+]?\\d{0,9})?)|([^-\\/\\[\\](){}.?*+|^$\\\\\\s'\"~!#%&=;:,<>]{1,59})",
     "indentationRules": {
-        "increaseIndentPattern": "^\\s*(.*\\{\\s*$|\\*[^:]*$|\\#(if|ifdef|ifndef).*$|\\#module.*$|\\#(def|mod)c?func.*$|\\#mod(init|term).*$|\\#(define|const|enum).*(\\\\|¥)$|\\#(com)?(c?func).*(\\\\|¥)$|(repeat|foreach|for|do|while)[^:]*$)",
-        "decreaseIndentPattern": "^\\s*(\\}|#endif|#global|return|loop|next|(until.*)|wend)$"
+      "increaseIndentPattern": "^\\s*(.*\\{\\s*$|\\*[^:]*$|(repeat|foreach|for|do|while)[^:]*$)",
+      "decreaseIndentPattern": "^\\s*(\\}|loop|next|(until.*)|wend)$",
+      "indentNextLinePattern": "(^\\s*\\*)|(^\\s*#(deffunc|defcfunc|modfunc|modcfunc|modinit|modterm))|(^\\s*#define.*\\\\$)"
     }
 }

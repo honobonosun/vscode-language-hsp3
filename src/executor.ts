@@ -96,7 +96,7 @@ async function isLegacyHspc(config: Config): Promise<boolean> {
       );
     }
     const str = decode(result.stdout as Buffer, "Shift_JIS");
-    const reval = str.match(/ hspc Version (\d+)\.(\d+)\.(\d+)/);
+    const reval = str.match(/ hspc Version \w*(\d+)\.(\d+)\.(\d+)/);
     if (!reval) {
       return Promise.resolve(false);
     } else {
