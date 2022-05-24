@@ -4,6 +4,9 @@ All notable changes to the "dev-vscode-language-hsp3" extension will be document
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 2022/05/24 - 1.0.5
+- _fix_ パッケージの依存関係を更新しました。
+
 ## 2021/09/30 - 1.0.4
 - _fix_ パッケージの依存関係を更新しました。
 - _fix_ VSCodeの対応エンジンを最新へ変更しました。
