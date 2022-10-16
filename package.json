@@ -3,7 +3,7 @@
   "publisher": "honobonosun",
   "displayName": "language-hsp3",
   "description": "language-hsp3 for VSCode",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "license": "MIT",
   "repository": "https://github.com/honobonosun/vscode-language-hsp3",
   "engines": {
@@ -108,6 +108,12 @@
           "type": "boolean",
           "default": false,
           "description": "Use wine. The file path is converted to a winepath.",
+          "scope": "machine"
+        },
+        "language-hsp3.useSetHSP3ROOT": {
+          "type": "boolean",
+          "default": true,
+          "description": "Set HSP3_ROOT parameter in exec option env",
           "scope": "machine"
         },
         "language-hsp3.encoding": {

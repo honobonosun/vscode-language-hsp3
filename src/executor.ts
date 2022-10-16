@@ -121,7 +121,7 @@ async function isLegacyHspc(config: Config): Promise<boolean> {
  * @param withValues 置き換えるリスト
  */
 function replace(args: string[], withValues: any): string[] {
-  const result: string[] = []; // push() call only.
+  const result: string[] = [];
   const keys = Object.keys(withValues);
   for (let i = 0; i < args.length; i++) {
     let arg = args[i];
@@ -132,7 +132,6 @@ function replace(args: string[], withValues: any): string[] {
     }
     result.push(arg);
   }
-
   return result;
 }
 
@@ -193,12 +192,24 @@ export async function execution(
     const revalue = await convertPath(["--windows"], [file]);
     file = revalue[0];
   }
-  let args = replace(cmdArgs, { "%FILEPATH%": file });
+  const sc = new Map<string, string>();
+  sc.set("filepath", file);
+  const hsp3dir = (await vscode.commands.executeCommand(
+    "toolset-hsp3.current"
+  )) as string | undefined;
+  if (hsp3dir) sc.set("hsp3dir", hsp3dir);
+  const regexp = /%(.*?)%/g;
+  let args = cmdArgs.map((el) =>
+    el.replace(regexp, (m, p1: string) => sc.get(p1.toLowerCase()) ?? m)
+  );
 
-  const opstions = {
+  let env = process.env;
+  if (hsp3dir && config.useSetHSP3ROOT()) env.HSP3_ROOT = hsp3dir;
+  const execOpstions = {
     maxBuffer: maxBuffer,
     encoding: encoding,
-    cwd: cwd
+    cwd: cwd,
+    env,
   };
 
   // hspc v1 コンパイラ用の呼び出し。
@@ -214,7 +225,7 @@ export async function execution(
     } else {
       command = `${compiler} ` + args.join(" ").replace(/""/g, "");
     }
-    return promisify(child_process.exec)(command, opstions);
+    return promisify(child_process.exec)(command, execOpstions);
   } else {
     // 古くないhspc、もしくはhspc以外のコンパイラを呼び出す。
     if (userArgs) {
@@ -224,10 +235,10 @@ export async function execution(
       return promisify(child_process.execFile)(
         "wine",
         [compiler].concat(args),
-        opstions
+        execOpstions
       );
     } else {
-      return promisify(child_process.execFile)(compiler, args, opstions);
+      return promisify(child_process.execFile)(compiler, args, execOpstions);
     }
   }
 }
