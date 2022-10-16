@@ -242,6 +242,10 @@ export default class Config {
     }
   }
 
+  public useSetHSP3ROOT(): boolean {
+    return this.config.get("useSetHSP3ROOT") as boolean;
+  }
+
   // ここから先は、vscode.WorkspaceConfigurationのメソッド。
 
   public get(section: string) {
