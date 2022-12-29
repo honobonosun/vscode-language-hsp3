@@ -4,6 +4,14 @@ All notable changes to the "dev-vscode-language-hsp3" extension will be document
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 2022/12/29 - 1.1.1
+- _fix_ toolset-hsp3が有効でない環境でRun HSP programに失敗する不具合を修正しました。
+- _add_ "language-hsp3.executor.enable"を無効化する案内を開始しました。
+  - readme.mdに注意書きを追加しました。
+
+## 2022/10/17 - 1.1.0
+- _add_ toolset-hsp3で指定された環境をRun HSP Programに反映できるようになりました。
+
 ## 2022/05/24 - 1.0.6
 - _fix_ パッケージの依存関係を更新しました。
 
