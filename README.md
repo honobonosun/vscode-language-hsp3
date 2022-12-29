@@ -99,14 +99,18 @@ This module supports legacy command execution, new argued execution commands sin
 既定値では、従来と同じ動作に設定されています。  
 By default, the behavior is set to the same as before.
 
-新しいexecutorを有効化すると、従来の設定から新しい設定へ切り替わります。  
-Enabling the new executor switches from the old setting to the new setting.
+**注意！この機能は廃止予定です。language-hsp3.executor.enableをfalseに設定して、従来の方法でご使用ください。任意のコマンドを実行するには、VSCodeのタスク機能をご使用ください。**
 
-なので、複数のバージョンのHSPを使用しない場合、従来のコマンド実行から移行しなくても大丈夫です。  
-So if you don't want to use multiple versions of HSP, you don't have to migrate from running traditional commands.
+**Attention! This function is deprecated; please set language-hsp3.executor.enable to false and use the conventional method. To execute arbitrary commands, please use the task function of VSCode.**
 
-executorをカスタマイズする場合、json形式でキーと値を正しく設定する必要があります。  
-If you customize executor, you must set keys and values correctly in json format.
+~~新しいexecutorを有効化すると、従来の設定から新しい設定へ切り替わります。~~  
+~~Enabling the new executor switches from the old setting to the new setting.~~
+
+~~なので、複数のバージョンのHSPを使用しない場合、従来のコマンド実行から移行しなくても大丈夫です。~~  
+~~So if you don't want to use multiple versions of HSP, you don't have to migrate from running traditional commands.~~
+
+~~executorをカスタマイズする場合、json形式でキーと値を正しく設定する必要があります。~~  
+~~If you customize executor, you must set keys and values correctly in json format.~~
 
 ### executor customize
 

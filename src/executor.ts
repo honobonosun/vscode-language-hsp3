@@ -194,9 +194,14 @@ export async function execution(
   }
   const sc = new Map<string, string>();
   sc.set("filepath", file);
-  const hsp3dir = (await vscode.commands.executeCommand(
-    "toolset-hsp3.current"
-  )) as string | undefined;
+  let hsp3dir: string | undefined = undefined;
+  try {
+    hsp3dir = (await vscode.commands.executeCommand("toolset-hsp3.current.toString")) as
+      | string
+      | undefined;
+  } catch (e) {
+    console.log("Toolset-hsp3.current.toString command execution failed.", e);
+  }
   if (hsp3dir) sc.set("hsp3dir", hsp3dir);
   const regexp = /%(.*?)%/g;
   let args = cmdArgs.map((el) =>
