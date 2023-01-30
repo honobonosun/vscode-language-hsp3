@@ -4,7 +4,6 @@ import * as vscode from "vscode";
 import { execution } from "./executor";
 import { decode } from "./decode";
 import Outline from "./outline";
-import Statusbar from "./statusbar";
 import Config from "./config";
 import { helpmanCall } from "./helpman";
 
@@ -17,7 +16,7 @@ import { helpmanCall } from "./helpman";
 function outputWrite(
   variable: any,
   output: vscode.OutputChannel,
-  config: Config
+  config: Config,
 ): void {
   output.clear();
   if (variable.name === "Error") {
@@ -26,7 +25,8 @@ function outputWrite(
   } else {
     vscode.window.showInformationMessage("Success");
   }
-  let stdout, stderr;
+  let stdout;
+  let stderr;
   try {
     if (variable.stdout !== undefined) {
       stdout = decode(variable.stdout, config.encoding());
@@ -48,13 +48,7 @@ function outputWrite(
 }
 
 function buildingMessage(config: Config): vscode.Disposable {
-  if (config.useExecutor()) {
-    return vscode.window.setStatusBarMessage(
-      `$(zap)Running ${config.getCommandName()}`
-    );
-  } else {
-    return vscode.window.setStatusBarMessage("$(zap)Building...");
-  }
+  return vscode.window.setStatusBarMessage("$(zap)Building...");
 }
 
 /**
@@ -74,9 +68,7 @@ function safeUri(fileUri: vscode.Uri): vscode.Uri {
   // 未保存の場合、通知する。
   if (editor.document.isDirty) {
     vscode.window.showInformationMessage(
-      "Changes to the editor have not been saved to the [" +
-        editor.document.uri.fsPath +
-        "] file."
+      `Changes to the editor have not been saved to the [${editor.document.uri.fsPath}] file.`,
     );
   }
   return editor.document.uri;
@@ -101,15 +93,15 @@ export function activate(context: vscode.ExtensionContext): void {
       config.refresh(uri);
       const mes = buildingMessage(config);
       execution(uri.fsPath, "run", config)
-        .then(result => {
+        .then((result) => {
           outputWrite(result, output, config);
           mes.dispose();
         })
-        .catch(err => {
+        .catch((err) => {
           outputWrite(err, output, config);
           mes.dispose();
         });
-    }
+    },
   );
 
   const make = vscode.commands.registerCommand(
@@ -126,15 +118,15 @@ export function activate(context: vscode.ExtensionContext): void {
       config.refresh(uri);
       const mes = buildingMessage(config);
       execution(uri.fsPath, "make", config)
-        .then(result => {
+        .then((result) => {
           outputWrite(result, output, config);
           mes.dispose();
         })
-        .catch(err => {
+        .catch((err) => {
           outputWrite(err, output, config);
           mes.dispose();
         });
-    }
+    },
   );
 
   context.subscriptions.push(run);
@@ -145,7 +137,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand(
       "language-hsp3.RunWithArgs",
       (fileUri: vscode.Uri) => {
-        vscode.window.showInputBox({ password: false, value: "" }).then(v => {
+        vscode.window.showInputBox({ password: false, value: "" }).then((v) => {
           let uri: vscode.Uri;
           try {
             uri = safeUri(fileUri);
@@ -157,33 +149,21 @@ export function activate(context: vscode.ExtensionContext): void {
           config.refresh(uri);
           const mes = buildingMessage(config);
           execution(uri.fsPath, "run", config, v)
-            .then(result => {
+            .then((result) => {
               outputWrite(result, output, config);
               mes.dispose();
             })
-            .catch(err => {
+            .catch((err) => {
               outputWrite(err, output, config);
               mes.dispose();
             });
         });
-      }
-    )
+      },
+    ),
   );
 
   const outline = new Outline(config);
   context.subscriptions.push(outline);
-
-  const statusbar = new Statusbar();
-  statusbar.update(config);
-  context.subscriptions.push(statusbar);
-  context.subscriptions.push(
-    vscode.window.onDidChangeActiveTextEditor(() => statusbar.update(config))
-  );
-  context.subscriptions.push(
-    vscode.commands.registerCommand("language-hsp3.changeOfExecutor", () =>
-      statusbar.showQuickPick(config)
-    )
-  );
 
   /*
   let viewColumn: vscode.ViewColumn = vscode.window.activeTextEditor
@@ -208,14 +188,13 @@ export function activate(context: vscode.ExtensionContext): void {
       const editor = vscode.window.activeTextEditor;
       if (!editor) return;
       helpmanCall(editor);
-    })
+    }),
   );
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration(() => {
-      statusbar.update(config);
       outline.update(config);
-    })
+    }),
   );
 }
 

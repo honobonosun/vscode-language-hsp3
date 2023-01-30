@@ -185,8 +185,8 @@ class Lexer {
     if (this.ch === 0) {
       return null;
     }
-    const position = this.position,
-      { row, column } = this.textPoint;
+    const position = this.position;
+    const { row, column } = this.textPoint;
     let regexp: RegExp;
     if (this.ch === " ") {
       regexp = / /;
@@ -201,11 +201,11 @@ class Lexer {
     while (this.matchChar(regexp, this.ch)) {
       this.readChar();
     }
-    const raw: string = this.chars.slice(position, this.position).join(""),
-      location: ILocation = {
-        begin: { row, column },
-        end: { row, column: column + raw.length },
-      };
+    const raw: string = this.chars.slice(position, this.position).join("");
+    const location: ILocation = {
+      begin: { row, column },
+      end: { row, column: column + raw.length },
+    };
     this.addTextPoint({ row: 0, column: raw.length });
     return new Token(TokenType.space, location, raw);
   }
@@ -233,8 +233,8 @@ class Lexer {
       return null;
     }
 
-    const position = this.position,
-      { row, column } = this.textPoint;
+    const position = this.position;
+    const { row, column } = this.textPoint;
     let raw: string;
     let cntRow = 0;
     let newColumn = 0;
@@ -296,8 +296,8 @@ class Lexer {
       return null;
     }
     let location: ILocation;
-    const { row, column } = this.textPoint,
-      position = this.position;
+    const { row, column } = this.textPoint;
+    const position = this.position;
     let raw: string;
 
     if (/[=!+\-*/\\<>&|^]/.test(this.ch)) {
@@ -334,12 +334,12 @@ class Lexer {
       return null;
     }
     if (/[[\]{}()]/.test(this.ch)) {
-      const { row, column } = this.textPoint,
-        raw: string = this.ch,
-        location: ILocation = {
-          begin: { row, column },
-          end: { row, column: column + raw.length },
-        };
+      const { row, column } = this.textPoint;
+      const raw: string = this.ch;
+      const location: ILocation = {
+        begin: { row, column },
+        end: { row, column: column + raw.length },
+      };
       this.addTextPoint({ row: 0, column: raw.length });
       this.readChar();
       return new Token(TokenType.bracket, location, raw);
@@ -367,11 +367,11 @@ class Lexer {
         this.readChar();
       }
       this.readChar();
-      const raw: string = this.chars.slice(position, this.position).join(""),
-        location: ILocation = {
-          begin: { row, column },
-          end: { row, column: column + raw.length },
-        };
+      const raw: string = this.chars.slice(position, this.position).join("");
+      const location: ILocation = {
+        begin: { row, column },
+        end: { row, column: column + raw.length },
+      };
       this.addTextPoint({ row: 0, column: raw.length });
       return new Token(TokenType.int, location, raw);
     }
@@ -389,11 +389,11 @@ class Lexer {
       while (this.matchChar(/[0-9a-fA-F]/, this.ch)) {
         this.readChar();
       }
-      const raw: string = this.chars.slice(position, this.position).join(""),
-        location: ILocation = {
-          begin: { row, column },
-          end: { row, column: column + raw.length },
-        };
+      const raw: string = this.chars.slice(position, this.position).join("");
+      const location: ILocation = {
+        begin: { row, column },
+        end: { row, column: column + raw.length },
+      };
       this.addTextPoint({ row: 0, column: raw.length });
       return new Token(TokenType.int, location, raw);
     }
@@ -411,21 +411,21 @@ class Lexer {
       while (this.matchChar(/[01]/, this.ch)) {
         this.readChar();
       }
-      const raw: string = this.chars.slice(position, this.position).join(""),
-        location: ILocation = {
-          begin: { row, column },
-          end: { row, column: column + raw.length },
-        };
+      const raw: string = this.chars.slice(position, this.position).join("");
+      const location: ILocation = {
+        begin: { row, column },
+        end: { row, column: column + raw.length },
+      };
       this.addTextPoint({ row: 0, column: raw.length });
       return new Token(TokenType.int, location, raw);
     }
     // 整数 浮動小数
     if (this.matchChar(/[0-9]/, this.ch)) {
       // 出現したらフラグを立てる。
-      let o = false, // -+記号
-        e = false, // 指数表記
-        f = false, // 最後のF
-        dot = false; // 小数点
+      let o = false; // -+記号
+      let e = false; // 指数表記
+      let f = false; // 最後のF
+      let dot = false; // 小数点
       while (this.matchChar(/[0-9EeFf\-+.]/, this.ch)) {
         if (f === true) {
           break;
@@ -453,11 +453,11 @@ class Lexer {
         }
         this.readChar();
       }
-      const raw: string = this.chars.slice(position, this.position).join(""),
-        location: ILocation = {
-          begin: { row, column },
-          end: { row, column: column + raw.length },
-        };
+      const raw: string = this.chars.slice(position, this.position).join("");
+      const location: ILocation = {
+        begin: { row, column },
+        end: { row, column: column + raw.length },
+      };
       let type: TokenType;
       if (dot || e || f) {
         type = TokenType.double;
@@ -563,17 +563,17 @@ class Lexer {
    */
   private readLiteral(): Token | null {
     if (this.isLiteral()) {
-      const { row, column } = this.textPoint,
-        position = this.position;
+      const { row, column } = this.textPoint;
+      const position = this.position;
 
       while (this.isLiteral2()) {
         this.readChar();
       }
-      const raw = this.chars.slice(position, this.position).join(""),
-        location: ILocation = {
-          begin: { row, column },
-          end: { row, column: column + raw.length },
-        };
+      const raw = this.chars.slice(position, this.position).join("");
+      const location: ILocation = {
+        begin: { row, column },
+        end: { row, column: column + raw.length },
+      };
 
       this.textPoint = { row, column: column + raw.length };
       return new Token(TokenType.literal, location, raw);

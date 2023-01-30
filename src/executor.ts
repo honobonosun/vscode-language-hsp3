@@ -15,16 +15,16 @@ function convertArgs(str: string): string[] {
   let buffer = "";
   const result: string[] = []; // push() call only.
   let flag = false;
-  let escape = false;
+  let fescape = false;
   const escapeChar = process.platform === "win32" ? "^" : "\\";
   for (const elm of Array.from(str)) {
-    if (escape) {
+    if (fescape) {
       buffer += elm;
-      escape = false;
+      fescape = false;
       continue;
     }
     if (elm === escapeChar) {
-      escape = true;
+      fescape = true;
       continue;
     }
 
@@ -86,13 +86,13 @@ async function isLegacyHspc(config: Config): Promise<boolean> {
       result = await promisify(child_process.execFile)(
         "wine",
         [hspcPath, "-v"],
-        options
+        options,
       );
     } else {
       result = await promisify(child_process.execFile)(
         hspcPath,
         ["-v"],
-        options
+        options,
       );
     }
     const str = decode(result.stdout as Buffer, "Shift_JIS");
@@ -145,14 +145,14 @@ export async function execution(
   file: string,
   cmdname: string,
   config: Config,
-  userArgs?: string
+  userArgs?: string,
 ) {
   // config読み込み。
-  let compiler: string,
-    wineMode: boolean,
-    encoding: string,
-    maxBuffer: number,
-    cmdArgs: string[];
+  let compiler: string;
+  let wineMode: boolean;
+  let encoding: string;
+  let maxBuffer: number;
+  let cmdArgs: string[];
   try {
     compiler = config.compiler();
     wineMode = config.wineMode();
@@ -196,16 +196,16 @@ export async function execution(
   sc.set("filepath", file);
   let hsp3dir: string | undefined = undefined;
   try {
-    hsp3dir = (await vscode.commands.executeCommand("toolset-hsp3.current.toString")) as
-      | string
-      | undefined;
+    hsp3dir = (await vscode.commands.executeCommand(
+      "toolset-hsp3.current.toString",
+    )) as string | undefined;
   } catch (e) {
     console.log("Toolset-hsp3.current.toString command execution failed.", e);
   }
   if (hsp3dir) sc.set("hsp3dir", hsp3dir);
   const regexp = /%(.*?)%/g;
   let args = cmdArgs.map((el) =>
-    el.replace(regexp, (m, p1: string) => sc.get(p1.toLowerCase()) ?? m)
+    el.replace(regexp, (m, p1: string) => sc.get(p1.toLowerCase()) ?? m),
   );
 
   let env = process.env;
@@ -221,14 +221,14 @@ export async function execution(
   if (await isLegacyHspc(config)) {
     if (userArgs) {
       vscode.window.showInformationMessage(
-        'Ran with arguments, but argument ignored because hspc version is ">=2.0.0".'
+        'Ran with arguments, but argument ignored because hspc version is ">=2.0.0".',
       );
     }
     let command: string;
     if (wineMode) {
-      command = `wine ${compiler} ` + args.join(" ").replace(/""/g, "");
+      command = `wine ${compiler} ${args.join(" ").replace(/""/g, "")}`;
     } else {
-      command = `${compiler} ` + args.join(" ").replace(/""/g, "");
+      command = `${compiler} ${args.join(" ").replace(/""/g, "")}`;
     }
     return promisify(child_process.exec)(command, execOpstions);
   } else {
@@ -240,7 +240,7 @@ export async function execution(
       return promisify(child_process.execFile)(
         "wine",
         [compiler].concat(args),
-        execOpstions
+        execOpstions,
       );
     } else {
       return promisify(child_process.execFile)(compiler, args, execOpstions);

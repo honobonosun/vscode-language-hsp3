@@ -38,13 +38,13 @@ export interface IParser {
  * @param fn 成否と結果を返すコールバック関数
  */
 export function satisfy(fn?: (token: Token) => any): IParser {
-  return function(target, position) {
+  return function (target, position) {
     if (position >= target.length) {
       return {
         success: false,
         location: [position, -1],
         result: undefined,
-        log: []
+        log: [],
       };
     }
     let result: any = undefined;
@@ -64,15 +64,15 @@ export function any() {
 }
 
 export function raw(str: string) {
-  return satisfy(t => (t.raw === str ? { raw: t.raw } : undefined));
+  return satisfy((t) => (t.raw === str ? { raw: t.raw } : undefined));
 }
 
 export function type(type: TokenType) {
-  return satisfy(t => (t.type === type ? { type: t.type } : undefined));
+  return satisfy((t) => (t.type === type ? { type: t.type } : undefined));
 }
 
 export function regexp(regexp: RegExp) {
-  return satisfy(t => (regexp.test(t.raw) ? { raw: t.raw } : undefined));
+  return satisfy((t) => (regexp.test(t.raw) ? { raw: t.raw } : undefined));
 }
 
 /**
@@ -87,9 +87,9 @@ export function regexp(regexp: RegExp) {
  */
 export function log(
   parser: IParser,
-  fn: (parsed: IResult) => string | undefined
+  fn: (parsed: IResult) => string | undefined,
 ): IParser {
-  return function(target, position) {
+  return function (target, position) {
     const parsed = parser(target, position);
     const text = fn(parsed);
     if (text !== undefined) {
@@ -104,13 +104,13 @@ export function log(
  */
 export function desc(
   parser: IParser,
-  fn: (parsed: IResult) => string
+  fn: (parsed: IResult) => string,
 ): IParser {
-  return log(parser, r => (r.success ? undefined : fn(r)));
+  return log(parser, (r) => (r.success ? undefined : fn(r)));
 }
 
 export function choice(...parsers: IParser[]): IParser {
-  return function(target, position) {
+  return function (target, position) {
     let success = false;
     let location = [position, position];
     let result: any = undefined;
@@ -134,7 +134,7 @@ export function choice(...parsers: IParser[]): IParser {
  * @param  parsers 成功しなくてはならないパーサ関数たち
  */
 export function seq(...parsers: IParser[]): IParser {
-  return function(target, position) {
+  return function (target, position) {
     const readPosition = position;
     let success = true;
     let result: Array<IResult | undefined> = [];
@@ -160,7 +160,7 @@ export function seq(...parsers: IParser[]): IParser {
  * @param parser 失敗してもいいパーサ関数
  */
 export function option(parser: IParser): IParser {
-  return function(target, position) {
+  return function (target, position) {
     const { location, result, log } = parser(target, position);
     return { success: true, location, result, log };
   };
@@ -175,9 +175,9 @@ export function option(parser: IParser): IParser {
  */
 export function many(
   parser: IParser,
-  fn?: (parsed: IResult) => boolean
+  fn?: (parsed: IResult) => boolean,
 ): IParser {
-  return function(target, position) {
+  return function (target, position) {
     const readPosition = position;
     let result: any[] = [];
     let parsed: IResult;
@@ -207,9 +207,9 @@ export function many(
  */
 export function filter(
   parser: IParser,
-  fn: (parsed: IResult) => boolean
+  fn: (parsed: IResult) => boolean,
 ): IParser {
-  return function(target, position) {
+  return function (target, position) {
     let parsed = parser(target, position);
     if (parsed.success) {
       parsed.success = fn(parsed);
@@ -224,14 +224,14 @@ export function filter(
  * @param fn resultプロパティに格納する値を返すコールバック関数
  */
 export function map(parser: IParser, fn: (parsed: IResult) => any): IParser {
-  return function(target, position) {
+  return function (target, position) {
     const parsed = parser(target, position);
     if (parsed.success) {
       return {
         success: parsed.success,
         location: parsed.location,
         result: fn(parsed),
-        log: parsed.log
+        log: parsed.log,
       };
     } else {
       return parsed;
@@ -245,7 +245,7 @@ export function map(parser: IParser, fn: (parsed: IResult) => any): IParser {
  */
 export function lazy(fn: () => IParser): IParser {
   let parser: IParser;
-  return function(target, position) {
+  return function (target, position) {
     if (!parser) {
       parser = fn();
     }
