@@ -38,7 +38,7 @@ export default class Config {
 
   private recover(section: string): unknown {
     const inspect = this.config.inspect(section);
-    if (inspect && inspect.defaultValue) {
+    if (inspect?.defaultValue) {
       return inspect.defaultValue;
     } else {
       throw new Error(
@@ -184,7 +184,7 @@ export default class Config {
     const executor = this.executor();
     if (executor.enable) {
       const compiler = executor.paths[executor.index];
-      if (compiler && compiler.commands[name]) {
+      if (compiler?.commands[name]) {
         return compiler.commands[name];
       } else {
         if (!compiler) {
