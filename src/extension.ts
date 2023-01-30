@@ -4,7 +4,6 @@ import * as vscode from "vscode";
 import { execution } from "./executor";
 import { decode } from "./decode";
 import Outline from "./outline";
-import Statusbar from "./statusbar";
 import Config from "./config";
 import { helpmanCall } from "./helpman";
 
@@ -49,13 +48,7 @@ function outputWrite(
 }
 
 function buildingMessage(config: Config): vscode.Disposable {
-  if (config.useExecutor()) {
-    return vscode.window.setStatusBarMessage(
-      `$(zap)Running ${config.getCommandName()}`,
-    );
-  } else {
-    return vscode.window.setStatusBarMessage("$(zap)Building...");
-  }
+  return vscode.window.setStatusBarMessage("$(zap)Building...");
 }
 
 /**
@@ -172,18 +165,6 @@ export function activate(context: vscode.ExtensionContext): void {
   const outline = new Outline(config);
   context.subscriptions.push(outline);
 
-  const statusbar = new Statusbar();
-  statusbar.update(config);
-  context.subscriptions.push(statusbar);
-  context.subscriptions.push(
-    vscode.window.onDidChangeActiveTextEditor(() => statusbar.update(config)),
-  );
-  context.subscriptions.push(
-    vscode.commands.registerCommand("language-hsp3.changeOfExecutor", () =>
-      statusbar.showQuickPick(config),
-    ),
-  );
-
   /*
   let viewColumn: vscode.ViewColumn = vscode.window.activeTextEditor
     ? vscode.window.activeTextEditor.viewColumn
@@ -212,7 +193,6 @@ export function activate(context: vscode.ExtensionContext): void {
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration(() => {
-      statusbar.update(config);
       outline.update(config);
     }),
   );

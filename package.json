@@ -135,17 +135,20 @@
           "scope": "resource"
         },
         "language-hsp3.executor.enable": {
+          "deprecationMessage": "Extended language-hsp3.executor is deprecated.",
           "type": "boolean",
           "default": false,
           "markdownDescription": "Enables new command execution capabilities for executor.",
           "scope": "resource"
         },
         "language-hsp3.executor.index": {
+          "deprecationMessage": "Extended language-hsp3.executor is deprecated.",
           "type": "string",
           "default": "3.51",
           "scope": "resource"
         },
         "language-hsp3.executor.paths": {
+          "deprecationMessage": "Extended language-hsp3.executor is deprecated.",
           "type": "object",
           "default": {
             "3.51": {
@@ -195,6 +198,7 @@
           "scope": "resource"
         },
         "language-hsp3.helpman.useExecutor": {
+          "deprecationMessage": "Extended language-hsp3.executor is deprecated.",
           "type": "boolean",
           "default": true,
           "markdownDescription": "Use `executor.paths.helpman` specified in `helpman.exe`.",
