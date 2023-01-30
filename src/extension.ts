@@ -17,7 +17,7 @@ import { helpmanCall } from "./helpman";
 function outputWrite(
   variable: any,
   output: vscode.OutputChannel,
-  config: Config
+  config: Config,
 ): void {
   output.clear();
   if (variable.name === "Error") {
@@ -51,7 +51,7 @@ function outputWrite(
 function buildingMessage(config: Config): vscode.Disposable {
   if (config.useExecutor()) {
     return vscode.window.setStatusBarMessage(
-      `$(zap)Running ${config.getCommandName()}`
+      `$(zap)Running ${config.getCommandName()}`,
     );
   } else {
     return vscode.window.setStatusBarMessage("$(zap)Building...");
@@ -75,7 +75,7 @@ function safeUri(fileUri: vscode.Uri): vscode.Uri {
   // 未保存の場合、通知する。
   if (editor.document.isDirty) {
     vscode.window.showInformationMessage(
-      `Changes to the editor have not been saved to the [${editor.document.uri.fsPath}] file.`
+      `Changes to the editor have not been saved to the [${editor.document.uri.fsPath}] file.`,
     );
   }
   return editor.document.uri;
@@ -100,15 +100,15 @@ export function activate(context: vscode.ExtensionContext): void {
       config.refresh(uri);
       const mes = buildingMessage(config);
       execution(uri.fsPath, "run", config)
-        .then(result => {
+        .then((result) => {
           outputWrite(result, output, config);
           mes.dispose();
         })
-        .catch(err => {
+        .catch((err) => {
           outputWrite(err, output, config);
           mes.dispose();
         });
-    }
+    },
   );
 
   const make = vscode.commands.registerCommand(
@@ -125,15 +125,15 @@ export function activate(context: vscode.ExtensionContext): void {
       config.refresh(uri);
       const mes = buildingMessage(config);
       execution(uri.fsPath, "make", config)
-        .then(result => {
+        .then((result) => {
           outputWrite(result, output, config);
           mes.dispose();
         })
-        .catch(err => {
+        .catch((err) => {
           outputWrite(err, output, config);
           mes.dispose();
         });
-    }
+    },
   );
 
   context.subscriptions.push(run);
@@ -144,7 +144,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand(
       "language-hsp3.RunWithArgs",
       (fileUri: vscode.Uri) => {
-        vscode.window.showInputBox({ password: false, value: "" }).then(v => {
+        vscode.window.showInputBox({ password: false, value: "" }).then((v) => {
           let uri: vscode.Uri;
           try {
             uri = safeUri(fileUri);
@@ -156,17 +156,17 @@ export function activate(context: vscode.ExtensionContext): void {
           config.refresh(uri);
           const mes = buildingMessage(config);
           execution(uri.fsPath, "run", config, v)
-            .then(result => {
+            .then((result) => {
               outputWrite(result, output, config);
               mes.dispose();
             })
-            .catch(err => {
+            .catch((err) => {
               outputWrite(err, output, config);
               mes.dispose();
             });
         });
-      }
-    )
+      },
+    ),
   );
 
   const outline = new Outline(config);
@@ -176,12 +176,12 @@ export function activate(context: vscode.ExtensionContext): void {
   statusbar.update(config);
   context.subscriptions.push(statusbar);
   context.subscriptions.push(
-    vscode.window.onDidChangeActiveTextEditor(() => statusbar.update(config))
+    vscode.window.onDidChangeActiveTextEditor(() => statusbar.update(config)),
   );
   context.subscriptions.push(
     vscode.commands.registerCommand("language-hsp3.changeOfExecutor", () =>
-      statusbar.showQuickPick(config)
-    )
+      statusbar.showQuickPick(config),
+    ),
   );
 
   /*
@@ -207,14 +207,14 @@ export function activate(context: vscode.ExtensionContext): void {
       const editor = vscode.window.activeTextEditor;
       if (!editor) return;
       helpmanCall(editor);
-    })
+    }),
   );
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration(() => {
       statusbar.update(config);
       outline.update(config);
-    })
+    }),
   );
 }
 

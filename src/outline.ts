@@ -52,7 +52,7 @@ export default class Outline implements vscode.Disposable {
   public create(): void {
     this.provider = vscode.languages.registerDocumentSymbolProvider(
       { scheme: "file", language: "hsp3" },
-      { provideDocumentSymbols: this.provideDocumentSymbols.bind(this) }
+      { provideDocumentSymbols: this.provideDocumentSymbols.bind(this) },
     );
   }
 
@@ -68,7 +68,7 @@ export default class Outline implements vscode.Disposable {
   }
 
   private provideDocumentSymbols(
-    document: vscode.TextDocument
+    document: vscode.TextDocument,
   ): Promise<vscode.DocumentSymbol[]> {
     return new Promise((resolve) => {
       const result: vscode.DocumentSymbol[] = [];
@@ -98,12 +98,12 @@ export default class Outline implements vscode.Disposable {
         entire: (elm: IOutlineElement): vscode.Range =>
           new vscode.Range(
             position.begin(elm.position.entire[0]),
-            position.end(elm.position.entire[1])
+            position.end(elm.position.entire[1]),
           ),
         literal: (elm: IOutlineElement): vscode.Range =>
           new vscode.Range(
             position.begin(elm.position.literal[0]),
-            position.end(elm.position.literal[1])
+            position.end(elm.position.literal[1]),
           ),
       };
 
@@ -113,17 +113,17 @@ export default class Outline implements vscode.Disposable {
           elm.kind,
           symbolKind(elm.kind),
           range.entire(elm),
-          range.literal(elm)
+          range.literal(elm),
         );
 
       const merge = (
         group: vscode.Range,
-        elm: IOutlineElement
+        elm: IOutlineElement,
       ): vscode.Range => {
         const beginRange = group;
         return new vscode.Range(
           beginRange.start,
-          position.end(elm.position.literal[1])
+          position.end(elm.position.literal[1]),
         );
       };
 

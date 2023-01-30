@@ -18,10 +18,8 @@ export interface ExecutorBody {
 }
 
 export default class Config {
-  public config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
-    "language-hsp3",
-    null
-  ); // constructorでrefresh呼んでるのに気づかないから此処で初期化。
+  public config: vscode.WorkspaceConfiguration =
+    vscode.workspace.getConfiguration("language-hsp3", null); // constructorでrefresh呼んでるのに気づかないから此処で初期化。
 
   constructor(uri: null | vscode.Uri = null) {
     this.refresh(uri);
@@ -42,7 +40,7 @@ export default class Config {
       return inspect.defaultValue;
     } else {
       throw new Error(
-        `Unrecoverable error. Failed to get \`${section}.defaultValue\`.`
+        `Unrecoverable error. Failed to get \`${section}.defaultValue\`.`,
       );
     }
   }
@@ -62,7 +60,7 @@ export default class Config {
       if (this.timeID) clearTimeout(this.timeID);
       this.timeID = setTimeout(
         () => vscode.window.showErrorMessage((e as Error).message),
-        500
+        500,
       );
       executor = this.recover("executor") as ExecutorBody;
     }
@@ -85,7 +83,7 @@ export default class Config {
       return compiler.path;
     } else {
       throw new Error(
-        `The setting has been changed so that the \`${executor.index}\` compiler is not available. Specify the compiler again.`
+        `The setting has been changed so that the \`${executor.index}\` compiler is not available. Specify the compiler again.`,
       );
     }
   }
@@ -99,7 +97,7 @@ export default class Config {
       }
       result.push({
         label,
-        description: executor.paths[label].path
+        description: executor.paths[label].path,
       });
     }
     return result;
@@ -122,7 +120,7 @@ export default class Config {
         return compiler.path;
       } else {
         throw new Error(
-          `The setting has been changed so that the \`${executor.index}\` compiler is not available. Specify the compiler again.`
+          `The setting has been changed so that the \`${executor.index}\` compiler is not available. Specify the compiler again.`,
         );
       }
     } else {
@@ -146,7 +144,7 @@ export default class Config {
         return compiler.encoding;
       } else {
         throw new Error(
-          `The setting has been changed so that the \`${executor.index}\` compiler is not available. Specify the compiler again.`
+          `The setting has been changed so that the \`${executor.index}\` compiler is not available. Specify the compiler again.`,
         );
       }
     } else {
@@ -167,7 +165,7 @@ export default class Config {
         return compiler.buffer;
       } else {
         throw new Error(
-          `The setting has been changed so that the No.${executor.index} compiler is not available. Specify the compiler again.`
+          `The setting has been changed so that the No.${executor.index} compiler is not available. Specify the compiler again.`,
         );
       }
     } else {
@@ -189,11 +187,11 @@ export default class Config {
       } else {
         if (!compiler) {
           throw new Error(
-            `The setting has been changed so that the No.${executor.index} compiler is not available. Specify the compiler again.`
+            `The setting has been changed so that the No.${executor.index} compiler is not available. Specify the compiler again.`,
           );
         } else {
           throw new Error(
-            `The ${name} command is not configured. Please try again.`
+            `The ${name} command is not configured. Please try again.`,
           );
         }
       }
@@ -205,7 +203,7 @@ export default class Config {
           return args as string[];
         } else {
           throw new Error(
-            `The ${name} command is not configured. Please try again.`
+            `The ${name} command is not configured. Please try again.`,
           );
         }
       } else {
@@ -229,7 +227,7 @@ export default class Config {
         return compiler.helpman;
       } else {
         throw new Error(
-          `The setting has been changed so that the No.${executor.index} compiler is not available. Specify the compiler again.`
+          `The setting has been changed so that the No.${executor.index} compiler is not available. Specify the compiler again.`,
         );
       }
     } else {
@@ -259,7 +257,7 @@ export default class Config {
   public update(
     section: string,
     value: any,
-    configurationTarget?: boolean | vscode.ConfigurationTarget | undefined
+    configurationTarget?: boolean | vscode.ConfigurationTarget | undefined,
   ) {
     return this.config.update(section, value, configurationTarget);
   }

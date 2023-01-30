@@ -9,14 +9,14 @@ import { promisify } from "util";
  */
 export async function convertPath(
   options: string[],
-  paths: string[]
+  paths: string[],
 ): Promise<string[]> {
   const option = { maxBuffer: 1024 * paths.length };
   try {
     const { stdout } = await promisify(execFile)(
       "winepath",
       options.concat(paths),
-      option
+      option,
     );
     return stdout.split("\n");
   } catch (err) {

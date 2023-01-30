@@ -6,7 +6,7 @@ import opener = require("opener");
 function editorGetWord(textEditor: vscode.TextEditor): string {
   const selection = textEditor.selection;
   const seltext = textEditor.document.getText(
-    new vscode.Range(selection.active, selection.anchor)
+    new vscode.Range(selection.active, selection.anchor),
   );
   if (seltext !== "") {
     return seltext;
@@ -15,8 +15,8 @@ function editorGetWord(textEditor: vscode.TextEditor): string {
     const wordRange = textEditor.document.getWordRangeAtPosition(
       position,
       RegExp(
-        "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)"
-      )
+        "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+      ),
     );
     return textEditor.document.getText(wordRange);
   }
@@ -34,7 +34,7 @@ export function helpmanCall(textEditor: vscode.TextEditor): void {
   }
   if (mode === "local") {
     const cmd = `"${config.helpman()}" ${word}`;
-    exec(cmd, err => {
+    exec(cmd, (err) => {
       if (err) {
         vscode.window.showErrorMessage("The Helpman call failed.");
         console.log(err);

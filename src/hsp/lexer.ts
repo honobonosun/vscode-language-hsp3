@@ -571,9 +571,9 @@ class Lexer {
       }
       const raw = this.chars.slice(position, this.position).join("");
       const location: ILocation = {
-          begin: { row, column },
-          end: { row, column: column + raw.length },
-        };
+        begin: { row, column },
+        end: { row, column: column + raw.length },
+      };
 
       this.textPoint = { row, column: column + raw.length };
       return new Token(TokenType.literal, location, raw);
