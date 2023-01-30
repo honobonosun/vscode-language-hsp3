@@ -26,7 +26,8 @@ function outputWrite(
   } else {
     vscode.window.showInformationMessage("Success");
   }
-  let stdout, stderr;
+  let stdout;
+  let stderr;
   try {
     if (variable.stdout !== undefined) {
       stdout = decode(variable.stdout, config.encoding());
@@ -74,9 +75,7 @@ function safeUri(fileUri: vscode.Uri): vscode.Uri {
   // 未保存の場合、通知する。
   if (editor.document.isDirty) {
     vscode.window.showInformationMessage(
-      "Changes to the editor have not been saved to the [" +
-        editor.document.uri.fsPath +
-        "] file."
+      `Changes to the editor have not been saved to the [${editor.document.uri.fsPath}] file.`
     );
   }
   return editor.document.uri;

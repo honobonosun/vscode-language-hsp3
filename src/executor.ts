@@ -15,16 +15,16 @@ function convertArgs(str: string): string[] {
   let buffer = "";
   const result: string[] = []; // push() call only.
   let flag = false;
-  let escape = false;
+  let fescape = false;
   const escapeChar = process.platform === "win32" ? "^" : "\\";
   for (const elm of Array.from(str)) {
-    if (escape) {
+    if (fescape) {
       buffer += elm;
-      escape = false;
+      fescape = false;
       continue;
     }
     if (elm === escapeChar) {
-      escape = true;
+      fescape = true;
       continue;
     }
 
@@ -148,11 +148,11 @@ export async function execution(
   userArgs?: string
 ) {
   // config読み込み。
-  let compiler: string,
-    wineMode: boolean,
-    encoding: string,
-    maxBuffer: number,
-    cmdArgs: string[];
+  let compiler: string;
+  let wineMode: boolean;
+  let encoding: string;
+  let maxBuffer: number;
+  let cmdArgs: string[];
   try {
     compiler = config.compiler();
     wineMode = config.wineMode();
@@ -226,9 +226,9 @@ export async function execution(
     }
     let command: string;
     if (wineMode) {
-      command = `wine ${compiler} ` + args.join(" ").replace(/""/g, "");
+      command = `wine ${compiler} ${args.join(" ").replace(/""/g, "")}`;
     } else {
-      command = `${compiler} ` + args.join(" ").replace(/""/g, "");
+      command = `${compiler} ${args.join(" ").replace(/""/g, "")}`;
     }
     return promisify(child_process.exec)(command, execOpstions);
   } else {
