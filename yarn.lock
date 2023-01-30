@@ -47,13 +47,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/emoji-regex@npm:^8.0.0":
-  version: 8.0.0
-  resolution: "@types/emoji-regex@npm:8.0.0"
-  checksum: ed812febc58a81f2ad41bc6ed67270edc4d4bf82385d93329880265dabd694ea3befde8e3a46fa2318f759eeda7ebdcd07d5fc2345639047301641054cb2087a
-  languageName: node
-  linkType: hard
-
 "@types/node@npm:*":
   version: 18.11.18
   resolution: "@types/node@npm:18.11.18"
@@ -61,14 +54,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^10.12.21":
-  version: 10.17.60
-  resolution: "@types/node@npm:10.17.60"
-  checksum: 2cdb3a77d071ba8513e5e8306fa64bf50e3c3302390feeaeff1fd325dd25c8441369715dfc8e3701011a72fed5958c7dfa94eb9239a81b3c286caa4d97db6eef
+"@types/node@npm:^16.18.11":
+  version: 16.18.11
+  resolution: "@types/node@npm:16.18.11"
+  checksum: 2a3b1da13063debe6e26f732defb5f03ef4ef732c3e08daba838d8850433bd00e537ce1a97ce9bcfc4b15db5218d701d1265fae94e0d6926906bec157e6b46e0
   languageName: node
   linkType: hard
 
-"@types/opener@npm:^1.4.0":
+"@types/opener@npm:latest":
   version: 1.4.0
   resolution: "@types/opener@npm:1.4.0"
   dependencies:
@@ -77,26 +70,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/vscode@npm:^1.60.0":
+"@types/vscode@npm:^1.74.0":
   version: 1.74.0
   resolution: "@types/vscode@npm:1.74.0"
   checksum: 25de153cc10136d32d425960c04687fdc26b79b49420d055799f01169e3141fa619d3ed6b3126c4ca4635d12aff2b77df51460e89235c71b55d570f8c08df71c
   languageName: node
   linkType: hard
 
-"emoji-regex@npm:^8.0.0":
-  version: 8.0.0
-  resolution: "emoji-regex@npm:8.0.0"
-  checksum: d4c5c39d5a9868b5fa152f00cada8a936868fd3367f33f71be515ecee4c803132d11b31a6222b2571b1e5f7e13890156a94880345594d0ce7e3c9895f560f192
+"emoji-regex@npm:^10.2.1":
+  version: 10.2.1
+  resolution: "emoji-regex@npm:10.2.1"
+  checksum: 1aa2d16881c56531fdfc03d0b36f5c2b6221cc4097499a5665b88b711dc3fb4d5b8804f0ca6f00c56e5dcf89bac75f0487eee85da1da77df3a33accc6ecbe426
   languageName: node
   linkType: hard
 
-"iconv-lite@npm:^0.4.24":
-  version: 0.4.24
-  resolution: "iconv-lite@npm:0.4.24"
+"iconv-lite@npm:^0.6.3":
+  version: 0.6.3
+  resolution: "iconv-lite@npm:0.6.3"
   dependencies:
-    safer-buffer: ">= 2.1.2 < 3"
-  checksum: bd9f120f5a5b306f0bc0b9ae1edeb1577161503f5f8252a20f1a9e56ef8775c9959fd01c55f2d3a39d9a8abaf3e30c1abeb1895f367dcbbe0a8fd1c9ca01c4f6
+    safer-buffer: ">= 2.1.2 < 3.0.0"
+  checksum: 3f60d47a5c8fc3313317edfd29a00a692cc87a19cac0159e2ce711d0ebc9019064108323b5e493625e25594f11c6236647d8e256fbe7a58f4a3b33b89e6d30bf
   languageName: node
   linkType: hard
 
@@ -104,19 +97,18 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "language-hsp3@workspace:."
   dependencies:
-    "@types/emoji-regex": ^8.0.0
-    "@types/node": ^10.12.21
-    "@types/opener": ^1.4.0
-    "@types/vscode": ^1.60.0
-    emoji-regex: ^8.0.0
-    iconv-lite: ^0.4.24
-    opener: ^1.5.1
+    "@types/node": ^16.18.11
+    "@types/opener": latest
+    "@types/vscode": ^1.74.0
+    emoji-regex: ^10.2.1
+    iconv-lite: ^0.6.3
+    opener: ^1.5.2
     rome: ^11.0.0
-    typescript: ^4.3.2
+    typescript: ^4.9.4
   languageName: unknown
   linkType: soft
 
-"opener@npm:^1.5.1":
+"opener@npm:^1.5.2":
   version: 1.5.2
   resolution: "opener@npm:1.5.2"
   bin:
@@ -154,14 +146,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"safer-buffer@npm:>= 2.1.2 < 3":
+"safer-buffer@npm:>= 2.1.2 < 3.0.0":
   version: 2.1.2
   resolution: "safer-buffer@npm:2.1.2"
   checksum: cab8f25ae6f1434abee8d80023d7e72b598cf1327164ddab31003c51215526801e40b66c5e65d658a0af1e9d6478cadcb4c745f4bd6751f97d8644786c0978b0
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.3.2":
+"typescript@npm:^4.9.4":
   version: 4.9.4
   resolution: "typescript@npm:4.9.4"
   bin:
@@ -171,7 +163,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.3.2#~builtin<compat/typescript>":
+"typescript@patch:typescript@^4.9.4#~builtin<compat/typescript>":
   version: 4.9.4
   resolution: "typescript@patch:typescript@npm%3A4.9.4#~builtin<compat/typescript>::version=4.9.4&hash=ad5954"
   bin:
