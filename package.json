@@ -80,6 +80,11 @@
       "type": "object",
       "title": "HSP",
       "properties": {
+        "language-hsp3.hspc.path": {
+          "type": "string",
+          "default": "hspc",
+          "scope": "machine"
+        },
         "language-hsp3.compiler": {
           "type": "string",
           "default": "C:\\hsp351\\hspc.exe",
@@ -289,7 +294,8 @@
   "dependencies": {
     "emoji-regex": "^10.2.1",
     "iconv-lite": "^0.6.3",
-    "opener": "^1.5.2"
+    "opener": "^1.5.2",
+    "zod": "^3.20.2"
   },
   "packageManager": "yarn@3.3.1"
 }

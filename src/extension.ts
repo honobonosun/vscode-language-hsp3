@@ -7,6 +7,8 @@ import Outline from "./outline";
 import Statusbar from "./statusbar";
 import Config from "./config";
 import { helpmanCall } from "./helpman";
+import Legacy from "./legacy";
+
 
 /**
  * 指定されたoutputにコンパイラの標準出力をconfigに基づいてデコードして表示します。
@@ -221,4 +223,47 @@ export function activate(context: vscode.ExtensionContext): void {
 // this method is called when your extension is deactivated
 export function deactivate(): void {
   console.log("language-hsp3 deactivate.");
+}
+
+class Extension implements vscode.Disposable {
+  subscription: vscode.Disposable[] = [];
+  outcha: vscode.OutputChannel;
+  cfg: vscode.WorkspaceConfiguration =
+    vscode.workspace.getConfiguration("language-hsp3");
+  legacy: Legacy;
+  constructor() {
+    // config
+    vscode.workspace.onDidChangeConfiguration(
+      (e) => {
+        if (e.affectsConfiguration("language-hsp3"))
+          this.cfg = vscode.workspace.getConfiguration("language-hsp3");
+      },
+      this,
+      this.subscription,
+    );
+
+    // Legacy module
+    this.legacy = new Legacy()
+
+    // output channel
+    this.outcha = vscode.window.createOutputChannel("HSP", "hsp3");
+
+    // commands
+    this.subscription.push(
+      vscode.commands.registerCommand("language-hsp3.run", () => {}, this),
+      vscode.commands.registerCommand("language-hsp3.make", () => {}, this),
+      vscode.commands.registerCommand(
+        "language-hsp3.helpman.search",
+        () => {},
+        this,
+      ),
+    );
+  }
+
+  dispose() {
+    this.legacy.dispose();
+    this.outcha.dispose();
+    this.subscription.forEach((el) => el.dispose());
+    return;
+  }
 }
