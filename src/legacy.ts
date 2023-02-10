@@ -1,5 +1,4 @@
 import { spawn } from "node:child_process";
-import { stat } from "node:fs/promises";
 import { commands, Disposable, OutputChannel, window, workspace } from "vscode";
 import { z } from "zod";
 
@@ -20,9 +19,9 @@ const schema = z.record(
 type ExecutorPaths = z.infer<typeof schema>;
 
 export default class Legacy implements Disposable {
-  subscription: Disposable[] = [];
-  cfg = workspace.getConfiguration("language-hsp3");
-  outcha: OutputChannel;
+  private subscription: Disposable[] = [];
+  private cfg = workspace.getConfiguration("language-hsp3");
+  private outcha: OutputChannel;
 
   constructor() {
     this.outcha = window.createOutputChannel("HSP (legacy extension)", "hsp3");
@@ -33,7 +32,8 @@ export default class Legacy implements Disposable {
       }),
     );
   }
-  dispose() {
+
+  public dispose() {
     this.subscription.forEach((el) => el.dispose());
   }
 
@@ -50,9 +50,11 @@ export default class Legacy implements Disposable {
     if (!paths) return undefined;
     else if (!index) {
       this.outcha.appendLine("Profile is unspecified.");
+      this.outcha.show(true)
       return undefined;
     } else if (!(index in paths)) {
       this.outcha.appendLine(`Profile "${index}" settings not found.`);
+      this.outcha.show(true);
       return undefined;
     }
     try {
@@ -62,6 +64,7 @@ export default class Legacy implements Disposable {
         console.log(e);
         this.outcha.appendLine("Profile Validation Error.");
         this.outcha.appendLine(e.issues.map((v) => v.message).join("\n"));
+        this.outcha.show(true);
       }
       return undefined;
     }
@@ -70,19 +73,49 @@ export default class Legacy implements Disposable {
   private get compiler(): string | undefined {
     const profile = this.profile();
     if (profile) return profile.path;
-    return this.cfg.get("compiler") as string | undefined;
+    const compiler = this.cfg.get("compiler") as string | undefined;
+    if (!compiler) window.showErrorMessage("compiler is not set.");
+    return compiler;
   }
 
-  private async execution(command: string, args: string[]) {
+  private get helpman():
+    | { mode: "local" | "online"; path: string }
+    | undefined {
+    const mode = this.cfg.get("helpman.enable") as
+      | "disable"
+      | "local"
+      | "online"
+      | undefined;
+    switch (mode) {
+      case "local": {
+        const profile = this.profile();
+        if (profile) return { mode, path: profile.helpman };
+        const helpman = this.cfg.get("helpman.path.local") as
+          | string
+          | undefined;
+        if (helpman) return { mode, path: helpman };
+        else break;
+      }
+      case "online": {
+        const helpman = this.cfg.get("helpman.path.online") as string | undefined;
+        if (helpman) return { mode, path: helpman };
+        else break;
+      }
+    }
+    return undefined;
+  }
+
+  private get hsp3root(): string | undefined {
+    return undefined;
+  }
+
+  private async spawn(command: string, args: string[]) {
     // commandはいったん絶対パスへ
     // wineも考慮する
     const cwd = undefined;
     const env = process.env;
     if (this.cfg.get("useSetHSP3ROOT")) {
-      try {
-        console.log(await commands.getCommands(true));
-        //env.HSP3_ROOT = undefined
-      } catch (e) {}
+      this.hsp3root;
     }
     return new Promise((resolve, reject) => {
       const child = spawn(command, args, { shell: false, cwd, env });
@@ -90,14 +123,19 @@ export default class Legacy implements Disposable {
     });
   }
 
-  public async run() {
-    const compiler = this.compiler;
-    if (!compiler) {
-      return;
-    }
-  }
-
-  public async make() {}
-
-  public async helpman() {}
+  public execution = {
+    run: () => {
+      console.log("run(legacy)");
+      console.log(this.compiler);
+      console.log(this.helpman);
+    },
+    make: () => {
+      const compiler = this.compiler;
+      if (!compiler) return;
+    },
+    helpman: () => {
+      const helpman = this.helpman;
+      if (!helpman) return;
+    },
+  };
 }
