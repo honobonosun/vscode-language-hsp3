@@ -161,6 +161,11 @@ export default class Legacy implements Disposable {
     else return this.cfg.get("compiler");
   }
 
+  private get encoding(): string | undefined {
+    if (this.profile) return this.profile.encoding;
+    else return this.cfg.get("encoding");
+  }
+
   private get runcmdargs(): string[] | undefined {
     if (this.profile) return this.profile.commands.run;
     else return this.cfg.get("runCommands");
@@ -211,6 +216,8 @@ export default class Legacy implements Disposable {
     if (!cmdargs) return;
 
     const hsp3dir = await this.hsp3root().catch((reason) => undefined);
+    const encoding = this.encoding;
+    if (!encoding) return;
 
     // 特殊文字の対応（cmd.exeの環境変数展開を再現）
     const sc = new Map<string, string>(scbase);
@@ -224,17 +231,26 @@ export default class Legacy implements Disposable {
       ),
     );
 
-    console.log(command, args, cwd);
-    this.outcha.appendLine(`set cwd : "${cwd}"`)
-    this.outcha.appendLine(`run command : "${command}" ${args.map(str => `"${str}"`).join(" ")}`)
-
+    this.outcha.appendLine(`set decode : "${encoding}"`);
+    this.outcha.appendLine(`set cwd : "${cwd}"`);
+    this.outcha.appendLine(
+      `run command : "${command}" [${args.map((str) => `"${str}"`).join(" ")}]`,
+    );
+    this.outcha.show(true);
     const child = spawn(command, args, { cwd, shell: false });
     child.on("error", (err) => {
-      this.outcha.appendLine(`spawn error : ${err.message}`)
+      this.outcha.appendLine(`spawn error : ${err.message}`);
+      if ("code" in err && err.code === "ENOENT")
+        this.outcha.appendLine(
+          `  コマンド "${command}" の実行に失敗しました。`,
+        );
       console.log("spawn error", err);
       return;
     });
-    const data = child.stdout.pipe(decodeStream("shift_jis"));
+    child.on("close", (code) =>
+      this.outcha.appendLine(`exit code process: ${code}\n`),
+    );
+    const data = child.stdout.pipe(decodeStream(encoding));
     readline
       .createInterface(data)
       .on("line", (line) => this.outcha.appendLine(line));
