@@ -61,7 +61,7 @@ export default class Legacy implements Disposable {
       this.outcha.appendLine("Profile is unspecified.");
       this.outcha.show(true);
       return undefined;
-    } else if (!(index in profiles)) {
+    } else if (!Object.hasOwn(profiles, index)) {
       this.outcha.appendLine(`Profile "${index}" settings not found.`);
       this.outcha.show(true);
       return undefined;
@@ -107,7 +107,7 @@ export default class Legacy implements Disposable {
     if (this.profilebar) {
       const index = this.executor.index();
       const profiles = this.executor.profiles();
-      if (index && profiles && index in profiles) {
+      if (index && profiles && Object.hasOwn(profiles, index)) {
         if (this.profilebar.text !== index) this.profilebar.text = index;
         if (this.profilebar.severity !== LanguageStatusSeverity.Information)
           this.profilebar.severity = LanguageStatusSeverity.Information;
@@ -225,12 +225,12 @@ export default class Legacy implements Disposable {
     );
 
     console.log(command, args, cwd);
-    this.outcha.appendLine(` set cwd : "${cwd}"`)
-    this.outcha.appendLine(` run command : "${command}" ${args.map(str => `"${str}"`).join(" ")}`)
+    this.outcha.appendLine(`set cwd : "${cwd}"`)
+    this.outcha.appendLine(`run command : "${command}" ${args.map(str => `"${str}"`).join(" ")}`)
 
     const child = spawn(command, args, { cwd, shell: false });
-    console.log(child);
     child.on("error", (err) => {
+      this.outcha.appendLine(`spawn error : ${err.message}`)
       console.log("spawn error", err);
       return;
     });
