@@ -5,7 +5,7 @@ import { basename, dirname } from "path";
 import { promisify } from "util";
 import * as vscode from "vscode";
 import Config from "./config";
-import { convertPath } from "./wine";
+import { convertPath } from "../wine";
 
 /**
  * cmd.exeやbashのエスケープを再現します。
