@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
 import { dirname } from "node:path";
 import {
   commands,
@@ -7,12 +7,14 @@ import {
   LanguageStatusItem,
   LanguageStatusSeverity,
   OutputChannel,
+  Range,
   window,
   workspace,
 } from "vscode";
 import { z } from "zod";
 import { decodeStream } from "iconv-lite";
 import * as readline from "readline";
+import opener = require("opener");
 
 const profileEl = z.object({
   hide: z.boolean(),
@@ -40,7 +42,7 @@ for (const key of Object.keys(process.env)) {
 export default class Legacy implements Disposable {
   private subscription: Disposable[] = [];
   private cfg = workspace.getConfiguration("language-hsp3");
-  private outcha: OutputChannel;
+  private outcha = window.createOutputChannel("language-hsp3 V1", "text");
   private profilebar: LanguageStatusItem | undefined;
   private profile: Profile | undefined;
 
@@ -54,8 +56,6 @@ export default class Legacy implements Disposable {
     if (!this.executor.use()) return undefined;
     const profiles = this.executor.profiles();
     const index = this.executor.index();
-    if (profiles && index)
-      console.log("Object.hasOwn", Object.hasOwn(profiles, index));
     if (!profiles) return undefined;
     else if (!index) {
       this.outcha.appendLine("Profile is unspecified.");
@@ -70,7 +70,7 @@ export default class Legacy implements Disposable {
       return schema.parse(profiles)[index];
     } catch (e) {
       if (e instanceof z.ZodError) {
-        console.log(e);
+        console.log(["profiles ZodError", e]);
         this.outcha.appendLine("Profile Validation Error.");
         this.outcha.appendLine(
           e.issues
@@ -98,10 +98,10 @@ export default class Legacy implements Disposable {
         command: "language-hsp3.changeOfExecutor",
         title: "Select",
       };
-      console.log("create langStatBar");
+      //console.log("create langStatBar");
     } else if (this.profilebar && !this.executor.use()) {
       this.profilebar.dispose();
-      console.log("profilebar dispose.", this.profilebar);
+      //console.log("profilebar dispose.", this.profilebar);
       this.profilebar = undefined;
     }
     if (this.profilebar) {
@@ -120,8 +120,6 @@ export default class Legacy implements Disposable {
   }
 
   constructor() {
-    this.outcha = window.createOutputChannel("HSP (legacy extension)", "text");
-
     this.update();
 
     this.subscription.push(
@@ -166,6 +164,16 @@ export default class Legacy implements Disposable {
     else return this.cfg.get("encoding");
   }
 
+  private getcwd(): string | undefined {
+    const editor = window.activeTextEditor;
+    if (!editor) return editor;
+    if (this.cfg.get("choiceWorkDirCur")) {
+      return workspace.getWorkspaceFolder(editor.document.uri)?.uri.fsPath;
+    } else {
+      return dirname(editor.document.uri.fsPath);
+    }
+  }
+
   private get runcmdargs(): string[] | undefined {
     if (this.profile) return this.profile.commands.run;
     else return this.cfg.get("runCommands");
@@ -208,7 +216,7 @@ export default class Legacy implements Disposable {
     return commands.executeCommand<string>("toolset-hsp3.current.toString");
   }
 
-  private async spawn(command: string, cmdargs: string[], cwd?: string) {
+  private async spawn(command: string, cmdargs: string[], cwd?: string | null) {
     const editor = window.activeTextEditor;
     if (!editor) return;
     if (!command) return;
@@ -219,9 +227,16 @@ export default class Legacy implements Disposable {
     const encoding = this.encoding;
     if (!encoding) return;
 
+    // todo wine path
+    let filepath = editor.document.uri.fsPath;
+
+    // set env
+    const env = process.env;
+    if (hsp3dir && this.cfg.get("useSetHSP3ROOT")) env["HSP3_ROOT"] = hsp3dir;
+
     // 特殊文字の対応（cmd.exeの環境変数展開を再現）
     const sc = new Map<string, string>(scbase);
-    sc.set("filepath", editor.document.uri.fsPath);
+    sc.set("filepath", filepath);
     if (hsp3dir) sc.set("hsp3root", hsp3dir);
     const regexp = /%(.*?)%/g;
     let args = cmdargs.map((el) =>
@@ -231,15 +246,23 @@ export default class Legacy implements Disposable {
       ),
     );
 
+    // set cwd
+    if (cwd === null) cwd = undefined;
+    else if (cwd === undefined) cwd = this.getcwd();
+
+    // print command info
     this.outcha.appendLine(`set decode : "${encoding}"`);
     this.outcha.appendLine(`set cwd : "${cwd}"`);
     this.outcha.appendLine(
       `run command : "${command}" [${args.map((str) => `"${str}"`).join(" ")}]`,
     );
     this.outcha.show(true);
-    const child = spawn(command, args, { cwd, shell: false });
+
+    // run command
+    const child = spawn(command, args, { cwd, shell: false, env });
     child.on("error", (err) => {
       this.outcha.appendLine(`spawn error : ${err.message}`);
+      // todo 英語にも対応したいです。
       if ("code" in err && err.code === "ENOENT")
         this.outcha.appendLine(
           `  コマンド "${command}" の実行に失敗しました。`,
@@ -260,20 +283,44 @@ export default class Legacy implements Disposable {
     run: () => {
       const compiler = this.compiler;
       if (!compiler) {
-        window.showErrorMessage("");
+        window.showErrorMessage("compiler is not set.");
         return;
       }
       const args = this.runcmdargs;
       if (!args) {
-        window.showErrorMessage("");
+        window.showErrorMessage("run option is not set.");
         return;
       }
       this.spawn(compiler, args);
     },
     make: () => {},
     helpman: () => {
+      const word = (() => {
+        const editor = window.activeTextEditor;
+        if (!editor) return;
+
+        const selword = editor.document.getText(
+          new Range(editor.selection.start, editor.selection.end)
+        );
+        if (selword !== "") return selword;
+
+        const range = editor.document.getWordRangeAtPosition(
+          editor.selection.start,
+          RegExp(
+            "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+          ),
+        );
+        if (!range) return;
+        return editor.document.getText(range);
+      })();
+      if (!word) return;
+
       const helpman = this.helpman;
       if (!helpman) return;
+      else if (helpman.mode === "online")
+        opener(helpman.path.replace("%s", encodeURIComponent(word)));
+      else if (helpman.mode === "local")
+        this.spawn(helpman.path, [word]);
     },
   };
 }

@@ -9,7 +9,6 @@ import Config from "./config";
 import { helpmanCall } from "./helpman";
 import Legacy from "./legacy";
 
-
 /**
  * 指定されたoutputにコンパイラの標準出力をconfigに基づいてデコードして表示します。
  * @param variable execution関数の返り値
@@ -84,6 +83,13 @@ function safeUri(fileUri: vscode.Uri): vscode.Uri {
 }
 
 export function activate(context: vscode.ExtensionContext): void {
+  const extension = new Extension();
+  context.subscriptions.push(extension);
+  return;
+
+  // Legacy code.
+
+  // rome-ignore lint/correctness/noUnreachable: <explanation>
   const config = new Config(null);
 
   const output = vscode.window.createOutputChannel("HSP");
@@ -243,18 +249,32 @@ class Extension implements vscode.Disposable {
     );
 
     // Legacy module
-    this.legacy = new Legacy()
+    this.legacy = new Legacy();
 
     // output channel
     this.outcha = vscode.window.createOutputChannel("HSP", "hsp3");
 
     // commands
     this.subscription.push(
-      vscode.commands.registerCommand("language-hsp3.run", () => {}, this),
-      vscode.commands.registerCommand("language-hsp3.make", () => {}, this),
+      vscode.commands.registerCommand(
+        "language-hsp3.run",
+        () => {
+          this.legacy.execution.run();
+        },
+        this,
+      ),
+      vscode.commands.registerCommand(
+        "language-hsp3.make",
+        () => {
+          this.legacy.execution.make();
+        },
+        this,
+      ),
       vscode.commands.registerCommand(
         "language-hsp3.helpman.search",
-        () => {},
+        () => {
+          this.legacy.execution.helpman();
+        },
         this,
       ),
     );

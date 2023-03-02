@@ -1,0 +1,18 @@
+{
+  "language-hsp3.executor.enable": true,
+  "language-hsp3.executor.index": "neko",
+  "language-hsp3.executor.paths": {
+    "neko": {
+      "hide": false,
+      "path": "hspc",
+      "encoding": "shift_jis",
+      "buffer": 0,
+      "helpman": "hdl",
+      "commands": {
+        "run": ["-aCdwrI", "%FILEPATH%"],
+        "make": ["-aCPm", "%FILEPATH"]
+      }
+    }
+  },
+  "language-hsp3.helpman.enable": "local"
+}
