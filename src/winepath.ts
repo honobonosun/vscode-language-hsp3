@@ -7,7 +7,7 @@ import { promisify } from "util";
  * @param options winepathに渡すオプション
  * @param paths 変換するファイルパス
  */
-export async function convertPath(
+export async function winepath(
   options: string[],
   paths: string[],
 ): Promise<string[]> {
