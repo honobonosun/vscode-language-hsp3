@@ -5,7 +5,8 @@ All notable changes to the "dev-vscode-language-hsp3" extension will be document
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
 ## 2023/xx/xx - 1.2.0
-- _update_ hsp37の追加キーワードの色分けに対応中です。
+- _update_ hsp37で追加されるキーワードの色分けに対応中です。
+  - "#packdir", "#epackdir"キーワードを追加しました。
 
 ## 2022/12/29 - 1.1.1
 - _fix_ toolset-hsp3が有効でない環境でRun HSP programに失敗する不具合を修正しました。
