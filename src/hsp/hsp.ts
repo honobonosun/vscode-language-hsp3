@@ -132,11 +132,8 @@ export class Lexer {
   // 成功すればTokenが返り、失敗すればundefinedを返す。
 
   readComment() {
-    console.log(this.hasLiteral(";"));
-    
     if (this.hasLiteral(";") || this.hasLiteral("//")) {
-      const i = this.find("\n");
-      if (i === -1) return undefined;
+      const i = this.find("\n")
       return new Token(
         TokenType.comment,
         this.chars.slice(this.cur, i).join(""),
