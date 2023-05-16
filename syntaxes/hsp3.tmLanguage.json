@@ -310,7 +310,7 @@
           ]
         },
         {
-          "match": "^\\s*(#else|#endif|#epack|#if|#ifdef|#ifndef|#pack|#runtime|#undef|#uselib|#regcmd|#module|#global|#include|#addition|#uselib|#ahtmes)(?=[^\\w\\p{Cn}`＠])",
+          "match": "^\\s*(#else|#endif|#epack|#if|#ifdef|#ifndef|#pack|#runtime|#undef|#uselib|#regcmd|#module|#global|#include|#addition|#uselib|#ahtmes|#packdir|#epackdir)(?=[^\\w\\p{Cn}`＠])",
           "captures": {"1": {"name": "keyword.control.hsp3"}}
         },
         {
