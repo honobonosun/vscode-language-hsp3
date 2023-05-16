@@ -227,7 +227,7 @@ export default class Legacy implements Disposable {
     const encoding = this.encoding;
     if (!encoding) return;
 
-    // todo wine path
+    // TODO: winepath
     let filepath = editor.document.uri.fsPath;
 
     // set env
@@ -249,6 +249,8 @@ export default class Legacy implements Disposable {
     // set cwd
     if (cwd === null) cwd = undefined;
     else if (cwd === undefined) cwd = this.getcwd();
+
+    // TODO: Wine command
 
     // print command info
     this.outcha.appendLine(`set decode : "${encoding}"`);
@@ -293,14 +295,26 @@ export default class Legacy implements Disposable {
       }
       this.spawn(compiler, args);
     },
-    make: () => {},
+    make: () => {
+      const compiler = this.compiler;
+      if (!compiler) {
+        window.showErrorMessage("compiler is not set.");
+        return;
+      }
+      const args = this.makecmdargs;
+      if (!args) {
+        window.showErrorMessage("run option is not set.");
+        return;
+      }
+      this.spawn(compiler, args);
+    },
     helpman: () => {
       const word = (() => {
         const editor = window.activeTextEditor;
         if (!editor) return;
 
         const selword = editor.document.getText(
-          new Range(editor.selection.start, editor.selection.end)
+          new Range(editor.selection.start, editor.selection.end),
         );
         if (selword !== "") return selword;
 
@@ -319,8 +333,7 @@ export default class Legacy implements Disposable {
       if (!helpman) return;
       else if (helpman.mode === "online")
         opener(helpman.path.replace("%s", encodeURIComponent(word)));
-      else if (helpman.mode === "local")
-        this.spawn(helpman.path, [word]);
+      else if (helpman.mode === "local") this.spawn(helpman.path, [word]);
     },
   };
 }

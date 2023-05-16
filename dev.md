@@ -2,8 +2,7 @@
 
 ## tools
 
-- yarn v3
+- npm
 - Rome
 - esbuild
-
-テストツールは未選定です。
+- jest
