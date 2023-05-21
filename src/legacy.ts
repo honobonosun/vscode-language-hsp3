@@ -15,6 +15,7 @@ import { z } from "zod";
 import { decodeStream } from "iconv-lite";
 import * as readline from "readline";
 import opener = require("opener");
+import Outline from "./hsp/legacy/outline";
 
 const profileEl = z.object({
   hide: z.boolean(),
@@ -45,6 +46,7 @@ export default class Legacy implements Disposable {
   private outcha = window.createOutputChannel("language-hsp3 V1", "text");
   private profilebar: LanguageStatusItem | undefined;
   private profile: Profile | undefined;
+  private outline = new Outline();
 
   private executor = {
     use: () => this.cfg.get("executor.enable") as boolean | undefined,
@@ -117,6 +119,9 @@ export default class Legacy implements Disposable {
           this.profilebar.severity = LanguageStatusSeverity.Error;
       }
     }
+
+    // outline
+    this.outline.update(this.cfg);
   }
 
   constructor() {
@@ -145,6 +150,7 @@ export default class Legacy implements Disposable {
 
   public dispose() {
     this.outcha.dispose();
+    this.outline.dispose();
     if (this.profilebar) this.profilebar.dispose();
     this.subscription.forEach((el) => el.dispose());
   }

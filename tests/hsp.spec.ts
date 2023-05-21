@@ -17,12 +17,14 @@ describe("token", () => {
 
 describe("lexer", () => {
   test("hasLiteral", () => {
-    const neko = new Lexer("neko")
+    const neko = new Lexer("neko");
     expect(neko.hasLiteral("n")).toBe(true);
     expect(neko.hasLiteral("neko")).toBe(true);
   });
   test("comments", () => {
-    const come = new Lexer("; neko")
-    expect(come.readComment()).toBe(TokenType.comment)
-  })
-})
+    const txt = "; neko";
+    const tok = new Token(TokenType.comment, txt);
+    const come = new Lexer(txt);
+    expect(come.readComment()).toEqual(tok);
+  });
+});

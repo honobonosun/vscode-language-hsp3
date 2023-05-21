@@ -125,7 +125,7 @@ export class Lexer {
         hitcnt = 0;
       }
     }
-    return -1; // 見つからなかった。
+    return undefined; // 見つからなかった。
   }
 
   // read~は文字をトークンにするメソッド達
@@ -133,14 +133,13 @@ export class Lexer {
 
   readComment() {
     if (this.hasLiteral(";") || this.hasLiteral("//")) {
-      const i = this.find("\n")
       return new Token(
         TokenType.comment,
-        this.chars.slice(this.cur, i).join(""),
+        this.chars.slice(this.cur, this.find("\n")).join(""),
       );
     } else if (this.hasLiteral("/*")) {
       const i = this.find("*/");
-      if (i === -1) return undefined;
+      if (i === undefined) return undefined;
       return new Token(
         TokenType.comment,
         this.chars.slice(this.cur, i).join(""),

@@ -1,4 +1,5 @@
 print "hello VSCode"
+print strf("%x", hspver)
 a = 1
 a(0) = 1
 a.0 = 1
@@ -13,3 +14,4 @@ a(1==1) = 1
 a = 1 : b = 2
 if 1 { neko = 1 } else { neko = 2 }
 neko = 1
+#define hoge

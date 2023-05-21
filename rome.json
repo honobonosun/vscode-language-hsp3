@@ -7,6 +7,7 @@
     "lineWidth": 80
   },
   "linter": {
+    "ignore": ["out/src/extension.js"],
     "enabled": true,
     "rules": {
       "recommended": true,
