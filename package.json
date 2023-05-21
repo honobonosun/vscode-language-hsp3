@@ -118,7 +118,13 @@
         "language-hsp3.useSetHSP3ROOT": {
           "type": "boolean",
           "default": true,
-          "description": "Set HSP3_ROOT parameter in exec option env",
+          "description": "Set HSP3_ROOT parameter in exec option env.",
+          "scope": "machine"
+        },
+        "language-hsp3.useShell": {
+          "type": "boolean",
+          "default": true,
+          "description": "command via a shell.",
           "scope": "machine"
         },
         "language-hsp3.encoding": {

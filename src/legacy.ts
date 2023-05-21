@@ -267,7 +267,8 @@ export default class Legacy implements Disposable {
     this.outcha.show(true);
 
     // run command
-    const child = spawn(command, args, { cwd, shell: false, env });
+    const shell = (this.cfg.get("useShell") as boolean) ?? true;
+    const child = spawn(command, args, { cwd, shell, env });
     child.on("error", (err) => {
       this.outcha.appendLine(`spawn error : ${err.message}`);
       // todo 英語にも対応したいです。
