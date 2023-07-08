@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import Legacy from "./legacy";
+import { HSP3_LANG_ID, MY_CONFIG_SECTION, OUTCHA_NAME_MAIN } from "./constants";
 
 export function activate(context: vscode.ExtensionContext): void {
   const extension = new Extension();
@@ -18,14 +19,17 @@ class Extension implements vscode.Disposable {
   legacy: Legacy;
 
   constructor() {
-    this.outcha = vscode.window.createOutputChannel("HSP", "hsp3");
-    this.cfg = vscode.workspace.getConfiguration("language-hsp3");
+    this.outcha = vscode.window.createOutputChannel(
+      OUTCHA_NAME_MAIN,
+      HSP3_LANG_ID,
+    );
+    this.cfg = vscode.workspace.getConfiguration(MY_CONFIG_SECTION);
 
     // config
     vscode.workspace.onDidChangeConfiguration(
       (e) => {
-        if (e.affectsConfiguration("language-hsp3"))
-          this.cfg = vscode.workspace.getConfiguration("language-hsp3");
+        if (e.affectsConfiguration(MY_CONFIG_SECTION))
+          this.cfg = vscode.workspace.getConfiguration(MY_CONFIG_SECTION);
       },
       this,
       this.subscription,

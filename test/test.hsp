@@ -15,3 +15,5 @@ a = 1 : b = 2
 if 1 { neko = 1 } else { neko = 2 }
 neko = 1
 #define hoge
+;zipcompress
+;#packdir

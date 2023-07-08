@@ -1,0 +1,4 @@
+#runtime "hsp3cl"
+#packopt name "test2"
+print "me is wake up!"
+end 0

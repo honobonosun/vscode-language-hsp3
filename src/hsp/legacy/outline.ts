@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { tokenizer } from "./hsp";
 import { parse, kinds, IOutlineElement } from "./hsp";
+import { HSP3_LANG_ID } from "../../constants";
 
 /**
  * outlineに表示するiconをkindの種類から決定して返します。
@@ -49,7 +50,7 @@ export default class Outline implements vscode.Disposable {
   public create(): void {
     if (this.provider) return;
     this.provider = vscode.languages.registerDocumentSymbolProvider(
-      { scheme: "file", language: "hsp3" },
+      { scheme: "file", language: HSP3_LANG_ID },
       { provideDocumentSymbols: this.provideDocumentSymbols.bind(this) },
     );
   }

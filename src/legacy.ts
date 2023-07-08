@@ -16,6 +16,7 @@ import { decodeStream } from "iconv-lite";
 import * as readline from "readline";
 import opener = require("opener");
 import Outline from "./hsp/legacy/outline";
+import { MY_CONFIG_SECTION, OUTCHA_NAME_EXEC } from "./constants";
 
 const profileEl = z.object({
   hide: z.boolean(),
@@ -42,8 +43,8 @@ for (const key of Object.keys(process.env)) {
 
 export default class Legacy implements Disposable {
   private subscription: Disposable[] = [];
-  private cfg = workspace.getConfiguration("language-hsp3");
-  private outcha = window.createOutputChannel("language-hsp3 V1", "text");
+  private cfg = workspace.getConfiguration(MY_CONFIG_SECTION);
+  private outcha = window.createOutputChannel(OUTCHA_NAME_EXEC, "text");
   private profilebar: LanguageStatusItem | undefined;
   private profile: Profile | undefined;
   private outline = new Outline();
@@ -259,6 +260,8 @@ export default class Legacy implements Disposable {
     // TODO: Wine command
 
     // print command info
+    if (this.profile && this.executor.index())
+      this.outcha.appendLine(`run command set : ${this.executor.index()}`);
     this.outcha.appendLine(`set decode : "${encoding}"`);
     this.outcha.appendLine(`set cwd : "${cwd}"`);
     this.outcha.appendLine(
@@ -273,6 +276,7 @@ export default class Legacy implements Disposable {
       this.outcha.appendLine(`spawn error : ${err.message}`);
       // todo 英語にも対応したいです。
       if ("code" in err && err.code === "ENOENT")
+        // issues #20 close
         this.outcha.appendLine(
           `  コマンド "${command}" の実行に失敗しました。`,
         );
