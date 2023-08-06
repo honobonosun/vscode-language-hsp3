@@ -305,5 +305,20 @@
     "iconv-lite": "^0.6.3",
     "opener": "^1.5.2",
     "zod": "^3.20.2"
+  },
+  "toolset-hsp3": {
+    "enable": true,
+    "settings": [
+      {
+        "id": "language-hsp3.helpman.path.local",
+        "valuse": [
+          "%HSP3_ROOT%",
+          "hsphelp",
+          "helpman.exe"
+        ],
+        "platform": "win32"
+      }
+    ],
+    "reloadWindow": false
   }
 }
