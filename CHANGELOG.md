@@ -4,6 +4,13 @@ All notable changes to the "dev-vscode-language-hsp3" extension will be document
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 2023/08/12 - 1.2.0
+- _update_ Workspace Trustに対応しました。
+  - この変更により、制限モードでも構文の色分けやOutlineが使用できます。
+  - 制限モードでは、当拡張機能の設定はユーザー設定に限定されます。
+- _fix_ node_modulesを更新しました。
+  - word-wrap from 1.2.3 to 1.2.4.
+
 ## 2022/12/29 - 1.1.1
 - _fix_ toolset-hsp3が有効でない環境でRun HSP programに失敗する不具合を修正しました。
 - _add_ "language-hsp3.executor.enable"を無効化する案内を開始しました。
