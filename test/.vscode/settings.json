@@ -1,5 +1,10 @@
 {
-  "language-hsp3.executor.enable": true,
+  "language-hsp3.compiler": "D:\\hsp\\hspc\\hspc.exe",
+  "language-hsp3.runCommands": [
+    "-dwCravoout",
+    "%FILEPATH%"
+  ],
+  "language-hsp3.executor.enable": false,
   "language-hsp3.executor.index": "neko",
   "language-hsp3.executor.paths": {
     "neko": {
@@ -14,5 +19,7 @@
       }
     }
   },
-  "language-hsp3.helpman.enable": "local"
+  "language-hsp3.helpman.enable": "local",
+  "hsp3-debug-window-adapter.hsp3-root": "D:\\hsp\\hsp37b7",
+  "hsp3-analyzer-mini.hsp3-root": "D:\\hsp\\hsp37b7"
 }

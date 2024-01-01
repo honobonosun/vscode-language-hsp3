@@ -308,15 +308,17 @@
   },
   "toolset-hsp3": {
     "enable": true,
+    "version": "1.0.0",
     "settings": [
       {
         "id": "language-hsp3.helpman.path.local",
-        "valuse": [
+        "value": [
           "%HSP3_ROOT%",
           "hsphelp",
           "helpman.exe"
         ],
-        "platform": "win32"
+        "platform": "win32",
+        "scope": "undefined"
       }
     ],
     "reloadWindow": false
