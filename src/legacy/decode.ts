@@ -6,5 +6,5 @@ import * as iconv from "iconv-lite";
  * @param encoding
  */
 export function decode(chars: Buffer, encoding: string): string {
-  return iconv.decode(chars, encoding).replace(/\r?\n/g, "\n");
+	return iconv.decode(chars, encoding).replace(/\r?\n/g, "\n");
 }

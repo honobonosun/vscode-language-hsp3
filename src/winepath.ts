@@ -1,4 +1,3 @@
-"use strict";
 import { execFile } from "child_process";
 import { promisify } from "util";
 
@@ -8,19 +7,19 @@ import { promisify } from "util";
  * @param paths 変換するファイルパス
  */
 export async function winepath(
-  options: string[],
-  paths: string[],
+	options: string[],
+	paths: string[],
 ): Promise<string[]> {
-  const option = { maxBuffer: 1024 * paths.length };
-  try {
-    const { stdout } = await promisify(execFile)(
-      "winepath",
-      options.concat(paths),
-      option,
-    );
-    return stdout.split("\n");
-  } catch (err) {
-    console.log(err);
-    return [];
-  }
+	const option = { maxBuffer: 1024 * paths.length };
+	try {
+		const { stdout } = await promisify(execFile)(
+			"winepath",
+			options.concat(paths),
+			option,
+		);
+		return stdout.split("\n");
+	} catch (err) {
+		console.log(err);
+		return [];
+	}
 }

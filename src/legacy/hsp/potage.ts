@@ -15,14 +15,14 @@ import { Token, TokenType } from "./token";
  * @property log パース中にロギングした結果が格納される
  */
 export interface IResult {
-  success: boolean;
-  location: number[];
-  result: any;
-  log: string[];
+	success: boolean;
+	location: number[];
+	result: any;
+	log: string[];
 }
 
 export interface IParser {
-  (target: Token[], position: number): IResult;
+	(target: Token[], position: number): IResult;
 }
 
 /**
@@ -38,41 +38,41 @@ export interface IParser {
  * @param fn 成否と結果を返すコールバック関数
  */
 export function satisfy(fn?: (token: Token) => any): IParser {
-  return function (target, position) {
-    if (position >= target.length) {
-      return {
-        success: false,
-        location: [position, -1],
-        result: undefined,
-        log: [],
-      };
-    }
-    let result: any = undefined;
-    if (fn) {
-      result = fn(target[position]);
-    } else {
-      result = null;
-    }
-    const success: boolean = result !== undefined;
-    const location = [position + (success ? 1 : 0), position];
-    return { success, location, result, log: [] };
-  };
+	return function (target, position) {
+		if (position >= target.length) {
+			return {
+				success: false,
+				location: [position, -1],
+				result: undefined,
+				log: [],
+			};
+		}
+		let result: any = undefined;
+		if (fn) {
+			result = fn(target[position]);
+		} else {
+			result = null;
+		}
+		const success: boolean = result !== undefined;
+		const location = [position + (success ? 1 : 0), position];
+		return { success, location, result, log: [] };
+	};
 }
 
 export function any() {
-  return satisfy();
+	return satisfy();
 }
 
 export function raw(str: string) {
-  return satisfy((t) => (t.raw === str ? { raw: t.raw } : undefined));
+	return satisfy((t) => (t.raw === str ? { raw: t.raw } : undefined));
 }
 
 export function type(type: TokenType) {
-  return satisfy((t) => (t.type === type ? { type: t.type } : undefined));
+	return satisfy((t) => (t.type === type ? { type: t.type } : undefined));
 }
 
 export function regexp(regexp: RegExp) {
-  return satisfy((t) => (regexp.test(t.raw) ? { raw: t.raw } : undefined));
+	return satisfy((t) => (regexp.test(t.raw) ? { raw: t.raw } : undefined));
 }
 
 /**
@@ -86,47 +86,47 @@ export function regexp(regexp: RegExp) {
  * @param fn
  */
 export function log(
-  parser: IParser,
-  fn: (parsed: IResult) => string | undefined,
+	parser: IParser,
+	fn: (parsed: IResult) => string | undefined,
 ): IParser {
-  return function (target, position) {
-    const parsed = parser(target, position);
-    const text = fn(parsed);
-    if (text !== undefined) {
-      parsed.log.push(text);
-    }
-    return parsed;
-  };
+	return function (target, position) {
+		const parsed = parser(target, position);
+		const text = fn(parsed);
+		if (text !== undefined) {
+			parsed.log.push(text);
+		}
+		return parsed;
+	};
 }
 
 /**
  * parserが失敗したら、logにtextを追加するパーサ関数を返します。
  */
 export function desc(
-  parser: IParser,
-  fn: (parsed: IResult) => string,
+	parser: IParser,
+	fn: (parsed: IResult) => string,
 ): IParser {
-  return log(parser, (r) => (r.success ? undefined : fn(r)));
+	return log(parser, (r) => (r.success ? undefined : fn(r)));
 }
 
 export function choice(...parsers: IParser[]): IParser {
-  return function (target, position) {
-    let success = false;
-    let location = [position, position];
-    let result: any = undefined;
-    let log: string[] = [];
-    for (let i = 0; i < parsers.length; i++) {
-      const parsed = parsers[i](target, position);
-      log = log.concat(parsed.log);
-      if (parsed.success) {
-        success = true;
-        location = parsed.location;
-        result = parsed.result;
-        break;
-      }
-    }
-    return { success, location, result, log };
-  };
+	return function (target, position) {
+		let success = false;
+		let location = [position, position];
+		let result: any = undefined;
+		let log: string[] = [];
+		for (let i = 0; i < parsers.length; i++) {
+			const parsed = parsers[i](target, position);
+			log = log.concat(parsed.log);
+			if (parsed.success) {
+				success = true;
+				location = parsed.location;
+				result = parsed.result;
+				break;
+			}
+		}
+		return { success, location, result, log };
+	};
 }
 
 /**
@@ -134,25 +134,25 @@ export function choice(...parsers: IParser[]): IParser {
  * @param  parsers 成功しなくてはならないパーサ関数たち
  */
 export function seq(...parsers: IParser[]): IParser {
-  return function (target, position) {
-    const readPosition = position;
-    let success = true;
-    let result: Array<IResult | undefined> = [];
-    let log: string[] = [];
-    for (let i = 0; i < parsers.length; i++) {
-      const parsed = parsers[i](target, position);
-      log = log.concat(parsed.log);
-      if (parsed.success) {
-        result.push(parsed.result);
-        position = parsed.location[0];
-      } else {
-        success = false;
-        break;
-      }
-    }
-    const location = [position, readPosition, position - 1];
-    return { success, location, result, log };
-  };
+	return function (target, position) {
+		const readPosition = position;
+		let success = true;
+		let result: Array<IResult | undefined> = [];
+		let log: string[] = [];
+		for (let i = 0; i < parsers.length; i++) {
+			const parsed = parsers[i](target, position);
+			log = log.concat(parsed.log);
+			if (parsed.success) {
+				result.push(parsed.result);
+				position = parsed.location[0];
+			} else {
+				success = false;
+				break;
+			}
+		}
+		const location = [position, readPosition, position - 1];
+		return { success, location, result, log };
+	};
 }
 
 /**
@@ -160,10 +160,10 @@ export function seq(...parsers: IParser[]): IParser {
  * @param parser 失敗してもいいパーサ関数
  */
 export function option(parser: IParser): IParser {
-  return function (target, position) {
-    const { location, result, log } = parser(target, position);
-    return { success: true, location, result, log };
-  };
+	return function (target, position) {
+		const { location, result, log } = parser(target, position);
+		return { success: true, location, result, log };
+	};
 }
 
 /**
@@ -174,29 +174,29 @@ export function option(parser: IParser): IParser {
  * @param fn 成功した後も繰り返すか判定するコールバック関数
  */
 export function many(
-  parser: IParser,
-  fn?: (parsed: IResult) => boolean,
+	parser: IParser,
+	fn?: (parsed: IResult) => boolean,
 ): IParser {
-  return function (target, position) {
-    const readPosition = position;
-    let result: any[] = [];
-    let parsed: IResult;
-    let log: string[] = [];
-    for (;;) {
-      parsed = parser(target, position);
-      log = log.concat(parsed.log);
-      if (
-        fn === undefined ? parsed.success : parsed.success ? fn(parsed) : false
-      ) {
-        result.push(parsed.result);
-        position = parsed.location[0];
-      } else {
-        break;
-      }
-    }
-    const location = [position, readPosition, position - 1];
-    return { success: true, location, result, log };
-  };
+	return function (target, position) {
+		const readPosition = position;
+		let result: any[] = [];
+		let parsed: IResult;
+		let log: string[] = [];
+		for (;;) {
+			parsed = parser(target, position);
+			log = log.concat(parsed.log);
+			if (
+				fn === undefined ? parsed.success : parsed.success ? fn(parsed) : false
+			) {
+				result.push(parsed.result);
+				position = parsed.location[0];
+			} else {
+				break;
+			}
+		}
+		const location = [position, readPosition, position - 1];
+		return { success: true, location, result, log };
+	};
 }
 
 /**
@@ -206,16 +206,16 @@ export function many(
  * @param fn 成否を託されるコールバック関数
  */
 export function filter(
-  parser: IParser,
-  fn: (parsed: IResult) => boolean,
+	parser: IParser,
+	fn: (parsed: IResult) => boolean,
 ): IParser {
-  return function (target, position) {
-    let parsed = parser(target, position);
-    if (parsed.success) {
-      parsed.success = fn(parsed);
-    }
-    return parsed;
-  };
+	return function (target, position) {
+		let parsed = parser(target, position);
+		if (parsed.success) {
+			parsed.success = fn(parsed);
+		}
+		return parsed;
+	};
 }
 
 /**
@@ -224,19 +224,19 @@ export function filter(
  * @param fn resultプロパティに格納する値を返すコールバック関数
  */
 export function map(parser: IParser, fn: (parsed: IResult) => any): IParser {
-  return function (target, position) {
-    const parsed = parser(target, position);
-    if (parsed.success) {
-      return {
-        success: parsed.success,
-        location: parsed.location,
-        result: fn(parsed),
-        log: parsed.log,
-      };
-    } else {
-      return parsed;
-    }
-  };
+	return function (target, position) {
+		const parsed = parser(target, position);
+		if (parsed.success) {
+			return {
+				success: parsed.success,
+				location: parsed.location,
+				result: fn(parsed),
+				log: parsed.log,
+			};
+		} else {
+			return parsed;
+		}
+	};
 }
 
 /**
@@ -244,11 +244,11 @@ export function map(parser: IParser, fn: (parsed: IResult) => any): IParser {
  * @param fn パーサ関数を返すコールバック関数
  */
 export function lazy(fn: () => IParser): IParser {
-  let parser: IParser;
-  return function (target, position) {
-    if (!parser) {
-      parser = fn();
-    }
-    return parser(target, position);
-  };
+	let parser: IParser;
+	return function (target, position) {
+		if (!parser) {
+			parser = fn();
+		}
+		return parser(target, position);
+	};
 }

@@ -12,45 +12,45 @@ import { winepath } from "../winepath";
  * @param str エスケープする文字
  */
 function convertArgs(str: string): string[] {
-  let buffer = "";
-  const result: string[] = []; // push() call only.
-  let flag = false;
-  let fescape = false;
-  const escapeChar = process.platform === "win32" ? "^" : "\\";
-  for (const elm of Array.from(str)) {
-    if (fescape) {
-      buffer += elm;
-      fescape = false;
-      continue;
-    }
-    if (elm === escapeChar) {
-      fescape = true;
-      continue;
-    }
+	let buffer = "";
+	const result: string[] = []; // push() call only.
+	let flag = false;
+	let fescape = false;
+	const escapeChar = process.platform === "win32" ? "^" : "\\";
+	for (const elm of Array.from(str)) {
+		if (fescape) {
+			buffer += elm;
+			fescape = false;
+			continue;
+		}
+		if (elm === escapeChar) {
+			fescape = true;
+			continue;
+		}
 
-    if (elm === '"') {
-      if (flag === false) {
-        flag = true;
-        continue;
-      } else {
-        flag = false;
-        continue;
-      }
-    }
+		if (elm === '"') {
+			if (flag === false) {
+				flag = true;
+				continue;
+			} else {
+				flag = false;
+				continue;
+			}
+		}
 
-    if (/\s/.test(elm) && flag === false) {
-      if (buffer !== "") {
-        result.push(buffer);
-      }
-      buffer = "";
-    } else {
-      buffer += elm;
-    }
-  }
-  if (buffer !== "") {
-    result.push(buffer);
-  }
-  return result;
+		if (/\s/.test(elm) && flag === false) {
+			if (buffer !== "") {
+				result.push(buffer);
+			}
+			buffer = "";
+		} else {
+			buffer += elm;
+		}
+	}
+	if (buffer !== "") {
+		result.push(buffer);
+	}
+	return result;
 }
 
 /**
@@ -58,12 +58,12 @@ function convertArgs(str: string): string[] {
  * @param hspcPath hspc.exeのパス
  */
 function isHspc(hspcPath: string): boolean {
-  const name = basename(hspcPath);
-  if (name === "hspc.exe" || name === "hspc") {
-    return true;
-  } else {
-    return false;
-  }
+	const name = basename(hspcPath);
+	if (name === "hspc.exe" || name === "hspc") {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 /**
@@ -71,44 +71,44 @@ function isHspc(hspcPath: string): boolean {
  * @param config
  */
 async function isLegacyHspc(config: Config): Promise<boolean> {
-  const hspcPath = config.compiler();
-  if (!hspcPath) {
-    return Promise.reject(new Error("Compiler is not set."));
-  }
-  if (isHspc(hspcPath) === false) {
-    return Promise.resolve(false);
-  }
+	const hspcPath = config.compiler();
+	if (!hspcPath) {
+		return Promise.reject(new Error("Compiler is not set."));
+	}
+	if (isHspc(hspcPath) === false) {
+		return Promise.resolve(false);
+	}
 
-  const options = { encoding: "Shift_JIS", maxBuffer: 260 };
-  try {
-    let result: any;
-    if (config.wineMode()) {
-      result = await promisify(child_process.execFile)(
-        "wine",
-        [hspcPath, "-v"],
-        options,
-      );
-    } else {
-      result = await promisify(child_process.execFile)(
-        hspcPath,
-        ["-v"],
-        options,
-      );
-    }
-    const str = decode(result.stdout as Buffer, "Shift_JIS");
-    const reval = str.match(/ hspc Version \w*(\d+)\.(\d+)\.(\d+)/);
-    if (!reval) {
-      return Promise.resolve(false);
-    } else {
-      if (Number(reval[1]) <= 1) {
-        return Promise.resolve(true);
-      } else {
-        return Promise.resolve(false);
-      }
-    }
-  } catch (err) {
-    return Promise.reject(err);
-  }
+	const options = { encoding: "Shift_JIS", maxBuffer: 260 };
+	try {
+		let result: any;
+		if (config.wineMode()) {
+			result = await promisify(child_process.execFile)(
+				"wine",
+				[hspcPath, "-v"],
+				options,
+			);
+		} else {
+			result = await promisify(child_process.execFile)(
+				hspcPath,
+				["-v"],
+				options,
+			);
+		}
+		const str = decode(result.stdout as Buffer, "Shift_JIS");
+		const reval = str.match(/ hspc Version \w*(\d+)\.(\d+)\.(\d+)/);
+		if (!reval) {
+			return Promise.resolve(false);
+		} else {
+			if (Number(reval[1]) <= 1) {
+				return Promise.resolve(true);
+			} else {
+				return Promise.resolve(false);
+			}
+		}
+	} catch (err) {
+		return Promise.reject(err);
+	}
 }
 
 /**
@@ -121,18 +121,18 @@ async function isLegacyHspc(config: Config): Promise<boolean> {
  * @param withValues 置き換えるリスト
  */
 function replace(args: string[], withValues: any): string[] {
-  const result: string[] = [];
-  const keys = Object.keys(withValues);
-  for (let i = 0; i < args.length; i++) {
-    let arg = args[i];
-    for (let l = 0; l < keys.length; l++) {
-      const key = keys[l];
-      const value = withValues[keys[l]];
-      arg = arg.replace(RegExp(key, "g"), value);
-    }
-    result.push(arg);
-  }
-  return result;
+	const result: string[] = [];
+	const keys = Object.keys(withValues);
+	for (let i = 0; i < args.length; i++) {
+		let arg = args[i];
+		for (let l = 0; l < keys.length; l++) {
+			const key = keys[l];
+			const value = withValues[keys[l]];
+			arg = arg.replace(RegExp(key, "g"), value);
+		}
+		result.push(arg);
+	}
+	return result;
 }
 
 /**
@@ -142,108 +142,108 @@ function replace(args: string[], withValues: any): string[] {
  * @param config vscode.WorkspaceConfigurationのインスタンス変数
  */
 export async function execution(
-  file: string,
-  cmdname: string,
-  config: Config,
-  userArgs?: string,
+	file: string,
+	cmdname: string,
+	config: Config,
+	userArgs?: string,
 ) {
-  // config読み込み。
-  let compiler: string;
-  let wineMode: boolean;
-  let encoding: string;
-  let maxBuffer: number;
-  let cmdArgs: string[];
-  try {
-    compiler = config.compiler();
-    wineMode = config.wineMode();
-    encoding = config.encoding();
-    maxBuffer = config.maxBuffer();
-    cmdArgs = config.cmdArgs(cmdname);
-  } catch (e) {
-    return Promise.reject(e);
-  }
+	// config読み込み。
+	let compiler: string;
+	let wineMode: boolean;
+	let encoding: string;
+	let maxBuffer: number;
+	let cmdArgs: string[];
+	try {
+		compiler = config.compiler();
+		wineMode = config.wineMode();
+		encoding = config.encoding();
+		maxBuffer = config.maxBuffer();
+		cmdArgs = config.cmdArgs(cmdname);
+	} catch (e) {
+		return Promise.reject(e);
+	}
 
-  // コンパイラのカレントディレクトリを設定する。
-  let cwd: string = dirname(file);
-  if (config.get("choiceWorkDirCur")) {
-    // カレントディレクトリをワーキングディレクトリに設定する。
-    /**
-     * 指定されたstringから正規表現のエスケープ文字を無効化します。
-     * @param string エスケープ文字を無効化したい文字
-     */
-    function escapeRegExp(string: string) {
-      return string.replace(/[.*+?^=!:${}()|[\]/\\]/g, "\\$&");
-    }
-    const workFolders = vscode.workspace.workspaceFolders;
-    if (workFolders) {
-      for (let count = 0; count < Object.keys(workFolders).length; count++) {
-        const workFolder = workFolders[count].uri.fsPath;
-        const r = new RegExp(`${escapeRegExp(workFolder)}.*`); // 注意：この方法だと、`/`や`C:\`などがrootDirだった場合、問答無用でhitする。Atom版と同じ実装（lib/submodel.coffee/getProjectRoot関数）。
-        if (r.test(file)) {
-          cwd = workFolder;
-          break;
-        }
-      }
-    }
-  }
+	// コンパイラのカレントディレクトリを設定する。
+	let cwd: string = dirname(file);
+	if (config.get("choiceWorkDirCur")) {
+		// カレントディレクトリをワーキングディレクトリに設定する。
+		/**
+		 * 指定されたstringから正規表現のエスケープ文字を無効化します。
+		 * @param string エスケープ文字を無効化したい文字
+		 */
+		function escapeRegExp(string: string) {
+			return string.replace(/[.*+?^=!:${}()|[\]/\\]/g, "\\$&");
+		}
+		const workFolders = vscode.workspace.workspaceFolders;
+		if (workFolders) {
+			for (let count = 0; count < Object.keys(workFolders).length; count++) {
+				const workFolder = workFolders[count].uri.fsPath;
+				const r = new RegExp(`${escapeRegExp(workFolder)}.*`); // 注意：この方法だと、`/`や`C:\`などがrootDirだった場合、問答無用でhitする。Atom版と同じ実装（lib/submodel.coffee/getProjectRoot関数）。
+				if (r.test(file)) {
+					cwd = workFolder;
+					break;
+				}
+			}
+		}
+	}
 
-  // コマンド引数の特殊文字を変換。
-  if (wineMode) {
-    const revalue = await winepath(["--windows"], [file]);
-    file = revalue[0];
-  }
-  const sc = new Map<string, string>();
-  sc.set("filepath", file);
-  let hsp3dir: string | undefined = undefined;
-  try {
-    hsp3dir = (await vscode.commands.executeCommand(
-      "toolset-hsp3.current.toString",
-    )) as string | undefined;
-  } catch (e) {
-    console.log("Toolset-hsp3.current.toString command execution failed.", e);
-  }
-  if (hsp3dir) sc.set("hsp3dir", hsp3dir);
-  const regexp = /%(.*?)%/g;
-  let args = cmdArgs.map((el) =>
-    el.replace(regexp, (m, p1: string) => sc.get(p1.toLowerCase()) ?? m),
-  );
+	// コマンド引数の特殊文字を変換。
+	if (wineMode) {
+		const revalue = await winepath(["--windows"], [file]);
+		file = revalue[0];
+	}
+	const sc = new Map<string, string>();
+	sc.set("filepath", file);
+	let hsp3dir: string | undefined = undefined;
+	try {
+		hsp3dir = (await vscode.commands.executeCommand(
+			"toolset-hsp3.current.toString",
+		)) as string | undefined;
+	} catch (e) {
+		console.log("Toolset-hsp3.current.toString command execution failed.", e);
+	}
+	if (hsp3dir) sc.set("hsp3dir", hsp3dir);
+	const regexp = /%(.*?)%/g;
+	let args = cmdArgs.map((el) =>
+		el.replace(regexp, (m, p1: string) => sc.get(p1.toLowerCase()) ?? m),
+	);
 
-  let env = process.env;
-  if (hsp3dir && config.useSetHSP3ROOT()) env.HSP3_ROOT = hsp3dir;
-  const execOpstions = {
-    maxBuffer: maxBuffer,
-    encoding: encoding,
-    cwd: cwd,
-    env,
-  };
+	let env = process.env;
+	if (hsp3dir && config.useSetHSP3ROOT()) env.HSP3_ROOT = hsp3dir;
+	const execOpstions = {
+		maxBuffer: maxBuffer,
+		encoding: encoding,
+		cwd: cwd,
+		env,
+	};
 
-  // hspc v1 コンパイラ用の呼び出し。
-  if (await isLegacyHspc(config)) {
-    if (userArgs) {
-      vscode.window.showInformationMessage(
-        'Ran with arguments, but argument ignored because hspc version is ">=2.0.0".',
-      );
-    }
-    let command: string;
-    if (wineMode) {
-      command = `wine ${compiler} ${args.join(" ").replace(/""/g, "")}`;
-    } else {
-      command = `${compiler} ${args.join(" ").replace(/""/g, "")}`;
-    }
-    return promisify(child_process.exec)(command, execOpstions);
-  } else {
-    // 古くないhspc、もしくはhspc以外のコンパイラを呼び出す。
-    if (userArgs) {
-      args = args.concat(convertArgs(userArgs));
-    }
-    if (wineMode) {
-      return promisify(child_process.execFile)(
-        "wine",
-        [compiler].concat(args),
-        execOpstions,
-      );
-    } else {
-      return promisify(child_process.execFile)(compiler, args, execOpstions);
-    }
-  }
+	// hspc v1 コンパイラ用の呼び出し。
+	if (await isLegacyHspc(config)) {
+		if (userArgs) {
+			vscode.window.showInformationMessage(
+				'Ran with arguments, but argument ignored because hspc version is ">=2.0.0".',
+			);
+		}
+		let command: string;
+		if (wineMode) {
+			command = `wine ${compiler} ${args.join(" ").replace(/""/g, "")}`;
+		} else {
+			command = `${compiler} ${args.join(" ").replace(/""/g, "")}`;
+		}
+		return promisify(child_process.exec)(command, execOpstions);
+	} else {
+		// 古くないhspc、もしくはhspc以外のコンパイラを呼び出す。
+		if (userArgs) {
+			args = args.concat(convertArgs(userArgs));
+		}
+		if (wineMode) {
+			return promisify(child_process.execFile)(
+				"wine",
+				[compiler].concat(args),
+				execOpstions,
+			);
+		} else {
+			return promisify(child_process.execFile)(compiler, args, execOpstions);
+		}
+	}
 }
