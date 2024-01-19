@@ -286,7 +286,8 @@
     "build": "npm run -S esbuild-base -- --sourcemap",
     "watch": "npm run -S esbuild-base -- --sourcemap --watch",
     "fmt": "biome format --write ./src ./tests",
-    "test": "biome check --apply ./src ./tests && tsc --noEmit && jest"
+    "fix": "biome check --apply ./src ./tests && tsc --noEmit",
+    "test": "jest"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.5.1",
