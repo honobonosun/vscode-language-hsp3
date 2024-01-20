@@ -11,15 +11,17 @@ export async function winepath(
   paths: string[],
 ): Promise<string[]> {
   const option = { maxBuffer: 1024 * paths.length };
-  try {
-    const { stdout } = await promisify(execFile)(
-      "winepath",
-      options.concat(paths),
-      option,
-    );
-    return stdout.split("\n");
-  } catch (err) {
-    console.log(err);
-    return [];
-  }
+  return (
+    (
+      await promisify(execFile)("winepath", options.concat(paths), option).then(
+        undefined,
+        (reason) => {
+          console.log(reason);
+          return undefined;
+        },
+      )
+    )?.stdout
+      .split(/\n|\r\n/)
+      .slice(0, -1) ?? []
+  );
 }

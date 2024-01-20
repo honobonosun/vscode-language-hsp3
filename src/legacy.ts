@@ -1,22 +1,24 @@
 import { execFile, spawn } from "node:child_process";
 import { dirname } from "node:path";
+import * as readline from "readline";
+import { decodeStream } from "iconv-lite";
 import {
-  commands,
   Disposable,
-  languages,
   LanguageStatusItem,
   LanguageStatusSeverity,
   OutputChannel,
   Range,
+  commands,
+  languages,
   window,
   workspace,
 } from "vscode";
 import { z } from "zod";
-import { decodeStream } from "iconv-lite";
-import * as readline from "readline";
 import opener = require("opener");
-import Outline from "./hsp/legacy/outline";
+import { error } from "node:console";
 import { MY_CONFIG_SECTION, OUTCHA_NAME_EXEC } from "./constants";
+import Outline from "./hsp/legacy/outline";
+import { winepath } from "./winepath";
 
 const profileEl = z.object({
   hide: z.boolean(),
@@ -224,27 +226,33 @@ export default class Legacy implements Disposable {
   }
 
   private async spawn(
-    p_cmd: string,
+    p_command: string,
     p_cmdargs: string[],
     p_cwd?: string | null,
   ) {
-    const editor = window.activeTextEditor;
-    if (!editor) return;
-    const cmd = this.useWine ? `wine ${p_cmd}` : p_cmd;
-    let cwd = p_cwd;
-
-    const hsp3dir = await this.hsp3root().catch((reason) => undefined);
+    // 必要な情報を揃える。
     const encoding = this.encoding;
     if (!encoding) return;
 
-    // TODO: winepath
-    const filepath = editor.document.uri.fsPath;
+    const editor = window.activeTextEditor;
+    if (!editor) return;
+    const filepath = await (async () => {
+      if (this.useWine) {
+        return (await winepath(["-w"], [editor.document.uri.fsPath]))[0];
+      }
+      return editor.document.uri.fsPath;
+    })();
 
+    const hsp3dir = await this.hsp3root().then(undefined, (reason) => {
+      // todo : print error
+      console.log(reason);
+      return undefined;
+    });
     // set env
     const env = process.env;
     if (hsp3dir && this.cfg.get("useSetHSP3ROOT")) env.HSP3_ROOT = hsp3dir;
-
     // 特殊文字の対応（cmd.exeの環境変数展開を再現）
+    // WARN : Windowsの小文字大文字を区別しない仕様に合わせているので、Mac、Linux系で不都合に見舞われる恐れがあります。
     const sc = new Map<string, string>(scbase);
     sc.set("filepath", filepath);
     if (hsp3dir) sc.set("hsp3root", hsp3dir);
@@ -255,42 +263,41 @@ export default class Legacy implements Disposable {
         (body, key: string) => sc.get(key.toLowerCase()) ?? body,
       ),
     );
-
     // set cwd
-    if (cwd === null) cwd = undefined;
+    let cwd = p_cwd;
+    if (cwd === null)
+      // set cwd
+      cwd = undefined;
     else if (cwd === undefined) cwd = this.getcwd();
 
-    // TODO: Wine command
+    // 外部プロセスを実行する。
+    let command: string;
+    if (this.useWine) {
+      command = "wine";
+      args.unshift(p_command);
+    } else {
+      command = p_command;
+    }
+    const option = { cwd, env };
 
-    // print command info
-    if (this.profile && this.executor.index())
-      this.outcha.appendLine(`run command set : ${this.executor.index()}`);
-    this.outcha.appendLine(`set decode : "${encoding}"`);
-    this.outcha.appendLine(`set cwd : "${cwd}"`);
-    this.outcha.appendLine(
-      `run command : "${cmd}" [${args.map((str) => `"${str}"`).join(" ")}]`,
-    );
-    this.outcha.show(true);
+    this.outcha.appendLine(` Run command: ${command} ${args.join(" ")}`);
+    this.outcha.appendLine(` Decoder: ${encoding}`);
 
-    // run command
-    const shell = (this.cfg.get("useShell") as boolean) ?? true;
-    const child = spawn(cmd, args, { cwd, shell, env });
+    const child = spawn(command, args, option);
     child.on("error", (err) => {
-      this.outcha.appendLine(`spawn error : ${err.message}`);
-      // todo 英語にも対応したいです。
-      // issues #20 close
-      if ("code" in err && err.code === "ENOENT")
-        this.outcha.appendLine(`  コマンド "${cmd}" の実行に失敗しました。`);
-      console.log("spawn error", err);
-      return;
+      if (err instanceof Error && "code" in err && err.code === "ENOENT")
+        console.log(err);
+      this.outcha.appendLine(err.message); // todo :issue #20 日本語で伝える
     });
-    child.on("close", (code) =>
-      this.outcha.appendLine(`exit code process: ${code}\n`),
-    );
-    const data = child.stdout.pipe(decodeStream(encoding));
+    child.on("exit", (code) => {
+      this.outcha.appendLine(` Exit code (${code})`);
+    });
     readline
-      .createInterface(data)
+      .createInterface(child.stdout.pipe(decodeStream(encoding)))
       .on("line", (line) => this.outcha.appendLine(line));
+    readline
+      .createInterface(child.stderr.pipe(decodeStream(encoding)))
+      .on("line", (line) => this.outcha.appendLine(`stderr: ${line}`));
   }
 
   public execution = {

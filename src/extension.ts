@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import Legacy from "./legacy";
 import { HSP3_LANG_ID, MY_CONFIG_SECTION, OUTCHA_NAME_MAIN } from "./constants";
+import Legacy from "./legacy";
 
 export function activate(context: vscode.ExtensionContext): void {
   const extension = new Extension();
