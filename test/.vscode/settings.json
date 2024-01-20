@@ -1,7 +1,7 @@
 {
-  "language-hsp3.compiler": "D:\\hsp\\hspc\\hspc.exe",
+  "language-hsp3.compiler": "/home/honobono/work/hspc_release/hspc.exe",
   "language-hsp3.runCommands": [
-    "-dwCravoout",
+    "-dwCRavoout",
     "%FILEPATH%"
   ],
   "language-hsp3.executor.enable": false,

@@ -1,4 +1,5 @@
 #runtime "hsp3cl"
 #packopt name "test2"
-print "me is wake up!"
+print "Hello Ubuntu MATE."
+print "シフトJISでも文字化けしないよ。"
 end 0
