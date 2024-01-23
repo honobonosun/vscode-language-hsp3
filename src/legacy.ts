@@ -17,7 +17,6 @@ import { z } from "zod";
 import opener = require("opener");
 import { error } from "node:console";
 import { MY_CONFIG_SECTION, OUTCHA_NAME_EXEC } from "./constants";
-import Outline from "./hsp/legacy/outline";
 import { winepath } from "./winepath";
 
 const profileEl = z.object({
@@ -49,7 +48,6 @@ export default class Legacy implements Disposable {
   private outcha = window.createOutputChannel(OUTCHA_NAME_EXEC, "text");
   private profilebar: LanguageStatusItem | undefined;
   private profile: Profile | undefined;
-  private outline = new Outline();
 
   private executor = {
     use: () => this.cfg.get("executor.enable") as boolean | undefined,
@@ -123,9 +121,6 @@ export default class Legacy implements Disposable {
           this.profilebar.severity = LanguageStatusSeverity.Error;
       }
     }
-
-    // outline
-    this.outline.update(this.cfg);
   }
 
   constructor() {
@@ -154,7 +149,6 @@ export default class Legacy implements Disposable {
 
   public dispose() {
     this.outcha.dispose();
-    this.outline.dispose();
     if (this.profilebar) this.profilebar.dispose();
     for (const elm of this.subscription) elm.dispose();
   }

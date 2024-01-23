@@ -3,6 +3,7 @@ import { HSP3_LANG_ID, MY_CONFIG_SECTION, OUTCHA_NAME_MAIN } from "./constants";
 import Legacy from "./legacy";
 
 export function activate(context: vscode.ExtensionContext): void {
+  console.log("language-hsp3 activate");
   const extension = new Extension();
   context.subscriptions.push(extension);
   return;
