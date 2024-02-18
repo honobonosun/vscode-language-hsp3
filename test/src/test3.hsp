@@ -1,0 +1,11 @@
+;#packopt type 0
+;#include "hsp3dish.as"
+;#packdir "res/*.txt"
+#pack "neko.txt"
+redraw 0
+notesel buf
+noteload "neko.txt"
+noteget tmp, 0
+print tmp
+redraw 1
+stop

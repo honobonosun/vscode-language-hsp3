@@ -1,0 +1,6 @@
+#packdir "*.txt"
+
+notesel buf
+noteload "neko"
+noteget tmp, 0
+print tmp

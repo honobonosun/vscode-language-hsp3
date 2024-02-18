@@ -5,3 +5,4 @@ node_modules
 .yarn/
 !.yarn/release/*
 *.ax
+test/*.exe
