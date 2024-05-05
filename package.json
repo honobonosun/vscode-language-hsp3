@@ -15,7 +15,8 @@
   "activationEvents": [
     "onLanguage:hsp3"
   ],
-  "main": "./out/src/extension.js",
+  "main": "./out/src/main/extension.js",
+  "browser": "./out/src/browser/extension.js",
   "contributes": {
     "commands": [
       {
@@ -265,32 +266,17 @@
       }
     ]
   },
-  "jest": {
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ],
-    "transform": {
-      "^.+\\.(ts|tsx)$": [
-        "ts-jest"
-      ]
-    },
-    "testMatch": [
-      "**/tests/*.spec.+(ts|tsx|js)"
-    ]
-  },
   "scripts": {
     "vscode:prepublish": "npm run -S esbuild-base -- --minify",
-    "esbuild-base": "rimraf out && esbuild ./src/extension.ts --bundle --outfile=out/src/extension.js --external:vscode --format=cjs --platform=node",
+    "esbuild-base": "rimraf out && esbuild ./src/main/extension.ts --bundle --outfile=out/src/main/extension.js --external:vscode --format=cjs --platform=node && esbuild ./src/browser/extension.ts --bundle --outfile=out/src/browser/extension.js",
     "build": "npm run -S esbuild-base -- --sourcemap",
     "watch": "npm run -S esbuild-base -- --sourcemap --watch",
     "fmt": "biome format --write ./src ./tests",
     "fix": "biome check --apply ./src ./tests && tsc --noEmit",
-    "test": "jest"
+    "test": "jest ./src/hsp/potage"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.5.1",
+    "@biomejs/biome": "1.5.3",
     "@types/jest": "^29.5.1",
     "@types/node": "^16.18.11",
     "@types/opener": "^1.4.0",
