@@ -1,0 +1,18 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "hsp3",
+      "type": "shell",
+      "command": "${command:toolset-hsp3.hsp3root}\\hdl.exe",
+      "args": ["${input:keyword}"]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "keyword",
+      "type": "promptString",
+      "description": "調べたいキーワードを入力"
+    }
+  ]
+}

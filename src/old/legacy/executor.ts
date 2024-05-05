@@ -5,7 +5,7 @@ import { basename, dirname } from "path";
 import { promisify } from "util";
 import * as vscode from "vscode";
 import Config from "./config";
-import { convertPath } from "./wine";
+import { winepath } from "../winepath";
 
 /**
  * cmd.exeやbashのエスケープを再現します。
@@ -189,7 +189,7 @@ export async function execution(
 
   // コマンド引数の特殊文字を変換。
   if (wineMode) {
-    const revalue = await convertPath(["--windows"], [file]);
+    const revalue = await winepath(["--windows"], [file]);
     file = revalue[0];
   }
   const sc = new Map<string, string>();
