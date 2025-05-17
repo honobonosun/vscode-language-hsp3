@@ -1,295 +1,40 @@
 {
   "name": "language-hsp3",
-  "publisher": "honobonosun",
-  "displayName": "language-hsp3",
   "description": "language-hsp3 for VSCode",
-  "version": "1.1.1",
-  "license": "MIT",
-  "repository": "https://github.com/honobonosun/vscode-language-hsp3",
+  "displayName": "language-hsp3",
+  "publisher": "honobonosun",
+  "version": "2.1.0",
   "engines": {
-    "vscode": "^1.74.0"
+    "vscode": "^1.70.0"
   },
   "categories": [
     "Programming Languages"
   ],
-  "activationEvents": [
-    "onLanguage:hsp3"
-  ],
-  "main": "./out/extension.js",
+  "tag": [],
   "contributes": {
-    "commands": [
-      {
-        "command": "language-hsp3.run",
-        "title": "Run HSP program",
-        "category": "hsp",
-        "enablement": "editorLangId == hsp3"
-      },
-      {
-        "command": "language-hsp3.make",
-        "title": "Automatic exe file creation",
-        "category": "hsp",
-        "enablement": "editorLangId == hsp3"
-      },
-      {
-        "command": "language-hsp3.RunWithArgs",
-        "title": "Execution \"Run\" with arguments",
-        "category": "hsp",
-        "enablement": "editorLangId == hsp3"
-      },
-      {
-        "command": "language-hsp3.changeOfExecutor",
-        "title": "Change of Executor",
-        "category": "hsp",
-        "enablement": "editorLangId == hsp3"
-      },
-      {
-        "command": "language-hsp3.helpman.search",
-        "title": "Search for keyword in HDL.",
-        "category": "hsp",
-        "enablement": "editorLangId == hsp3"
-      }
-    ],
-    "keybindings": [
-      {
-        "command": "language-hsp3.run",
-        "key": "ctrl+k f5",
-        "when": "editorLangId == hsp3"
-      },
-      {
-        "command": "language-hsp3.make",
-        "key": "ctrl+f9",
-        "when": "editorLangId == hsp3"
-      },
-      {
-        "command": "language-hsp3.helpman.search",
-        "key": "ctrl+f1",
-        "when": "editorLangId == hsp3"
-      }
-    ],
-    "menus": {
-      "editor/title": [
-        {
-          "when": "resourceLangId == hsp3",
-          "command": "language-hsp3.run",
-          "group": "navigation",
-          "alt": "language-hsp3.make"
-        }
-      ]
-    },
-    "configuration": {
-      "type": "object",
-      "title": "HSP",
-      "properties": {
-        "language-hsp3.compiler": {
-          "type": "string",
-          "default": "C:\\hsp351\\hspc.exe",
-          "description": "Sets the full path of the compiler.",
-          "scope": "resource"
-        },
-        "language-hsp3.runCommands": {
-          "type": "array",
-          "default": [
-            "-dwCra",
-            "%FILEPATH%"
-          ],
-          "description": "Set run command.",
-          "scope": "resource"
-        },
-        "language-hsp3.makeCommands": {
-          "type": "array",
-          "default": [
-            "-PmCa",
-            "%FILEPATH%"
-          ],
-          "description": "Set auto make exe file command.",
-          "scope": "resource"
-        },
-        "language-hsp3.wineMode": {
-          "type": "boolean",
-          "default": false,
-          "description": "Use wine. The file path is converted to a winepath.",
-          "scope": "machine"
-        },
-        "language-hsp3.useSetHSP3ROOT": {
-          "type": "boolean",
-          "default": true,
-          "description": "Set HSP3_ROOT parameter in exec option env",
-          "scope": "machine"
-        },
-        "language-hsp3.encoding": {
-          "type": "string",
-          "default": "Shift_JIS",
-          "description": "Sets the encoding of the characters output by the compiler.",
-          "scope": "resource"
-        },
-        "language-hsp3.MaxBuffer": {
-          "type": "integer",
-          "default": 204800,
-          "markdownDescription": "Sets the maximum number of bytes of characters received from the compiler. If exceeded, the child process is terminated and any output is truncated. [this at doc, more read hint.](https://nodejs.org/api/child_process.html#child_process_maxbuffer_and_unicode)",
-          "scope": "resource"
-        },
-        "language-hsp3.choiceWorkDirCur": {
-          "type": "boolean",
-          "default": false,
-          "description": "Specify the current directory as your working directory.",
-          "scope": "resource"
-        },
-        "language-hsp3.executor.enable": {
-          "type": "boolean",
-          "default": false,
-          "markdownDescription": "Enables new command execution capabilities for executor.",
-          "scope": "resource"
-        },
-        "language-hsp3.executor.index": {
-          "type": "string",
-          "default": "3.51",
-          "scope": "resource"
-        },
-        "language-hsp3.executor.paths": {
-          "type": "object",
-          "default": {
-            "3.51": {
-              "hide": false,
-              "path": "C:\\hsp351\\hspc.exe",
-              "encoding": "Shift_JIS",
-              "buffer": 204800,
-              "helpman": "C:\\hsp351\\helphsp\\helpman.exe",
-              "commands": {
-                "run": [
-                  "-dwCra",
-                  "%FILEPATH%"
-                ],
-                "make": [
-                  "-PmCa",
-                  "%FILEPATH%"
-                ]
-              }
-            }
-          },
-          "scope": "resource"
-        },
-        "language-hsp3.outline.enable": {
-          "type": "boolean",
-          "default": true,
-          "markdownDescription": "Enable the outline. *Caution* This feature uses a lot of CPU and memory.",
-          "scope": "resource"
-        },
-        "language-hsp3.outline.masks": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "default": [],
-          "markdownDescription": "Sets the attributes to exclude from displaying the outline.  \n['label', 'deffunc'...]",
-          "scope": "resource"
-        },
-        "language-hsp3.helpman.enable": {
-          "type": "string",
-          "enum": [
-            "disable",
-            "online",
-            "local"
-          ],
-          "default": "local",
-          "markdownDescription": "Searches HDL for a word selected in the editor or placed in the cursor.",
-          "scope": "resource"
-        },
-        "language-hsp3.helpman.useExecutor": {
-          "type": "boolean",
-          "default": true,
-          "markdownDescription": "Use `executor.paths.helpman` specified in `helpman.exe`.",
-          "scope": "resource"
-        },
-        "language-hsp3.helpman.path.local": {
-          "type": "string",
-          "default": "C:\\hsp351\\hsphelp\\helpman.exe",
-          "markdownDescription": "You must specify an absolute path to `helpman.exe`.",
-          "scope": "resource"
-        },
-        "language-hsp3.helpman.path.online": {
-          "type": "string",
-          "default": "http://ohdl.hsproom.me/?q=%s",
-          "markdownDescription": "Specify the URL for the online help. `%s` is replaced by the search character. The code page is UTF-8 fixed.",
-          "scope": "resource"
-        }
-      }
-    },
-    "languages": [
-      {
-        "id": "hsp3",
-        "aliases": [
-          "HSP",
-          "HSP3",
-          "hsp",
-          "hsp3"
-        ],
-        "extensions": [
-          ".hsp",
-          ".hsp.i",
-          ".as",
-          ".as.i"
-        ],
-        "configuration": "./language-configuration.json"
-      },
-      {
-        "id": "hs",
-        "aliases": [
-          "hs"
-        ],
-        "extensions": [
-          ".hs"
-        ]
-      }
-    ],
     "grammars": [
       {
         "language": "hsp3",
         "scopeName": "source.hsp3",
         "path": "./syntaxes/hsp3.tmLanguage.json"
-      },
-      {
-        "language": "hs",
-        "scopeName": "text.hs",
-        "path": "./syntaxes/hs.tmLanguage.json"
       }
-    ]
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
     ],
-    "transform": {
-      "^.+\\.(ts|tsx)$": "ts-jest"
-    },
-    "globals": {
-      "ts-jest": {
-        "tsConfigFile": "tsconfig.json"
+    "languages": [
+      {
+        "id": "hsp3",
+        "aliases": [
+          "HSP",
+          "hsp3"
+        ],
+        "extensions": [
+          ".hsp",
+          ".as"
+        ],
+        "filenames": [
+          "hspcmp"
+        ],
+        "configuration": "./language-configuration.json"
       }
-    },
-    "testMatch": [
-      "**/tests/*.spec.+(ts|tsx|js)"
     ]
-  },
-  "scripts": {
-    "vscode:prepublish": "yarn run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "yarn run compile && yarn run lint",
-    "lint": "eslint src --ext ts"
-  },
-  "devDependencies": {
-    "@types/node": "^16.18.11",
-    "@types/opener": "^1.4.0",
-    "@types/vscode": "^1.74.0",
-    "rome": "^11.0.0",
-    "typescript": "^4.9.4"
-  },
-  "dependencies": {
-    "emoji-regex": "^10.2.1",
-    "iconv-lite": "^0.6.3",
-    "opener": "^1.5.2"
-  },
-  "packageManager": "yarn@3.3.1"
+  }
 }
