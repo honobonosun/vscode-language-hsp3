@@ -17,9 +17,10 @@
     { "open": "{", "close": "}" },
     { "open": "[", "close": "]" },
     { "open": "(", "close": ")" },
-    { "open": "'", "close": "'", "notIn": ["string", "comment"] },
+    { "open": "'", "close": "'", "notIn": ["string"] },
     { "open": "\"", "close": "\"", "notIn": ["string"] },
-    { "open": "/**", "close": " */", "notIn": ["string"] }
+    { "open": "{\"", "close": "\"}", "notIn": ["string", "comment"] },
+    { "open": "/*", "close": "*/", "notIn": ["string", "comment"] }
   ],
   // symbols that that can be used to surround a selection
   "surroundingPairs": [
@@ -27,18 +28,25 @@
     ["[", "]"],
     ["(", ")"],
     ["\"", "\""],
-    ["'", "'"]
+    ["'", "'"],
+    ["{\"", "\"}"],
+    ["/*", "*/"]
   ],
   "folding": {
+    // 折りたたみ対象
+    // モジュール、中括弧、複数行文字列、ブロックコメント
     "markers": {
-      "start": "^\\s*#module\\b",
-      "end": "^\\s*#global\\b"
-    }
+      "start": "(^\\s*#module\\b)|(\\{)|(\\{\\\")|(\\/\\*)",
+      "end": "(^\\s*#global\\b)|(\\})|(\\\"\\})|(\\*\\/)"
+    },
+    "offSide": true
   },
-  "wordPattern": "((0[xX]|\\$)[0-9A-Fa-f]{0,8})|((0[bB]|%)[01]{0,99})|(-?\\d{1,20}(\\.\\d{0,20})?([eE][-+]?\\d{0,9})?)|([^-\\/\\[\\](){}.?*+|^$\\\\\\s'\"~!#%&=;:,<>]{1,59})",
+  // 16進数|2進数|10進数(指数含む)|リテラル(プリプロセッサ命令|ラベル定義|変数名などの識別子)
+  "wordPattern": "((0[xX]|\\$)[0-9A-Fa-f]{0,8})|((0[bB]|%)[01]{0,99})|(-?\\d{1,20}(\\.\\d{0,20})?([eE][-+]?\\d{0,9})?)|((#|\\*)?[^-\\/\\[\\](){}.?*+|^$\\\\\\s'\"~!#%&=;:,<>]+)",
   "indentationRules": {
-    "increaseIndentPattern": "^\\s*(.*\\{\\s*$|\\*[^:]*$|(repeat|foreach|for|do|while)[^:]*$)",
-    "decreaseIndentPattern": "^\\s*(\\}|loop|next|(until.*)|wend)$",
-    "indentNextLinePattern": "(^\\s*\\*)|(^\\s*#(deffunc|defcfunc|modfunc|modcfunc|modinit|modterm))|(^\\s*#define.*\\\\$)"
+    // 文節({と:)|ラベル定義|ループ突入|ユーザー定義
+    "increaseIndentPattern": "^\\s*(.*\\{\\s*$|\\*[^:]*$|(repeat|foreach|for|do|while)[^:]*$)|(^\\s*#(deffunc|defcfunc|modfunc|modcfunc|modinit|modterm))",
+    "decreaseIndentPattern": "^\\s*(\\}|loop|next|(until.*)|wend)\\b.*$",
+    "indentNextLinePattern": "(^\\s*#(define|const|enum).*\\\\$)"
   }
 }
