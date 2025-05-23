@@ -1,52 +1,48 @@
 {
   "comments": {
-    // symbol used for single line comment. Remove this entry if your language does not support line comments
-    "lineComment": ";",
-    // symbols used for start and end a block comment. Remove this entry if your language does not support block comments
-    "blockComment": ["/*", "*/"]
+    "blockComment": ["/*", "*/"],
+    "lineComment": ";"
   },
-  // symbols used as brackets
+  // 符号?(16進数|2進数|(整数|小数?指数?))|プリプロセッサ?ラベル?識別子
+  "wordPattern": "-?((0x|\\$)[0-9a-fA-F]+|(0b|%)[01]+|\\d+(\\.\\d+)?([eE]\\d*)?)|(#|\\*)?[^\\\\+\\-*/=<>(){}[\\];:'\"?!&#$,.|^%~\\s\\d][^\\\\+\\-*/=<>(){}[\\];:'\"?!&#$,.|^%~\\s]*",
+  // 括弧の定義
   "brackets": [
-    ["{", "}"],
-    ["[", "]"],
     ["(", ")"],
-    ["{\"", "\"}"]
+    ["[", "]"],
+    ["{", "}"]
   ],
-  // symbols that are auto closed when typing
+  // 開き文字と対になる閉じ文字を自動挿入する
   "autoClosingPairs": [
     { "open": "{", "close": "}" },
     { "open": "[", "close": "]" },
     { "open": "(", "close": ")" },
-    { "open": "'", "close": "'", "notIn": ["string"] },
+    { "open": "'", "close": "'", "notIn": ["string", "comment"] },
     { "open": "\"", "close": "\"", "notIn": ["string"] },
-    { "open": "{\"", "close": "\"}", "notIn": ["string", "comment"] },
-    { "open": "/*", "close": "*/", "notIn": ["string", "comment"] }
+    { "open": "{\"", "close": "\"}", "notIn": ["string"] },
+    { "open": "/**", "close": " */", "notIn": ["string"] }
   ],
-  // symbols that that can be used to surround a selection
+  // 選択中の文字を囲めるようにする
   "surroundingPairs": [
     ["{", "}"],
     ["[", "]"],
     ["(", ")"],
-    ["\"", "\""],
     ["'", "'"],
-    ["{\"", "\"}"],
-    ["/*", "*/"]
+    ["\"", "\""],
+    ["{\"", "\"}"]
   ],
+  // 折りたためるようにする
+  // editor.minimap.showRegionSectionHeaders で強調されることに注意
   "folding": {
-    // 折りたたみ対象
-    // モジュール、中括弧、複数行文字列、ブロックコメント
     "markers": {
-      "start": "(^\\s*#module\\b)|(\\{)|(\\{\\\")|(\\/\\*)",
-      "end": "(^\\s*#global\\b)|(\\})|(\\\"\\})|(\\*\\/)"
+      "start": "^\\s*#module\\b",
+      "end": "^\\s*#global\\b"
     },
     "offSide": true
   },
-  // 16進数|2進数|10進数(指数含む)|リテラル(プリプロセッサ命令|ラベル定義|変数名などの識別子)
-  "wordPattern": "((0[xX]|\\$)[0-9A-Fa-f]{0,8})|((0[bB]|%)[01]{0,99})|(-?\\d{1,20}(\\.\\d{0,20})?([eE][-+]?\\d{0,9})?)|((#|\\*)?[^-\\/\\[\\](){}.?*+|^$\\\\\\s'\"~!#%&=;:,<>]+)",
   "indentationRules": {
-    // 文節({と:)|ラベル定義|ループ突入|ユーザー定義
-    "increaseIndentPattern": "^\\s*(.*\\{\\s*$|\\*[^:]*$|(repeat|foreach|for|do|while)[^:]*$)|(^\\s*#(deffunc|defcfunc|modfunc|modcfunc|modinit|modterm))",
-    "decreaseIndentPattern": "^\\s*(\\}|loop|next|(until.*)|wend)\\b.*$",
-    "indentNextLinePattern": "(^\\s*#(define|const|enum).*\\\\$)"
+    "increaseIndentPattern": "^\\s*(#.*\\\\$)|(\\{[^\\}]*$)|(\\*[^:]*$)|((repeat|foreach|for|do|while|switch|case)[^:]*$)",
+    "decreaseIndentPattern": "^\\s*(\\}|loop|next|(until\\b.*)|wend|swend)[^:]*$",
+    "indentNextLinePattern": "",
+    "unIndentedLinePattern": "^\\s*(;|//).*$"
   }
 }
