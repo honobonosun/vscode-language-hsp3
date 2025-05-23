@@ -40,9 +40,9 @@
     "offSide": true
   },
   "indentationRules": {
-    "increaseIndentPattern": "^\\s*(#.*\\\\$)|(\\{[^\\}]*$)|(\\*[^:]*$)|((repeat|foreach|for|do|while|switch|case)[^:]*$)",
+    // プリプロセッサ|ラベル定義|`{`と制御文
+    "increaseIndentPattern": "(^\\s*#.*\\\\$)|(^\\s*\\*[^:]+$)|(^\\s*(repeat|foreach|for|do|while|switch|case)\\b)",
     "decreaseIndentPattern": "^\\s*(\\}|loop|next|(until\\b.*)|wend|swend)[^:]*$",
-    "indentNextLinePattern": "",
     "unIndentedLinePattern": "^\\s*(;|//).*$"
   }
 }
