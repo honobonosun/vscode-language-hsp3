@@ -297,7 +297,6 @@
     "typescript": "^4.3.2"
   },
   "dependencies": {
-    "emoji-regex": "^8.0.0",
     "iconv-lite": "^0.4.24",
     "opener": "^1.5.1"
   },
