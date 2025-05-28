@@ -7,7 +7,7 @@
   "license": "MIT",
   "repository": "https://github.com/honobonosun/vscode-language-hsp3",
   "engines": {
-    "vscode": "^1.60.0"
+    "vscode": "^1.70.0"
   },
   "categories": [
     "Programming Languages"
@@ -15,7 +15,8 @@
   "activationEvents": [
     "onLanguage:hsp3"
   ],
-  "main": "./out/extension.js",
+  "main": "./out/desktop/extension.js",
+  "browser": "./out/web/extension.js",
   "contributes": {
     "commands": [
       {
@@ -273,19 +274,21 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run compile && npm run web-compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "pretest": "yarn run compile && yarn run lint",
+    "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "build": "vsce package"
+    "build": "vsce package",
+    "web-compile": "webpack --mode production",
+    "web-watch": "webpack --mode development --watch"
   },
   "devDependencies": {
     "@types/emoji-regex": "^8.0.0",
     "@types/jest": "^24.0.20",
     "@types/node": "^10.12.21",
     "@types/opener": "^1.4.0",
-    "@types/vscode": "^1.60.0",
+    "@types/vscode": "^1.70.0",
     "@typescript-eslint/eslint-plugin": "^2.3.3",
     "@typescript-eslint/parser": "^2.3.3",
     "@vscode/vsce": "^2.20.1",
@@ -293,8 +296,11 @@
     "eslint-config-prettier": "^6.4.0",
     "eslint-plugin-prettier": "^3.1.1",
     "prettier": "^1.18.2",
+    "ts-loader": "^9.5.2",
     "tslint": "^5.20.0",
-    "typescript": "^4.3.2"
+    "typescript": "^4.3.2",
+    "webpack": "^5.99.9",
+    "webpack-cli": "^6.0.1"
   },
   "dependencies": {
     "iconv-lite": "^0.4.24",
@@ -323,6 +329,10 @@
         "language-hsp3.helpman.path.local",
         "language-hsp3.helpman.path.online"
       ]
+    },
+    "virtualWorkspaces": {
+      "supported": "limited",
+      "description": "Basic language support is available in virtual workspaces. Advanced features like compilation require a local environment."
     }
   }
 }
