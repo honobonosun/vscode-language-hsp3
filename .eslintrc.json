@@ -1,14 +1,17 @@
 {
+  "root": true,
   "env": {
     "browser": true,
-    "es2021": true
+    "es2020": true,
+    "node": true
   },
-  "extends": [
-    "eslint:recommended",
-    "plugin:prettier/recommended"
-  ],
+  "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "ecmaVersion": 12
+    "ecmaVersion": 2020,
+    "sourceType": "module"
   },
-  "rules": {}
+  "plugins": ["@typescript-eslint"],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "rules": {},
+  "ignorePatterns": ["out/", "node_modules"]
 }
