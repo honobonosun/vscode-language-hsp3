@@ -1,5 +1,4 @@
-import { Token, TokenType, IPoint, ILocation } from './token';
-const emojiRegex: () => RegExp = require('emoji-regex');
+import { Token, TokenType, IPoint, ILocation } from "./token";
 
 /**
  * Lexerクラスは、documentをHSPのプログラムとして字句解析します。
@@ -93,34 +92,34 @@ class Lexer {
     let location: ILocation;
     const { row, column } = this.textPoint;
     switch (this.ch) {
-      case '\n': {
+      case "\n": {
         location = { begin: { row, column }, end: { row, column: column + 1 } };
         this.textPoint = { row: row + 1, column: 0 };
-        result = new Token(TokenType.newline, location, '\n');
+        result = new Token(TokenType.newline, location, "\n");
         break;
       }
-      case '\r': {
-        if (this.peekChar() === '\n') {
+      case "\r": {
+        if (this.peekChar() === "\n") {
           this.readChar();
           location = {
             begin: { row, column },
             end: { row, column: column + 2 },
           };
-          result = new Token(TokenType.newline, location, '\r\n');
+          result = new Token(TokenType.newline, location, "\r\n");
         } else {
           location = {
             begin: { row, column },
             end: { row, column: column + 1 },
           };
-          result = new Token(TokenType.newline, location, '\r');
+          result = new Token(TokenType.newline, location, "\r");
         }
         this.textPoint = { row: row + 1, column: 0 };
         break;
       }
-      case '#': {
+      case "#": {
         location = { begin: { row, column }, end: { row, column: column + 1 } };
         this.addTextPoint({ row: 0, column: 1 });
-        result = new Token(TokenType.sharp, location, '#');
+        result = new Token(TokenType.sharp, location, "#");
         break;
       }
       default: {
@@ -128,7 +127,7 @@ class Lexer {
         if (this.ch === 0) {
           // End Of Line
           this.addTextPoint({ row: 0, column: 1 });
-          result = new Token(TokenType.eol, location, '');
+          result = new Token(TokenType.eol, location, "");
         } else {
           let token: Token | null = null;
 
@@ -188,11 +187,11 @@ class Lexer {
     const position = this.position,
       { row, column } = this.textPoint;
     let regexp: RegExp;
-    if (this.ch === ' ') {
+    if (this.ch === " ") {
       regexp = / /;
-    } else if (this.ch === '\t') {
+    } else if (this.ch === "\t") {
       regexp = /\t/;
-    } else if (this.ch === '　') {
+    } else if (this.ch === "　") {
       // eslint-disable-next-line no-irregular-whitespace
       regexp = /　/;
     } else {
@@ -201,7 +200,7 @@ class Lexer {
     while (this.matchChar(regexp, this.ch)) {
       this.readChar();
     }
-    const raw: string = this.chars.slice(position, this.position).join(''),
+    const raw: string = this.chars.slice(position, this.position).join(""),
       location: ILocation = {
         begin: { row, column },
         end: { row, column: column + raw.length },
@@ -215,15 +214,15 @@ class Lexer {
    * *dev* 改行とEOLはコメントに入れないこと。
    */
   private readComment(): Token | null {
-    const beginComment = (): ';' | '//' | '/*' | null => {
+    const beginComment = (): ";" | "//" | "/*" | null => {
       if (this.ch === 0) {
         return null;
-      } else if (this.ch === ';') {
-        return ';';
-      } else if (this.ch === '/' && this.peekChar() === '/') {
-        return '//';
-      } else if (this.ch === '/' && this.peekChar() === '*') {
-        return '/*';
+      } else if (this.ch === ";") {
+        return ";";
+      } else if (this.ch === "/" && this.peekChar() === "/") {
+        return "//";
+      } else if (this.ch === "/" && this.peekChar() === "*") {
+        return "/*";
       } else {
         return null;
       }
@@ -239,7 +238,7 @@ class Lexer {
     let cntRow = 0;
     let newColumn = 0;
 
-    if (begin === ';' || begin === '//') {
+    if (begin === ";" || begin === "//") {
       for (let i = 0; i < begin.length; i++) {
         this.readChar();
       } // コメント文字文読み進める。
@@ -252,22 +251,22 @@ class Lexer {
       while (notCommentEnd()) {
         this.readChar();
       }
-      raw = this.chars.slice(position, this.position).join('');
+      raw = this.chars.slice(position, this.position).join("");
       newColumn = column + raw.length;
-    } else if (begin === '/*') {
+    } else if (begin === "/*") {
       this.readChar();
       this.readChar(); // コメント文字文読み進める。
       const notCommentEnd = (): boolean => {
         if (this.ch === 0) {
           return false;
         }
-        return !(this.prevChar() === '*' && this.ch === '/');
+        return !(this.prevChar() === "*" && this.ch === "/");
       };
       while (notCommentEnd()) {
         this.readChar();
       }
       this.readChar();
-      raw = this.chars.slice(position, this.position).join('');
+      raw = this.chars.slice(position, this.position).join("");
       const lines = raw.split(/\n|\r\n|\r/);
       const lastText = lines[lines.length - 1];
       cntRow = lines.length - 1;
@@ -277,7 +276,7 @@ class Lexer {
         newColumn = lastText.length;
       }
     } else {
-      throw new Error('予期せぬエラー');
+      throw new Error("予期せぬエラー");
     }
 
     const location: ILocation = {
@@ -307,14 +306,14 @@ class Lexer {
       ) {
         this.readChar();
         this.readChar();
-        raw = this.chars.slice(position, this.position).join('');
+        raw = this.chars.slice(position, this.position).join("");
         location = {
           begin: { row, column },
           end: { row, column: column + raw.length },
         };
       } else {
         this.readChar();
-        raw = this.chars.slice(position, this.position).join('');
+        raw = this.chars.slice(position, this.position).join("");
         location = {
           begin: { row, column },
           end: { row, column: column + raw.length },
@@ -367,7 +366,7 @@ class Lexer {
         this.readChar();
       }
       this.readChar();
-      const raw: string = this.chars.slice(position, this.position).join(''),
+      const raw: string = this.chars.slice(position, this.position).join(""),
         location: ILocation = {
           begin: { row, column },
           end: { row, column: column + raw.length },
@@ -377,10 +376,10 @@ class Lexer {
     }
     // $ 0x
     if (
-      this.ch === '$' ||
-      (this.ch === '0' && this.matchChar(/[Xx]/, this.peekChar()))
+      this.ch === "$" ||
+      (this.ch === "0" && this.matchChar(/[Xx]/, this.peekChar()))
     ) {
-      if (this.ch === '0') {
+      if (this.ch === "0") {
         this.readChar();
         this.readChar();
       } else {
@@ -389,7 +388,7 @@ class Lexer {
       while (this.matchChar(/[0-9a-fA-F]/, this.ch)) {
         this.readChar();
       }
-      const raw: string = this.chars.slice(position, this.position).join(''),
+      const raw: string = this.chars.slice(position, this.position).join(""),
         location: ILocation = {
           begin: { row, column },
           end: { row, column: column + raw.length },
@@ -399,10 +398,10 @@ class Lexer {
     }
     // % 0b
     if (
-      this.ch === '%' ||
-      (this.ch === '0' && this.matchChar(/[Bb]/, this.peekChar()))
+      this.ch === "%" ||
+      (this.ch === "0" && this.matchChar(/[Bb]/, this.peekChar()))
     ) {
-      if (this.ch === '0') {
+      if (this.ch === "0") {
         this.readChar();
         this.readChar();
       } else {
@@ -411,7 +410,7 @@ class Lexer {
       while (this.matchChar(/[01]/, this.ch)) {
         this.readChar();
       }
-      const raw: string = this.chars.slice(position, this.position).join(''),
+      const raw: string = this.chars.slice(position, this.position).join(""),
         location: ILocation = {
           begin: { row, column },
           end: { row, column: column + raw.length },
@@ -445,15 +444,15 @@ class Lexer {
         } // 二回目の指数表記が出現した。
         else if (e === false && this.matchChar(/[Ee]/, this.ch)) {
           e = true;
-        } else if (dot === true && this.ch === '.') {
+        } else if (dot === true && this.ch === ".") {
           break;
         } // 二回目の小数点が出現した。
-        else if (dot === false && this.ch === '.') {
+        else if (dot === false && this.ch === ".") {
           dot = true;
         }
         this.readChar();
       }
-      const raw: string = this.chars.slice(position, this.position).join(''),
+      const raw: string = this.chars.slice(position, this.position).join(""),
         location: ILocation = {
           begin: { row, column },
           end: { row, column: column + raw.length },
@@ -495,14 +494,14 @@ class Lexer {
         this.readChar();
       }
       this.readChar();
-      const raw: string = this.chars.slice(position, this.position).join('');
+      const raw: string = this.chars.slice(position, this.position).join("");
       const location: ILocation = {
         begin: { row, column },
         end: { row, column: column + raw.length },
       };
       this.addTextPoint({ row: 0, column: raw.length });
       return new Token(TokenType.string, location, raw);
-    } else if (this.ch === '{' && this.peekChar() === '"') {
+    } else if (this.ch === "{" && this.peekChar() === '"') {
       this.readChar();
       this.readChar();
       for (;;) {
@@ -516,7 +515,7 @@ class Lexer {
         }
         this.readChar();
       }
-      const raw: string = this.chars.slice(position, this.position).join('');
+      const raw: string = this.chars.slice(position, this.position).join("");
       const lines = raw.split(/\n|\r\n/);
       const cntRow = lines.length - 1;
       let newColumn = 0;
@@ -560,7 +559,7 @@ class Lexer {
       while (this.isLiteral2()) {
         this.readChar();
       }
-      const raw = this.chars.slice(position, this.position).join(''),
+      const raw = this.chars.slice(position, this.position).join(""),
         location: ILocation = {
           begin: { row, column },
           end: { row, column: column + raw.length },
