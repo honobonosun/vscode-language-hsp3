@@ -1,27 +1,10 @@
 import * as vscode from "vscode";
-import validate from "./config-validate";
+import { validate, ExecutorType } from "./config-validate";
 import { setTimeout } from "timers";
 
-export interface ExecutorBody {
-  enable: boolean;
-  index: string;
-  paths: {
-    [name: string]: {
-      hide: boolean;
-      path: string;
-      encoding: string;
-      buffer: number;
-      helpman: string;
-      commands: { [name: string]: string[] };
-    };
-  };
-}
-
 export default class Config {
-  public config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
-    "language-hsp3",
-    null
-  ); // constructorでrefresh呼んでるのに気づかないから此処で初期化。
+  public config: vscode.WorkspaceConfiguration =
+    vscode.workspace.getConfiguration("language-hsp3", null); // constructorでrefresh呼んでるのに気づかないから此処で初期化。
 
   constructor(uri: null | vscode.Uri = null) {
     this.refresh(uri);
@@ -53,18 +36,28 @@ export default class Config {
    * "language-hsp3.executor" の設定データを取得します。
    * 値が不正だった場合、修復を試みます。
    */
-  private executor(): ExecutorBody {
-    let executor = this.config.get("executor") as ExecutorBody;
-    try {
-      validate(executor);
-    } catch (e) {
-      console.log("err validate", e);
+  private executor(): ExecutorType {
+    let executor = validate(this.config.get("executor"));
+    if (typeof executor === "string") {
+      // executorがstring型の場合はエラーとして扱う
       if (this.timeID) clearTimeout(this.timeID);
       this.timeID = setTimeout(
-        () => vscode.window.showErrorMessage((e as Error).message),
+        () => vscode.window.showErrorMessage(executor as string),
         500
       );
-      executor = this.recover("executor") as ExecutorBody;
+      executor = this.recover("executor") as ExecutorType;
+    } else {
+      try {
+        // ここに追加のバリデーションや処理があれば記述
+      } catch (e) {
+        console.log("err validate", e);
+        if (this.timeID) clearTimeout(this.timeID);
+        this.timeID = setTimeout(
+          () => vscode.window.showErrorMessage((e as Error).message),
+          500
+        );
+        executor = this.recover("executor") as ExecutorType;
+      }
     }
     return executor;
   }
@@ -99,7 +92,7 @@ export default class Config {
       }
       result.push({
         label,
-        description: executor.paths[label].path
+        description: executor.paths[label].path,
       });
     }
     return result;

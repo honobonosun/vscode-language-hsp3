@@ -196,9 +196,9 @@ export async function execution(
   sc.set("filepath", file);
   let hsp3dir: string | undefined = undefined;
   try {
-    hsp3dir = (await vscode.commands.executeCommand("toolset-hsp3.current.toString")) as
-      | string
-      | undefined;
+    hsp3dir = (await vscode.commands.executeCommand(
+      "toolset-hsp3.current.toString"
+    )) as string | undefined;
   } catch (e) {
     console.log("Toolset-hsp3.current.toString command execution failed.", e);
   }
@@ -208,7 +208,7 @@ export async function execution(
     el.replace(regexp, (m, p1: string) => sc.get(p1.toLowerCase()) ?? m)
   );
 
-  let env = process.env;
+  const env = process.env;
   if (hsp3dir && config.useSetHSP3ROOT()) env.HSP3_ROOT = hsp3dir;
   const execOpstions = {
     maxBuffer: maxBuffer,

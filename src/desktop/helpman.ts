@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { exec } from "child_process";
 import Config from "./config";
-import opener = require("opener");
+import opener from "opener";
 
 function editorGetWord(textEditor: vscode.TextEditor): string {
   const selection = textEditor.selection;
@@ -34,7 +34,7 @@ export function helpmanCall(textEditor: vscode.TextEditor): void {
   }
   if (mode === "local") {
     const cmd = `"${config.helpman()}" ${word}`;
-    exec(cmd, err => {
+    exec(cmd, (err) => {
       if (err) {
         vscode.window.showErrorMessage("The Helpman call failed.");
         console.log(err);

@@ -23,7 +23,7 @@ export enum TokenType {
   identifier,
   literal,
   illegal,
-  others
+  others,
 }
 
 export class Token {

@@ -7,6 +7,7 @@ import Outline from "./outline";
 import Statusbar from "./statusbar";
 import Config from "./config";
 import { helpmanCall } from "./helpman";
+import Output from "../common/outputLog";
 
 /**
  * 指定されたoutputにコンパイラの標準出力をconfigに基づいてデコードして表示します。
@@ -83,6 +84,8 @@ function safeUri(fileUri: vscode.Uri): vscode.Uri {
 }
 
 export function activate(context: vscode.ExtensionContext): void {
+  if (context.extensionMode === vscode.ExtensionMode.Development)
+    console.log("activate vscode-language-hsp3");
   const config = new Config(null);
 
   const output = vscode.window.createOutputChannel("HSP");
@@ -101,11 +104,11 @@ export function activate(context: vscode.ExtensionContext): void {
       config.refresh(uri);
       const mes = buildingMessage(config);
       execution(uri.fsPath, "run", config)
-        .then(result => {
+        .then((result) => {
           outputWrite(result, output, config);
           mes.dispose();
         })
-        .catch(err => {
+        .catch((err) => {
           outputWrite(err, output, config);
           mes.dispose();
         });
@@ -126,11 +129,11 @@ export function activate(context: vscode.ExtensionContext): void {
       config.refresh(uri);
       const mes = buildingMessage(config);
       execution(uri.fsPath, "make", config)
-        .then(result => {
+        .then((result) => {
           outputWrite(result, output, config);
           mes.dispose();
         })
-        .catch(err => {
+        .catch((err) => {
           outputWrite(err, output, config);
           mes.dispose();
         });
@@ -145,7 +148,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand(
       "language-hsp3.RunWithArgs",
       (fileUri: vscode.Uri) => {
-        vscode.window.showInputBox({ password: false, value: "" }).then(v => {
+        vscode.window.showInputBox({ password: false, value: "" }).then((v) => {
           let uri: vscode.Uri;
           try {
             uri = safeUri(fileUri);
@@ -157,11 +160,11 @@ export function activate(context: vscode.ExtensionContext): void {
           config.refresh(uri);
           const mes = buildingMessage(config);
           execution(uri.fsPath, "run", config, v)
-            .then(result => {
+            .then((result) => {
               outputWrite(result, output, config);
               mes.dispose();
             })
-            .catch(err => {
+            .catch((err) => {
               outputWrite(err, output, config);
               mes.dispose();
             });

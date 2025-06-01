@@ -19,11 +19,11 @@ export default class Statusbar {
 
   public showQuickPick(config: Config): void {
     const option: vscode.QuickPickOptions = {
-      matchOnDescription: true
+      matchOnDescription: true,
     };
     vscode.window
       .showQuickPick(config.getCompilerItems(), option)
-      .then(value => {
+      .then((value) => {
         if (!value) {
           return;
         }
@@ -42,7 +42,7 @@ export default class Statusbar {
           `Due to a configuration change, the "${config.getCommandName()}" compiler does not exist. Please reconfigure the compiler you want to use.`,
           "Reconfigure"
         )
-        .then(result => {
+        .then((result) => {
           if (result === "Reconfigure") {
             this.showQuickPick(config);
           }
