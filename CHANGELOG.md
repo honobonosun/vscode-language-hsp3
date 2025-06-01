@@ -4,6 +4,25 @@ All notable changes to the "dev-vscode-language-hsp3" extension will be document
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 2025/06/01 - 2.2.1 preview
+
+- _fix_ 一行コメントの変更機能の実装忘れを修正しました。
+
+## 2025/06/01 - 2.2.0 preview
+
+- _add_ vscode.dev でも HSP3 言語の色分け機能をサポートしました。
+  - 現バージョンでは、アウトラインは機能しません。
+  - 外部ツール呼び出しは未対応です。
+- _add_ 一行コメントに使用する記号を選べるようになりました。
+  - この機能は、[hsp3-ginger/hsp3-vscode-syntax](https://github.com/vain0x/hsp3-ginger/tree/main/hsp3-vscode-syntax) から移植しました。
+  - Web版 で動作します。
+- _update_ ワードの境界を変更しました。
+  - _dev_ language-configuration.json の更新になります。
+- _dev_ ブランチの操作ミスで一部進捗を削除してしまいました。
+  - 割り切って、packageの依存関係から使用する開発ツールチェーンを一新しました。
+- **このバージョンは試作です。**
+  - webpackの導入によるWeb版の動作確認と、ローカルの差異を確認するためのものです。
+
 ## 2023/08/12 - 1.2.0
 
 - _update_ Workspace Trust に対応しました。

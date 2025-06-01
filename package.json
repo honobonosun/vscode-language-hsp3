@@ -3,7 +3,7 @@
   "publisher": "honobonosun",
   "displayName": "language-hsp3",
   "description": "language-hsp3 for VSCode",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "preview": true,
   "license": "MIT",
   "repository": "https://github.com/honobonosun/vscode-language-hsp3",
@@ -213,6 +213,15 @@
           "default": "",
           "markdownDescription": "Specify the URL for the online help. `%s` is replaced by the search character. The code page is UTF-8 fixed.",
           "scope": "resource"
+        },
+        "language-hsp3.line-comment": {
+          "type": "string",
+          "enum": [
+            ";",
+            "//"
+          ],
+          "default": ";",
+          "description": "行をコメントアウトするときに使う記号を指定します。(既定は ;)"
         }
       }
     },
