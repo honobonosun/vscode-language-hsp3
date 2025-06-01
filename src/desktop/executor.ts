@@ -81,7 +81,7 @@ async function isLegacyHspc(config: Config): Promise<boolean> {
 
   const options = { encoding: "Shift_JIS", maxBuffer: 260 };
   try {
-    let result: any;
+    let result;
     if (config.wineMode()) {
       result = await promisify(child_process.execFile)(
         "wine",
@@ -111,6 +111,7 @@ async function isLegacyHspc(config: Config): Promise<boolean> {
   }
 }
 
+type replacementMap = { [key: string]: string };
 /**
  * 渡されたstring[]にkeyがあったらvalueに置き換える。
  * {
@@ -120,7 +121,7 @@ async function isLegacyHspc(config: Config): Promise<boolean> {
  * @param args 受け取る文字列配列
  * @param withValues 置き換えるリスト
  */
-function replace(args: string[], withValues: any): string[] {
+function replace(args: string[], withValues: replacementMap): string[] {
   const result: string[] = [];
   const keys = Object.keys(withValues);
   for (let i = 0; i < args.length; i++) {
@@ -146,7 +147,10 @@ export async function execution(
   cmdname: string,
   config: Config,
   userArgs?: string
-) {
+): Promise<{
+  stdout: string | Buffer;
+  stderr: string | Buffer;
+}> {
   // config読み込み。
   let compiler: string,
     wineMode: boolean,

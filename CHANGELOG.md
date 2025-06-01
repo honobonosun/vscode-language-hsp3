@@ -4,6 +4,10 @@ All notable changes to the "dev-vscode-language-hsp3" extension will be document
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 2025/06/01 - 2.2.2 preview
+
+- _fix_ 外部ツール呼び出し時に出力ペインが文字化けする不具合を修正。
+
 ## 2025/06/01 - 2.2.1 preview
 
 - _fix_ 一行コメントの変更機能の実装忘れを修正しました。

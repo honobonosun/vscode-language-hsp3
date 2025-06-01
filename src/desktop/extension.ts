@@ -16,35 +16,35 @@ import Output from "../common/outputLog";
  * @param config vscode.WorkspaceConfigurationのインスタンス変数
  */
 function outputWrite(
-  variable: any,
+  variable: Error | { stdout: string | Buffer; stderr: string | Buffer },
   output: vscode.OutputChannel,
   config: Config
 ): void {
   output.clear();
-  if (variable.name === "Error") {
-    output.appendLine("# Execution command failed.");
+  if (variable instanceof Error) {
+    output.appendLine("# Execution command failed.\n" + variable.message);
     vscode.window.showErrorMessage("Failed");
   } else {
     vscode.window.showInformationMessage("Success");
-  }
-  let stdout, stderr;
-  try {
-    if (variable.stdout !== undefined) {
-      stdout = decode(variable.stdout, config.encoding());
-      if (stdout !== "") {
-        output.appendLine(stdout);
+    let stdout, stderr;
+    try {
+      if (variable.stdout !== undefined) {
+        stdout = decode(variable.stdout as Buffer, config.encoding());
+        if (stdout !== "") {
+          output.appendLine(stdout);
+        }
       }
-    }
-    if (variable.stderr !== undefined) {
-      stderr = decode(variable.stderr, config.encoding());
-      if (stderr !== "") {
-        output.appendLine(stderr);
+      if (variable.stderr !== undefined) {
+        stderr = decode(variable.stderr as Buffer, config.encoding());
+        if (stderr !== "") {
+          output.appendLine(stderr);
+        }
       }
+    } catch (e) {
+      output.appendLine("Failed, 'encoding' is not set config.");
+    } finally {
+      output.show();
     }
-  } catch (e) {
-    output.appendLine("Failed, 'encoding' is not set config.");
-  } finally {
-    output.show();
   }
 }
 
@@ -187,24 +187,6 @@ export function activate(context: vscode.ExtensionContext): void {
       statusbar.showQuickPick(config)
     )
   );
-
-  /*
-  let viewColumn: vscode.ViewColumn = vscode.window.activeTextEditor
-    ? vscode.window.activeTextEditor.viewColumn
-      ? vscode.window.activeTextEditor.viewColumn
-      : 1
-    : 1;
-  const panel = vscode.window.createWebviewPanel(
-    "helpman",
-    "untitled",
-    viewColumn,
-    {
-      enableScripts: true,
-      retainContextWhenHidden: true
-    }
-  );
-  panel.webview.html = "hello";
-  */
 
   context.subscriptions.push(
     vscode.commands.registerCommand("language-hsp3.helpman.search", () => {
