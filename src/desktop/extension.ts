@@ -8,6 +8,8 @@ import Statusbar from "./statusbar";
 import Config from "./config";
 import { helpmanCall } from "./helpman";
 import Output from "../common/outputLog";
+import { createLanguageConfigurationManager } from "../common/langCfg";
+import { EXTENSION_ID, LANGUAGE_ID } from "../common/constant";
 
 /**
  * 指定されたoutputにコンパイラの標準出力をconfigに基づいてデコードして表示します。
@@ -201,6 +203,20 @@ export function activate(context: vscode.ExtensionContext): void {
       statusbar.update(config);
       outline.update(config);
     })
+  );
+
+  // 一行コメント記号の設定変更に追従する。
+  const langConfigManager = createLanguageConfigurationManager(
+    LANGUAGE_ID,
+    EXTENSION_ID
+  );
+  langConfigManager.updateConfiguration();
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration(EXTENSION_ID))
+        langConfigManager.updateConfiguration();
+    }),
+    langConfigManager
   );
 }
 

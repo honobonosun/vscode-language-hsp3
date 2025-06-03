@@ -14,7 +14,12 @@
     "Programming Languages"
   ],
   "activationEvents": [
-    "onLanguage:hsp3"
+    "onLanguage:hsp3",
+    "onCommand:language-hsp3.run",
+    "onCommand:language-hsp3.make",
+    "onCommand:language-hsp3.RunWithArgs",
+    "onCommand:language-hsp3.changeOfExecutor",
+    "onCommand:language-hsp3.helpman.search"
   ],
   "main": "./out/desktop/extension.js",
   "browser": "./out/web/extension.js",
@@ -288,10 +293,10 @@
     "prebuild": "npm run clean && npm run lint",
     "build": "npm run build:all",
     "build:all": "concurrently \"npm run build:desktop\" \"npm run build:web\"",
-    "build:desktop": "tsc -p ./",
+    "build:desktop": "webpack --mode production",
     "build:web": "webpack --mode production",
     "dev": "npm run dev:desktop",
-    "dev:desktop": "tsc -watch -p ./",
+    "dev:desktop": "webpack --mode development --watch",
     "dev:web": "webpack --mode development --watch",
     "watch": "npm run dev",
     "watch:desktop": "npm run dev:desktop",
