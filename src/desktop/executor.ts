@@ -1,253 +1,197 @@
-"use strict";
-import * as child_process from "child_process";
-import { decode } from "iconv-lite";
-import { basename, dirname } from "path";
-import { promisify } from "util";
-import * as vscode from "vscode";
-import Config from "./config";
-import { convertPath } from "./wine";
+import { spawn, ChildProcess } from "child_process";
+import { TerminalStream } from "./terminal";
 
-/**
- * cmd.exeやbashのエスケープを再現します。
- * @param str エスケープする文字
- */
-function convertArgs(str: string): string[] {
-  let buffer = "";
-  const result: string[] = []; // push() call only.
-  let flag = false;
-  let escape = false;
-  const escapeChar = process.platform === "win32" ? "^" : "\\";
-  for (const elm of Array.from(str)) {
-    if (escape) {
-      buffer += elm;
-      escape = false;
-      continue;
-    }
-    if (elm === escapeChar) {
-      escape = true;
-      continue;
-    }
-
-    if (elm === '"') {
-      if (flag === false) {
-        flag = true;
-        continue;
-      } else {
-        flag = false;
-        continue;
-      }
-    }
-
-    if (/\s/.test(elm) && flag === false) {
-      if (buffer !== "") {
-        result.push(buffer);
-      }
-      buffer = "";
-    } else {
-      buffer += elm;
-    }
-  }
-  if (buffer !== "") {
-    result.push(buffer);
-  }
-  return result;
+export interface ExecutorOptions {
+  command: string;
+  args: string[];
+  cwd?: string;
+  encoding?: string;
+  env?: NodeJS.ProcessEnv;
 }
 
-/**
- * コンパイラがhspcかファイル名で調べます。
- * @param hspcPath hspc.exeのパス
- */
-function isHspc(hspcPath: string): boolean {
-  const name = basename(hspcPath);
-  if (name === "hspc.exe" || name === "hspc") {
-    return true;
-  } else {
-    return false;
-  }
+export interface ProcessResult {
+  exitCode: number;
+  stdout: string;
+  stderr: string;
 }
 
-/**
- * hspcが古いバージョンか調べます。
- * @param config
- */
-async function isLegacyHspc(config: Config): Promise<boolean> {
-  const hspcPath = config.compiler();
-  if (!hspcPath) {
-    return Promise.reject(new Error("Compiler is not set."));
-  }
-  if (isHspc(hspcPath) === false) {
-    return Promise.resolve(false);
-  }
+class ProcessExecutor {
+  private childProcess: ChildProcess | undefined;
+  private stream: TerminalStream | undefined;
+  private isRunning = false;
 
-  const options = { encoding: "Shift_JIS", maxBuffer: 260 };
-  try {
-    let result;
-    if (config.wineMode()) {
-      result = await promisify(child_process.execFile)(
-        "wine",
-        [hspcPath, "-v"],
-        options
-      );
-    } else {
-      result = await promisify(child_process.execFile)(
-        hspcPath,
-        ["-v"],
-        options
-      );
-    }
-    const str = decode(result.stdout as Buffer, "Shift_JIS");
-    const reval = str.match(/ hspc Version \w*(\d+)\.(\d+)\.(\d+)/);
-    if (!reval) {
-      return Promise.resolve(false);
-    } else {
-      if (Number(reval[1]) <= 1) {
-        return Promise.resolve(true);
-      } else {
-        return Promise.resolve(false);
-      }
-    }
-  } catch (err) {
-    return Promise.reject(err);
-  }
-}
+  constructor(private options: ExecutorOptions) {}
 
-type replacementMap = { [key: string]: string };
-/**
- * 渡されたstring[]にkeyがあったらvalueに置き換える。
- * {
- *  key: value,
- * "%FILEPATH%": file
- * }
- * @param args 受け取る文字列配列
- * @param withValues 置き換えるリスト
- */
-function replace(args: string[], withValues: replacementMap): string[] {
-  const result: string[] = [];
-  const keys = Object.keys(withValues);
-  for (let i = 0; i < args.length; i++) {
-    let arg = args[i];
-    for (let l = 0; l < keys.length; l++) {
-      const key = keys[l];
-      const value = withValues[keys[l]];
-      arg = arg.replace(RegExp(key, "g"), value);
-    }
-    result.push(arg);
-  }
-  return result;
-}
+  public async execute(stream: TerminalStream): Promise<ProcessResult> {
+    return new Promise((resolve, reject) => {
+      this.stream = stream;
+      this.isRunning = true;
 
-/**
- * コンパイラを実行する。
- * @param file コンパイルするファイルの絶対パス（fsPath）
- * @param cmdname 実行するコマンドの引数が設定されたconfigのセクション名
- * @param config vscode.WorkspaceConfigurationのインスタンス変数
- */
-export async function execution(
-  file: string,
-  cmdname: string,
-  config: Config,
-  userArgs?: string
-): Promise<{
-  stdout: string | Buffer;
-  stderr: string | Buffer;
-}> {
-  // config読み込み。
-  let compiler: string,
-    wineMode: boolean,
-    encoding: string,
-    maxBuffer: number,
-    cmdArgs: string[];
-  try {
-    compiler = config.compiler();
-    wineMode = config.wineMode();
-    encoding = config.encoding();
-    maxBuffer = config.maxBuffer();
-    cmdArgs = config.cmdArgs(cmdname);
-  } catch (e) {
-    return Promise.reject(e);
-  }
+      const stdout: string[] = [];
+      const stderr: string[] = [];
+      let isCleanedUp = false;
 
-  // コンパイラのカレントディレクトリを設定する。
-  let cwd: string = dirname(file);
-  if (config.get("choiceWorkDirCur")) {
-    // カレントディレクトリをワーキングディレクトリに設定する。
-    /**
-     * 指定されたstringから正規表現のエスケープ文字を無効化します。
-     * @param string エスケープ文字を無効化したい文字
-     */
-    function escapeRegExp(string: string) {
-      return string.replace(/[.*+?^=!:${}()|[\]/\\]/g, "\\$&");
-    }
-    const workFolders = vscode.workspace.workspaceFolders;
-    if (workFolders) {
-      for (let count = 0; count < Object.keys(workFolders).length; count++) {
-        const workFolder = workFolders[count].uri.fsPath;
-        const r = new RegExp(`${escapeRegExp(workFolder)}.*`); // 注意：この方法だと、`/`や`C:\`などがrootDirだった場合、問答無用でhitする。Atom版と同じ実装（lib/submodel.coffee/getProjectRoot関数）。
-        if (r.test(file)) {
-          cwd = workFolder;
-          break;
+      // 子プロセスの起動
+      this.childProcess = spawn(this.options.command, this.options.args, {
+        cwd: this.options.cwd,
+        stdio: ["pipe", "pipe", "pipe"],
+        env: { ...process.env, ...this.options.env },
+      });
+
+      // 標準出力の処理
+      this.childProcess.stdout?.on("data", (data: Buffer) => {
+        const text = this.decodeBuffer(data);
+        stdout.push(text);
+
+        // ターミナルに出力（改行コードを変換）
+        stream.write(text.replace(/\n/g, "\r\n"));
+      });
+
+      // 標準エラー出力の処理
+      this.childProcess.stderr?.on("data", (data: Buffer) => {
+        const text = this.decodeBuffer(data);
+        stderr.push(text);
+
+        // エラー出力として表示
+        stream.writeError(text.replace(/\n/g, "\r\n"));
+      });
+
+      // 入力ハンドラーの設定
+      const inputDisposable = stream.onInput((data: string) => {
+        if (this.childProcess?.stdin && this.isRunning) {
+          // 特殊キーの処理
+          if (data === "\x03") {
+            // Ctrl+C
+            this.kill();
+            return;
+          }
+
+          this.childProcess.stdin.write(data);
         }
-      }
+      });
+
+      // ストリーム（仮想ターミナル）側から閉じられた時の処理
+      const killDisposable = stream.onKill(() => {
+        this.kill(); // 子プロセスも道連れにする
+      });
+
+      // クリーンアップ関数
+      const cleanup = () => {
+        if (isCleanedUp) return;
+        isCleanedUp = true;
+        inputDisposable.dispose();
+        killDisposable.dispose();
+      };
+
+      // プロセス終了時の処理
+      this.childProcess.on("close", (code) => {
+        this.isRunning = false;
+        const exitCode = code ?? 0;
+
+        cleanup();
+        //stream.close(exitCode); // 仮想ターミナルを閉じる
+        stream.closeWithKeyWait(exitCode); // キー入力待ちしてから閉じる
+
+        resolve({
+          exitCode,
+          stdout: stdout.join(""),
+          stderr: stderr.join(""),
+        });
+      });
+
+      // エラー処理
+      this.childProcess.on("error", (err) => {
+        cleanup();
+        this.isRunning = false;
+        stream.writeError(`Failed to start process: ${err.message}`);
+        stream.close(1);
+
+        reject(err);
+      });
+    });
+  }
+
+  public kill(signal: NodeJS.Signals = "SIGTERM"): void {
+    if (this.childProcess && this.isRunning) {
+      this.isRunning = false;
+      this.childProcess.kill(signal);
+      this.stream?.writeLine("\r\n^C Process interrupted");
+      console.log(`Process killed with signal: ${signal}`);
     }
   }
 
-  // コマンド引数の特殊文字を変換。
-  if (wineMode) {
-    const revalue = await convertPath(["--windows"], [file]);
-    file = revalue[0];
+  public isActive(): boolean {
+    return this.isRunning;
   }
-  const sc = new Map<string, string>();
-  sc.set("filepath", file);
-  let hsp3dir: string | undefined = undefined;
-  try {
-    hsp3dir = (await vscode.commands.executeCommand(
-      "toolset-hsp3.current.toString"
-    )) as string | undefined;
-  } catch (e) {
-    console.log("Toolset-hsp3.current.toString command execution failed.", e);
-  }
-  if (hsp3dir) sc.set("hsp3dir", hsp3dir);
-  const regexp = /%(.*?)%/g;
-  let args = cmdArgs.map((el) =>
-    el.replace(regexp, (m, p1: string) => sc.get(p1.toLowerCase()) ?? m)
-  );
 
-  const env = process.env;
-  if (hsp3dir && config.useSetHSP3ROOT()) env.HSP3_ROOT = hsp3dir;
-  const execOpstions = {
-    maxBuffer: maxBuffer,
-    encoding: encoding,
-    cwd: cwd,
-    env,
+  private decodeBuffer(buffer: Buffer): string {
+    if (this.options.encoding) {
+      // カスタムエンコーディング処理があれば使用
+      // 例: return decode(buffer, this.options.encoding);
+    }
+    return buffer.toString("utf8");
+  }
+}
+
+const createExecutor = () => {
+  const activeProcesses = new Map<string, ProcessExecutor>();
+
+  const execute = async (
+    stream: TerminalStream,
+    options: ExecutorOptions,
+    processId?: string
+  ): Promise<ProcessResult> => {
+    const executor = new ProcessExecutor(options);
+
+    if (processId) {
+      activeProcesses.set(processId, executor);
+    }
+
+    try {
+      const result = await executor.execute(stream);
+
+      if (processId) {
+        activeProcesses.delete(processId);
+      }
+
+      return result;
+    } catch (error) {
+      if (processId) {
+        activeProcesses.delete(processId);
+      }
+      throw error;
+    }
   };
 
-  // hspc v1 コンパイラ用の呼び出し。
-  if (await isLegacyHspc(config)) {
-    if (userArgs) {
-      vscode.window.showInformationMessage(
-        'Ran with arguments, but argument ignored because hspc version is ">=2.0.0".'
-      );
+  const killProcess = (processId: string): boolean => {
+    const executor = activeProcesses.get(processId);
+    if (executor) {
+      executor.kill();
+      activeProcesses.delete(processId);
+      return true;
     }
-    let command: string;
-    if (wineMode) {
-      command = `wine ${compiler} ` + args.join(" ").replace(/""/g, "");
-    } else {
-      command = `${compiler} ` + args.join(" ").replace(/""/g, "");
+    return false;
+  };
+
+  const isProcessActive = (processId: string): boolean => {
+    const executor = activeProcesses.get(processId);
+    return executor?.isActive() ?? false;
+  };
+
+  const dispose = () => {
+    // 全てのアクティブなプロセスを終了
+    for (const [id, executor] of activeProcesses) {
+      executor.kill();
     }
-    return promisify(child_process.exec)(command, execOpstions);
-  } else {
-    // 古くないhspc、もしくはhspc以外のコンパイラを呼び出す。
-    if (userArgs) {
-      args = args.concat(convertArgs(userArgs));
-    }
-    if (wineMode) {
-      return promisify(child_process.execFile)(
-        "wine",
-        [compiler].concat(args),
-        execOpstions
-      );
-    } else {
-      return promisify(child_process.execFile)(compiler, args, execOpstions);
-    }
-  }
-}
+    activeProcesses.clear();
+  };
+
+  return {
+    execute,
+    killProcess,
+    isProcessActive,
+    dispose,
+  };
+};
+
+export default createExecutor;

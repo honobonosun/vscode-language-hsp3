@@ -333,7 +333,8 @@
   "dependencies": {
     "i18next": "^25.2.1",
     "iconv-lite": "^0.4.24",
-    "opener": "^1.5.1"
+    "opener": "^1.5.1",
+    "untildify": "^5.0.0"
   },
   "capabilities": {
     "untrustedWorkspaces": {

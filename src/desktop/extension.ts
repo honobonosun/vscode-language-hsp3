@@ -1,63 +1,17 @@
 "use strict";
 
 import * as vscode from "vscode";
-import { execution } from "./executor";
-import { decode } from "./decode";
-import Outline from "./outline";
-import Statusbar from "./statusbar";
-import Config from "./config";
-import { helpmanCall } from "./helpman";
-import Output from "../common/outputLog";
+import createConfig from "../common/config";
 import { createLanguageConfigurationManager } from "../common/langCfg";
-import { EXTENSION_ID, LANGUAGE_ID } from "../common/constant";
+import { EXTENSION_ID, LANGUAGE_ID, OUTPUT_NAME } from "../common/constant";
+import createLogger, { LogLevel } from "../common/log";
+import { terminalManager } from "./terminal";
+import createExecutor from "./executor";
+import * as path from "path";
+import * as fs from "fs";
 
-/**
- * 指定されたoutputにコンパイラの標準出力をconfigに基づいてデコードして表示します。
- * @param variable execution関数の返り値
- * @param output vscode.OutputChannelのインスタンス変数
- * @param config vscode.WorkspaceConfigurationのインスタンス変数
- */
-function outputWrite(
-  variable: Error | { stdout: string | Buffer; stderr: string | Buffer },
-  output: vscode.OutputChannel,
-  config: Config
-): void {
-  output.clear();
-  if (variable instanceof Error) {
-    output.appendLine("# Execution command failed.\n" + variable.message);
-    vscode.window.showErrorMessage("Failed");
-  } else {
-    vscode.window.showInformationMessage("Success");
-    let stdout, stderr;
-    try {
-      if (variable.stdout !== undefined) {
-        stdout = decode(variable.stdout as Buffer, config.encoding());
-        if (stdout !== "") {
-          output.appendLine(stdout);
-        }
-      }
-      if (variable.stderr !== undefined) {
-        stderr = decode(variable.stderr as Buffer, config.encoding());
-        if (stderr !== "") {
-          output.appendLine(stderr);
-        }
-      }
-    } catch (e) {
-      output.appendLine("Failed, 'encoding' is not set config.");
-    } finally {
-      output.show();
-    }
-  }
-}
-
-function buildingMessage(config: Config): vscode.Disposable {
-  if (config.useExecutor()) {
-    return vscode.window.setStatusBarMessage(
-      `$(zap)Running ${config.getCommandName()}`
-    );
-  } else {
-    return vscode.window.setStatusBarMessage("$(zap)Building...");
-  }
+function buildingMessage(): vscode.Disposable {
+  return vscode.window.setStatusBarMessage(`$(zap)Running"}`);
 }
 
 /**
@@ -88,122 +42,104 @@ function safeUri(fileUri: vscode.Uri): vscode.Uri {
 export function activate(context: vscode.ExtensionContext): void {
   if (context.extensionMode === vscode.ExtensionMode.Development)
     console.log("activate vscode-language-hsp3");
-  const config = new Config(null);
 
-  const output = vscode.window.createOutputChannel("HSP");
+  const logger = createLogger(OUTPUT_NAME);
+  const config = createConfig(EXTENSION_ID);
+  context.subscriptions.push(logger, config);
 
-  const run = vscode.commands.registerCommand(
-    "language-hsp3.run",
-    (fileUri: vscode.Uri) => {
-      let uri: vscode.Uri;
-      try {
-        uri = safeUri(fileUri);
-      } catch (e) {
-        console.log(e);
-        output.appendLine((e as Error).message);
-        return;
-      }
-      config.refresh(uri);
-      const mes = buildingMessage(config);
-      execution(uri.fsPath, "run", config)
-        .then((result) => {
-          outputWrite(result, output, config);
-          mes.dispose();
-        })
-        .catch((err) => {
-          outputWrite(err, output, config);
-          mes.dispose();
-        });
-    }
-  );
-
-  const make = vscode.commands.registerCommand(
-    "language-hsp3.make",
-    (fileUri: vscode.Uri) => {
-      let uri: vscode.Uri;
-      try {
-        uri = safeUri(fileUri);
-      } catch (e) {
-        console.log(e);
-        output.appendLine((e as Error).message);
-        return;
-      }
-      config.refresh(uri);
-      const mes = buildingMessage(config);
-      execution(uri.fsPath, "make", config)
-        .then((result) => {
-          outputWrite(result, output, config);
-          mes.dispose();
-        })
-        .catch((err) => {
-          outputWrite(err, output, config);
-          mes.dispose();
-        });
-    }
-  );
-
-  context.subscriptions.push(run);
-  context.subscriptions.push(make);
-  context.subscriptions.push(output);
+  const { log } = logger.section("launcher");
+  const executor = createExecutor();
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "language-hsp3.RunWithArgs",
-      (fileUri: vscode.Uri) => {
-        vscode.window.showInputBox({ password: false, value: "" }).then((v) => {
-          let uri: vscode.Uri;
-          try {
-            uri = safeUri(fileUri);
-          } catch (e) {
-            console.log(e);
-            output.appendLine((e as Error).message);
-            return;
+      "language-hsp3.run",
+      async (fileUri: vscode.Uri) => {
+        try {
+          const targetUri = safeUri(fileUri);
+          const filePath = targetUri.fsPath;
+          const fileName = path.basename(filePath, path.extname(filePath));
+          const workDir = path.dirname(filePath);
+
+          // HSP3コンパイラの設定を取得
+          const hspConfig = "-R";
+          const hspcPath = "hspc.exe";
+
+          log(LogLevel.Info, `Running HSP3 compilation: ${filePath}`);
+
+          // ターミナル名を生成
+          const terminalName = `HSP: ${fileName}`;
+
+          // 既存のターミナルがあれば再利用、なければ新規作成
+          let terminal, stream;
+          if (terminalManager.hasTerminal(terminalName)) {
+            ({ terminal, stream } = terminalManager.getTerminal(terminalName));
+            stream.cancelKeyWait();
+          } else {
+            ({ terminal, stream } = terminalManager.createTerminal({
+              name: terminalName,
+              iconPath: new vscode.ThemeIcon("play"),
+              showOnCreate: true,
+            }));
           }
-          config.refresh(uri);
-          const mes = buildingMessage(config);
-          execution(uri.fsPath, "run", config, v)
-            .then((result) => {
-              outputWrite(result, output, config);
-              mes.dispose();
-            })
-            .catch((err) => {
-              outputWrite(err, output, config);
-              mes.dispose();
-            });
-        });
+
+          // hspcコマンドを実行
+          const result = await executor.execute(
+            stream,
+            {
+              command: hspcPath,
+              args: ["-R", filePath],
+              cwd: workDir,
+              encoding: "utf8",
+            },
+            terminalName
+          );
+
+          if (result.exitCode === 0) {
+            log(LogLevel.Info, "HSP compilation completed successfully");
+            stream.writeLine("✅ Compilation completed successfully!");
+            // 実行ファイルが生成されているかチェック
+            const exePath = path.join(workDir, fileName + ".exe");
+            if (fs.existsSync(exePath)) {
+              if (fs.existsSync(exePath)) {
+                stream.writeLine(`📁 Output: ${exePath}`);
+              }
+            } else {
+              log(
+                LogLevel.Error,
+                `HSP compilation failed with exit code: ${result.exitCode}`
+              );
+              stream.writeError("❌ Compilation failed!");
+            }
+          }
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : String(error);
+          log(LogLevel.Error, `Failed to run HSP: ${message}`);
+          vscode.window.showErrorMessage(`HSP3実行エラー: ${message}`);
+        }
       }
-    )
+    ),
+    vscode.commands.registerCommand(
+      "language-hsp3.make",
+      (fileUri: vscode.Uri) => {
+        log(LogLevel.Warn, "make");
+      }
+    ),
+    vscode.commands.registerCommand(
+      "language-hsp3.RunWithArgs",
+      (fileUri: vscode.Uri) => {}
+    ),
+    // Executorのクリーンアップを追加
+    {
+      dispose: () => {
+        executor.dispose();
+        terminalManager.dispose();
+      },
+    }
   );
 
-  const outline = new Outline(config);
-  context.subscriptions.push(outline);
-
-  const statusbar = new Statusbar();
-  statusbar.update(config);
-  context.subscriptions.push(statusbar);
-  context.subscriptions.push(
-    vscode.window.onDidChangeActiveTextEditor(() => statusbar.update(config))
-  );
-  context.subscriptions.push(
-    vscode.commands.registerCommand("language-hsp3.changeOfExecutor", () =>
-      statusbar.showQuickPick(config)
-    )
-  );
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand("language-hsp3.helpman.search", () => {
-      const editor = vscode.window.activeTextEditor;
-      if (!editor) return;
-      helpmanCall(editor);
-    })
-  );
-
-  context.subscriptions.push(
-    vscode.workspace.onDidChangeConfiguration(() => {
-      statusbar.update(config);
-      outline.update(config);
-    })
-  );
+  //const outline = new Outline(config);
+  //context.subscriptions.push(outline);
 
   // 一行コメント記号の設定変更に追従する。
   const langConfigManager = createLanguageConfigurationManager(
