@@ -182,8 +182,16 @@ class VirtualTerminal implements vscode.Pseudoterminal {
         return;
       }
 
+      // 制御文字は常に処理対象とする
+      const charCode = data.charCodeAt(0);
+
       if (this.echoEnabled) {
-        // エコーバック有効時：カーソル機能と文字入力処理
+        // エコーバック有効時：シェル的な動作
+
+        // ターミナル固有の制御文字処理
+        if (this.handleTerminalControlKey(data)) {
+          return;
+        }
 
         // 特殊キー処理（エスケープシーケンス）
         if (this.handleSpecialKey(data)) {
@@ -192,23 +200,65 @@ class VirtualTerminal implements vscode.Pseudoterminal {
 
         // 通常の文字入力処理
         if (data === "\x7f" || data === "\b") {
-          // バックスペース
           this.backspaceAtCursor();
         } else if (data === "\r") {
-          // Enter キー
           this.writeEmitter.fire("\r\n");
           this.inputEmitter.fire(this.inputBuffer + "\n");
           this.inputBuffer = "";
           this.cursorPosition = 0;
-        } else if (data.charCodeAt(0) >= 32 || data === "\t") {
-          // 通常の文字とタブ文字
+        } else if (charCode >= 32 || data === "\t") {
           this.insertAtCursor(data);
+        } else {
+          // その他の制御文字もアプリケーションに送信
+          this.inputEmitter.fire(data);
         }
-        // 制御文字（Ctrl+C など）は無視
       } else {
-        // エコーバック無効時：すべての入力をそのまま発火（カーソル機能なし）
+        // エコーバック無効時：raw mode - すべての入力をそのまま送信
         this.inputEmitter.fire(data);
       }
+    }
+  }
+
+  // ターミナル固有の制御文字のみ処理
+  private handleTerminalControlKey(data: string): boolean {
+    const charCode = data.charCodeAt(0);
+
+    switch (charCode) {
+      case 3: // Ctrl+C - ターミナル割り込み
+        this.writeEmitter.fire("^C\r\n");
+        this.killEmitter.fire();
+        this.inputBuffer = "";
+        this.cursorPosition = 0;
+        return true;
+
+      case 12: // Ctrl+L - 画面クリア（ターミナル機能）
+        this.writeEmitter.fire("\x1b[2J\x1b[H");
+        if (this.inputBuffer.length > 0) {
+          this.writeEmitter.fire(this.inputBuffer);
+          const chars = [...this.inputBuffer];
+          const rightChars = chars.slice(this.cursorPosition);
+          const rightText = rightChars.join("");
+          if (rightText.length > 0) {
+            const rightWidth = this.getDisplayWidth(rightText);
+            this.writeEmitter.fire(`\x1b[${rightWidth}D`);
+          }
+        }
+        return true;
+
+      case 21: {
+        // Ctrl+U - 行クリア（ターミナル機能）
+        const totalWidth = this.getDisplayWidth(this.inputBuffer);
+        if (totalWidth > 0) {
+          this.writeEmitter.fire(`\x1b[${totalWidth}D`);
+        }
+        this.writeEmitter.fire(`\x1b[K`);
+        this.inputBuffer = "";
+        this.cursorPosition = 0;
+        return true;
+      }
+
+      default:
+        return false;
     }
   }
 
