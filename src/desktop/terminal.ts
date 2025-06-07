@@ -25,7 +25,7 @@ class VirtualTerminal implements vscode.Pseudoterminal {
   private isActive = false;
   private isWaitingForKeyPress = false;
   private pendingExitCode?: number;
-  private エコーバック = true;
+  private echoEnabled = true;
   private inputBuffer = "";
   private cursorPosition = 0; // カーソル位置（文字単位）
 
@@ -36,42 +36,22 @@ class VirtualTerminal implements vscode.Pseudoterminal {
     return stringWidth(str);
   }
 
-  // 文字列の最後の1文字を削除
-  private removeLastCharacter(str: string): {
-    newStr: string;
-    removedChar: string;
-  } {
-    if (str.length === 0) {
-      return { newStr: str, removedChar: "" };
-    }
-
-    const iterator = [...str].reverse();
-    const lastChar = iterator[0];
-    const newStr = str.slice(0, str.length - lastChar.length);
-
-    return { newStr, removedChar: lastChar };
-  }
-
   // カーソル位置の文字を取得
   private getCharAtCursor(): string {
     const chars = [...this.inputBuffer];
     return chars[this.cursorPosition] || "";
   }
 
-  // カーソルを左に移動
-  private moveCursorLeft(): void {
-    if (this.cursorPosition > 0) {
+  // カーソル移動の共通処理
+  private moveCursor(direction: "left" | "right"): void {
+    const chars = [...this.inputBuffer];
+
+    if (direction === "left" && this.cursorPosition > 0) {
       this.cursorPosition--;
-      const char = this.getCharAtCursor();
+      const char = chars[this.cursorPosition];
       const width = this.getDisplayWidth(char);
       this.writeEmitter.fire("\x1b[" + width + "D");
-    }
-  }
-
-  // カーソルを右に移動
-  private moveCursorRight(): void {
-    const chars = [...this.inputBuffer];
-    if (this.cursorPosition < chars.length) {
+    } else if (direction === "right" && this.cursorPosition < chars.length) {
       const char = chars[this.cursorPosition];
       const width = this.getDisplayWidth(char);
       this.cursorPosition++;
@@ -79,25 +59,42 @@ class VirtualTerminal implements vscode.Pseudoterminal {
     }
   }
 
+  // カーソルを左に移動
+  private moveCursorLeft(): void {
+    this.moveCursor("left");
+  }
+
+  // カーソルを右に移動
+  private moveCursorRight(): void {
+    this.moveCursor("right");
+  }
+
   // カーソル位置に文字を挿入
   private insertAtCursor(text: string): void {
     const chars = [...this.inputBuffer];
-    chars.splice(this.cursorPosition, 0, text);
+    chars.splice(this.cursorPosition, 0, ...text);
     this.inputBuffer = chars.join("");
 
-    // カーソル位置から右の文字を再描画
-    const rightText = this.inputBuffer.slice(this.cursorPosition);
+    // カーソル位置から右の文字を再描画（文字単位でスライス）
+    const rightChars = [...this.inputBuffer].slice(this.cursorPosition);
+    const rightText = rightChars.join("");
     this.writeEmitter.fire(rightText);
 
-    // カーソル位置を更新（文字数で計算）
-    const textChars = [...text];
-    this.cursorPosition += textChars.length;
+    // カーソル位置を更新
+    this.cursorPosition += [...text].length;
 
     // カーソルを正しい位置に戻す
-    const remainingText = this.inputBuffer.slice(this.cursorPosition);
+    const remainingChars = [...this.inputBuffer].slice(this.cursorPosition);
+    const remainingText = remainingChars.join("");
     if (remainingText.length > 0) {
-      const width = this.getDisplayWidth(remainingText);
-      this.writeEmitter.fire("\x1b[" + width + "D");
+      this.moveCursorBackward(this.getDisplayWidth(remainingText));
+    }
+  }
+
+  // カーソル移動のヘルパーメソッド
+  private moveCursorBackward(width: number): void {
+    if (width > 0) {
+      this.writeEmitter.fire(VirtualTerminal.ANSI.CURSOR_LEFT(width));
     }
   }
 
@@ -110,12 +107,14 @@ class VirtualTerminal implements vscode.Pseudoterminal {
       this.inputBuffer = chars.join("");
 
       // カーソル位置から右の文字を再描画
-      const rightText = this.inputBuffer.slice(this.cursorPosition);
-      this.writeEmitter.fire(rightText + " ");
+      const rightChars = [...this.inputBuffer].slice(this.cursorPosition);
+      const rightText = rightChars.join("");
+      const deletedWidth = this.getDisplayWidth(deletedChar);
+      this.writeEmitter.fire(rightText + " ".repeat(deletedWidth));
 
       // カーソルを正しい位置に戻す
-      const width = this.getDisplayWidth(rightText + " ");
-      this.writeEmitter.fire("\x1b[" + width + "D");
+      const totalWidth = this.getDisplayWidth(rightText) + deletedWidth;
+      this.writeEmitter.fire("\x1b[" + totalWidth + "D");
     }
   }
 
@@ -133,7 +132,8 @@ class VirtualTerminal implements vscode.Pseudoterminal {
       this.writeEmitter.fire("\x1b[" + deletedWidth + "D");
 
       // カーソル位置から右の文字を再描画
-      const rightText = this.inputBuffer.slice(this.cursorPosition);
+      const rightChars = [...this.inputBuffer].slice(this.cursorPosition);
+      const rightText = rightChars.join("");
       this.writeEmitter.fire(rightText + " ".repeat(deletedWidth));
 
       // カーソルを正しい位置に戻す
@@ -182,35 +182,11 @@ class VirtualTerminal implements vscode.Pseudoterminal {
         return;
       }
 
-      if (this.エコーバック) {
+      if (this.echoEnabled) {
         // エコーバック有効時：カーソル機能と文字入力処理
 
-        // エスケープシーケンス（矢印キーなど）の処理
-        if (data === "\x1b[A") {
-          // 上矢印キー - 履歴機能があれば実装
-          return;
-        } else if (data === "\x1b[B") {
-          // 下矢印キー - 履歴機能があれば実装
-          return;
-        } else if (data === "\x1b[C") {
-          // 右矢印キー
-          this.moveCursorRight();
-          return;
-        } else if (data === "\x1b[D") {
-          // 左矢印キー
-          this.moveCursorLeft();
-          return;
-        } else if (data === "\x1b[3~") {
-          // Delete キー
-          this.deleteAtCursor();
-          return;
-        } else if (data === "\x1b[H") {
-          // Home キー
-          this.moveCursorToHome();
-          return;
-        } else if (data === "\x1b[F") {
-          // End キー
-          this.moveCursorToEnd();
+        // 特殊キー処理（エスケープシーケンス）
+        if (this.handleSpecialKey(data)) {
           return;
         }
 
@@ -304,6 +280,52 @@ class VirtualTerminal implements vscode.Pseudoterminal {
     this.closeEmitter.dispose();
     this.inputEmitter.dispose();
     this.killEmitter.dispose();
+  }
+
+  // ANSI エスケープコード定数
+  private static readonly ANSI = {
+    CURSOR_LEFT: (n: number) => `\x1b[${n}D`,
+    CURSOR_RIGHT: (n: number) => `\x1b[${n}C`,
+    COLOR_RED: "\x1b[31m",
+    COLOR_RESET: "\x1b[0m",
+    // キーコード
+    ARROW_UP: "\x1b[A",
+    ARROW_DOWN: "\x1b[B",
+    ARROW_RIGHT: "\x1b[C",
+    ARROW_LEFT: "\x1b[D",
+    DELETE: "\x1b[3~",
+    HOME: "\x1b[H",
+    END: "\x1b[F",
+  } as const;
+
+  // キー入力処理をマップで管理
+  private readonly keyHandlers = new Map<string, () => void>([
+    [
+      VirtualTerminal.ANSI.ARROW_UP,
+      () => {
+        /* 履歴機能 */
+      },
+    ],
+    [
+      VirtualTerminal.ANSI.ARROW_DOWN,
+      () => {
+        /* 履歴機能 */
+      },
+    ],
+    [VirtualTerminal.ANSI.ARROW_RIGHT, () => this.moveCursorRight()],
+    [VirtualTerminal.ANSI.ARROW_LEFT, () => this.moveCursorLeft()],
+    [VirtualTerminal.ANSI.DELETE, () => this.deleteAtCursor()],
+    [VirtualTerminal.ANSI.HOME, () => this.moveCursorToHome()],
+    [VirtualTerminal.ANSI.END, () => this.moveCursorToEnd()],
+  ]);
+
+  private handleSpecialKey(data: string): boolean {
+    const handler = this.keyHandlers.get(data);
+    if (handler) {
+      handler();
+      return true;
+    }
+    return false;
   }
 }
 
