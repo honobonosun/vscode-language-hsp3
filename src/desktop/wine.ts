@@ -9,7 +9,7 @@ import { Result } from "../common/types";
  * @param paths 変換するファイルパス
  */
 
-export async function convertPath(
+export async function winepath(
   paths: string[],
   options: { transfer: "windows" | "unix" }
 ) {

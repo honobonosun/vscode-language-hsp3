@@ -19,6 +19,7 @@ class ProcessExecutor {
   private childProcess: ChildProcess | undefined;
   private stream: TerminalStream | undefined;
   private isRunning = false;
+  private isDisposed = false;
 
   constructor(private options: ExecutorOptions) {}
 
@@ -109,6 +110,15 @@ class ProcessExecutor {
         reject(err);
       });
     });
+  }
+
+  public dispose(): void {
+    if (this.isDisposed) return;
+    this.isDisposed = true;
+
+    this.kill();
+    this.childProcess = undefined;
+    this.stream = undefined;
   }
 
   public kill(signal: NodeJS.Signals = "SIGTERM"): void {

@@ -61,7 +61,7 @@ export function activate(context: vscode.ExtensionContext): void {
           const workDir = path.dirname(filePath);
 
           // HSP3コンパイラの設定を取得
-          const hspConfig = "-R";
+          const hspConfig = "-r";
           const hspcPath = "hspc.exe";
 
           log(LogLevel.Info, `Running HSP3 compilation: ${filePath}`);
@@ -86,8 +86,10 @@ export function activate(context: vscode.ExtensionContext): void {
           const result = await executor.execute(
             stream,
             {
-              command: hspcPath,
-              args: ["-R", filePath],
+              command: "node",
+              args: [
+                "G:\\Work\\VSCodeProjects\\vscode-language-hsp3\\test\\test.js",
+              ],
               cwd: workDir,
               encoding: "utf8",
             },

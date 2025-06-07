@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import stringWidth from "string-width";
 
 export interface TerminalStream {
   write(data: string): void;
@@ -24,8 +25,32 @@ class VirtualTerminal implements vscode.Pseudoterminal {
   private isActive = false;
   private isWaitingForKeyPress = false; // キー入力待ち状態を管理
   private pendingExitCode?: number; // 保留中の終了コード
+  private エコーバック = true;
+  private inputBuffer = "";
 
   constructor(private name: string) {}
+
+  // 文字の表示幅を取得（より正確な実装）
+  private getDisplayWidth(str: string): number {
+    return stringWidth(str);
+  }
+
+  // 文字列の最後の1文字（グラフィカルな単位）を削除
+  private removeLastCharacter(str: string): {
+    newStr: string;
+    removedChar: string;
+  } {
+    if (str.length === 0) {
+      return { newStr: str, removedChar: "" };
+    }
+
+    // 逆順でイテレートして最後の文字を見つける
+    const iterator = [...str].reverse();
+    const lastChar = iterator[0];
+    const newStr = str.slice(0, str.length - lastChar.length);
+
+    return { newStr, removedChar: lastChar };
+  }
 
   open(initialDimensions: vscode.TerminalDimensions | undefined): void {
     this.isActive = true;
@@ -46,7 +71,37 @@ class VirtualTerminal implements vscode.Pseudoterminal {
         this.isActive = false;
         return;
       }
-      this.inputEmitter.fire(data); // イベントとして発火
+
+      // バックスペース処理
+      if (this.エコーバック) {
+        if (data === "\x7f" || data === "\b") {
+          // バックスペース（DEL または BS）
+          if (this.inputBuffer.length > 0) {
+            // 最後の文字を正確に削除
+            const { newStr, removedChar } = this.removeLastCharacter(
+              this.inputBuffer
+            );
+            this.inputBuffer = newStr;
+
+            // 削除する文字の表示幅に応じたバックスペース処理
+            const width = this.getDisplayWidth(removedChar);
+            const backspaceSequence = "\b \b".repeat(width);
+            this.writeEmitter.fire(backspaceSequence);
+          }
+        } else if (data === "\r") {
+          // Enter キー
+          this.writeEmitter.fire("\r\n");
+          this.inputEmitter.fire(this.inputBuffer + "\n");
+          this.inputBuffer = "";
+        } else if (data.charCodeAt(0) >= 32 || data === "\t") {
+          // 通常の文字とタブ文字
+          this.inputBuffer += data;
+          this.writeEmitter.fire(data);
+        }
+        // 制御文字（Ctrl+C など）は無視
+      } else {
+        this.inputEmitter.fire(data); // イベントとして発火
+      }
     }
   }
 

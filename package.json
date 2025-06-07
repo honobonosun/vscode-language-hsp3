@@ -313,6 +313,7 @@
     "@types/jest": "^29.5.14",
     "@types/node": "^10.12.21",
     "@types/opener": "^1.4.0",
+    "@types/string-width": "^2.0.0",
     "@types/vscode": "^1.70.0",
     "@typescript-eslint/eslint-plugin": "^8.33.0",
     "@typescript-eslint/parser": "^8.33.0",
@@ -334,6 +335,7 @@
     "i18next": "^25.2.1",
     "iconv-lite": "^0.4.24",
     "opener": "^1.5.1",
+    "string-width": "^7.2.0",
     "untildify": "^5.0.0"
   },
   "capabilities": {

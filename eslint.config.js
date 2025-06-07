@@ -84,6 +84,7 @@ export default [
         module: "readonly",
         require: "readonly",
         exports: "readonly",
+        console: "readonly",
       },
     },
     plugins: {

@@ -19,3 +19,4 @@ const config = (section?: string) => {
 };
 export default config;
 export type Config = typeof config;
+export type ConfigInstance = ReturnType<typeof config>;
