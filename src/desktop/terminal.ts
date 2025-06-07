@@ -23,19 +23,20 @@ class VirtualTerminal implements vscode.Pseudoterminal {
   onDidClose: vscode.Event<number | void> = this.closeEmitter.event;
 
   private isActive = false;
-  private isWaitingForKeyPress = false; // キー入力待ち状態を管理
-  private pendingExitCode?: number; // 保留中の終了コード
+  private isWaitingForKeyPress = false;
+  private pendingExitCode?: number;
   private エコーバック = true;
   private inputBuffer = "";
+  private cursorPosition = 0; // カーソル位置（文字単位）
 
   constructor(private name: string) {}
 
-  // 文字の表示幅を取得（より正確な実装）
+  // 文字の表示幅を取得
   private getDisplayWidth(str: string): number {
     return stringWidth(str);
   }
 
-  // 文字列の最後の1文字（グラフィカルな単位）を削除
+  // 文字列の最後の1文字を削除
   private removeLastCharacter(str: string): {
     newStr: string;
     removedChar: string;
@@ -44,12 +45,116 @@ class VirtualTerminal implements vscode.Pseudoterminal {
       return { newStr: str, removedChar: "" };
     }
 
-    // 逆順でイテレートして最後の文字を見つける
     const iterator = [...str].reverse();
     const lastChar = iterator[0];
     const newStr = str.slice(0, str.length - lastChar.length);
 
     return { newStr, removedChar: lastChar };
+  }
+
+  // カーソル位置の文字を取得
+  private getCharAtCursor(): string {
+    const chars = [...this.inputBuffer];
+    return chars[this.cursorPosition] || "";
+  }
+
+  // カーソルを左に移動
+  private moveCursorLeft(): void {
+    if (this.cursorPosition > 0) {
+      this.cursorPosition--;
+      const char = this.getCharAtCursor();
+      const width = this.getDisplayWidth(char);
+      this.writeEmitter.fire("\x1b[" + width + "D");
+    }
+  }
+
+  // カーソルを右に移動
+  private moveCursorRight(): void {
+    const chars = [...this.inputBuffer];
+    if (this.cursorPosition < chars.length) {
+      const char = chars[this.cursorPosition];
+      const width = this.getDisplayWidth(char);
+      this.cursorPosition++;
+      this.writeEmitter.fire("\x1b[" + width + "C");
+    }
+  }
+
+  // カーソル位置に文字を挿入
+  private insertAtCursor(text: string): void {
+    const chars = [...this.inputBuffer];
+    chars.splice(this.cursorPosition, 0, text);
+    this.inputBuffer = chars.join("");
+
+    // カーソル位置から右の文字を再描画
+    const rightText = this.inputBuffer.slice(this.cursorPosition);
+    this.writeEmitter.fire(rightText);
+
+    // カーソル位置を更新（文字数で計算）
+    const textChars = [...text];
+    this.cursorPosition += textChars.length;
+
+    // カーソルを正しい位置に戻す
+    const remainingText = this.inputBuffer.slice(this.cursorPosition);
+    if (remainingText.length > 0) {
+      const width = this.getDisplayWidth(remainingText);
+      this.writeEmitter.fire("\x1b[" + width + "D");
+    }
+  }
+
+  // カーソル位置の文字を削除（Delete キー）
+  private deleteAtCursor(): void {
+    const chars = [...this.inputBuffer];
+    if (this.cursorPosition < chars.length) {
+      const deletedChar = chars[this.cursorPosition];
+      chars.splice(this.cursorPosition, 1);
+      this.inputBuffer = chars.join("");
+
+      // カーソル位置から右の文字を再描画
+      const rightText = this.inputBuffer.slice(this.cursorPosition);
+      this.writeEmitter.fire(rightText + " ");
+
+      // カーソルを正しい位置に戻す
+      const width = this.getDisplayWidth(rightText + " ");
+      this.writeEmitter.fire("\x1b[" + width + "D");
+    }
+  }
+
+  // カーソル位置の前の文字を削除（Backspace キー）
+  private backspaceAtCursor(): void {
+    if (this.cursorPosition > 0) {
+      const chars = [...this.inputBuffer];
+      const deletedChar = chars[this.cursorPosition - 1];
+      chars.splice(this.cursorPosition - 1, 1);
+      this.inputBuffer = chars.join("");
+      this.cursorPosition--;
+
+      // カーソルを削除する文字の位置まで戻す
+      const deletedWidth = this.getDisplayWidth(deletedChar);
+      this.writeEmitter.fire("\x1b[" + deletedWidth + "D");
+
+      // カーソル位置から右の文字を再描画
+      const rightText = this.inputBuffer.slice(this.cursorPosition);
+      this.writeEmitter.fire(rightText + " ".repeat(deletedWidth));
+
+      // カーソルを正しい位置に戻す
+      const totalWidth = this.getDisplayWidth(rightText) + deletedWidth;
+      this.writeEmitter.fire("\x1b[" + totalWidth + "D");
+    }
+  }
+
+  // Home キー - 行の先頭に移動
+  private moveCursorToHome(): void {
+    while (this.cursorPosition > 0) {
+      this.moveCursorLeft();
+    }
+  }
+
+  // End キー - 行の末尾に移動
+  private moveCursorToEnd(): void {
+    const chars = [...this.inputBuffer];
+    while (this.cursorPosition < chars.length) {
+      this.moveCursorRight();
+    }
   }
 
   open(initialDimensions: vscode.TerminalDimensions | undefined): void {
@@ -59,6 +164,11 @@ class VirtualTerminal implements vscode.Pseudoterminal {
 
   close(): void {
     this.isActive = false;
+    // バッファをクリア
+    this.inputBuffer = "";
+    this.cursorPosition = 0;
+    this.isWaitingForKeyPress = false;
+    this.pendingExitCode = undefined;
   }
 
   handleInput(data: string): void {
@@ -72,35 +182,56 @@ class VirtualTerminal implements vscode.Pseudoterminal {
         return;
       }
 
-      // バックスペース処理
       if (this.エコーバック) {
-        if (data === "\x7f" || data === "\b") {
-          // バックスペース（DEL または BS）
-          if (this.inputBuffer.length > 0) {
-            // 最後の文字を正確に削除
-            const { newStr, removedChar } = this.removeLastCharacter(
-              this.inputBuffer
-            );
-            this.inputBuffer = newStr;
+        // エコーバック有効時：カーソル機能と文字入力処理
 
-            // 削除する文字の表示幅に応じたバックスペース処理
-            const width = this.getDisplayWidth(removedChar);
-            const backspaceSequence = "\b \b".repeat(width);
-            this.writeEmitter.fire(backspaceSequence);
-          }
+        // エスケープシーケンス（矢印キーなど）の処理
+        if (data === "\x1b[A") {
+          // 上矢印キー - 履歴機能があれば実装
+          return;
+        } else if (data === "\x1b[B") {
+          // 下矢印キー - 履歴機能があれば実装
+          return;
+        } else if (data === "\x1b[C") {
+          // 右矢印キー
+          this.moveCursorRight();
+          return;
+        } else if (data === "\x1b[D") {
+          // 左矢印キー
+          this.moveCursorLeft();
+          return;
+        } else if (data === "\x1b[3~") {
+          // Delete キー
+          this.deleteAtCursor();
+          return;
+        } else if (data === "\x1b[H") {
+          // Home キー
+          this.moveCursorToHome();
+          return;
+        } else if (data === "\x1b[F") {
+          // End キー
+          this.moveCursorToEnd();
+          return;
+        }
+
+        // 通常の文字入力処理
+        if (data === "\x7f" || data === "\b") {
+          // バックスペース
+          this.backspaceAtCursor();
         } else if (data === "\r") {
           // Enter キー
           this.writeEmitter.fire("\r\n");
           this.inputEmitter.fire(this.inputBuffer + "\n");
           this.inputBuffer = "";
+          this.cursorPosition = 0;
         } else if (data.charCodeAt(0) >= 32 || data === "\t") {
           // 通常の文字とタブ文字
-          this.inputBuffer += data;
-          this.writeEmitter.fire(data);
+          this.insertAtCursor(data);
         }
         // 制御文字（Ctrl+C など）は無視
       } else {
-        this.inputEmitter.fire(data); // イベントとして発火
+        // エコーバック無効時：すべての入力をそのまま発火（カーソル機能なし）
+        this.inputEmitter.fire(data);
       }
     }
   }
@@ -186,7 +317,11 @@ export interface TerminalOptions {
 export class TerminalManager {
   private terminals = new Map<
     string,
-    { terminal: vscode.Terminal; pty: VirtualTerminal }
+    {
+      terminal: vscode.Terminal;
+      pty: VirtualTerminal;
+      disposable: vscode.Disposable;
+    }
   >();
 
   public createTerminal(options: TerminalOptions): {
@@ -201,9 +336,6 @@ export class TerminalManager {
       iconPath: options.iconPath || new vscode.ThemeIcon("terminal"),
     });
 
-    // ターミナルを管理用Mapに保存
-    this.terminals.set(options.name, { terminal, pty });
-
     // ターミナルが閉じられた時のクリーンアップ
     const disposable = vscode.window.onDidCloseTerminal((closedTerminal) => {
       if (closedTerminal === terminal) {
@@ -213,6 +345,9 @@ export class TerminalManager {
         disposable.dispose();
       }
     });
+
+    // ターミナルとdisposableを管理用Mapに保存
+    this.terminals.set(options.name, { terminal, pty, disposable });
 
     if (options.showOnCreate !== false) {
       terminal.show();
@@ -247,6 +382,7 @@ export class TerminalManager {
     if (entry) {
       entry.terminal.dispose();
       entry.pty.dispose();
+      entry.disposable.dispose(); // 追加：disposableも解放
       this.terminals.delete(name);
     }
   }
@@ -258,6 +394,10 @@ export class TerminalManager {
   }
 
   public dispose(): void {
+    // すべてのdisposableを明示的に解放
+    for (const [name, entry] of this.terminals) {
+      entry.disposable.dispose();
+    }
     this.closeAllTerminals();
   }
 }

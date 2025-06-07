@@ -1,7 +1,9 @@
 import * as vscode from "vscode";
-import Config from "./config";
+import Config from "../common/config";
 import { tokenizer } from "./hsp/lexer";
 import { parse, kinds, IOutlineElement } from "./hsp/parser";
+import createConfig from "../common/config";
+import { EXTENSION_ID } from "../common/constant";
 
 /**
  * outlineに表示するiconをkindの種類から決定して返します。
@@ -38,9 +40,10 @@ function symbolKind(kind: kinds): vscode.SymbolKind {
 export default class Outline implements vscode.Disposable {
   public provider: undefined | vscode.Disposable;
   private masks: string[] = [];
+  private config;
 
-  constructor(config: Config) {
-    this.update(config);
+  constructor() {
+    this.config = createConfig(EXTENSION_ID);
   }
 
   public dispose(): void {
@@ -56,12 +59,11 @@ export default class Outline implements vscode.Disposable {
     );
   }
 
-  public update(config: Config): void {
-    config.refresh();
-    this.masks = config.get("outline.masks") as string[];
-    if (config.get("outline.enable") && !this.provider) {
+  public update(): void {
+    this.masks = this.config.get("outline.masks") as string[];
+    if (this.config.get("outline.enable") && !this.provider) {
       this.create();
-    } else if (!config.get("outline.enable") && this.provider) {
+    } else if (!this.config.get("outline.enable") && this.provider) {
       this.provider.dispose();
       this.provider = undefined;
     }

@@ -9,7 +9,7 @@ const createHelpman = () => {
   return {
     call: (editor: vscode.TextEditor) => {
       const word = editorGetWord(editor);
-      if (web) {
+      if (config.get("")) {
         const url = config.get("helpman.path.online") as string;
         opener(url.replace("%s", encodeURIComponent(word)));
       }
