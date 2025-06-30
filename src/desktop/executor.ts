@@ -1,5 +1,6 @@
 import { spawn, ChildProcess } from "child_process";
 import { TerminalStream } from "./terminal";
+import { ConfigInstance } from "../common/config";
 
 export interface ExecutorOptions {
   command: string;
@@ -133,64 +134,63 @@ class ProcessExecutor {
   public isActive(): boolean {
     return this.isRunning;
   }
-
   private decodeBuffer(buffer: Buffer): string {
     if (this.options.encoding) {
       // カスタムエンコーディング処理があれば使用
-      // 例: return decode(buffer, this.options.encoding);
+      //return iconv.decode(buffer, this.options.encoding);
     }
     return buffer.toString("utf8");
   }
 }
 
 const createExecutor = () => {
-  const activeProcesses = new Map<string, ProcessExecutor>();
+  const activeProcesses = new Map<symbol, ProcessExecutor>();
 
   const execute = async (
     stream: TerminalStream,
     options: ExecutorOptions,
-    processId?: string
+    processSymbol?: symbol
   ): Promise<ProcessResult> => {
     const executor = new ProcessExecutor(options);
 
-    if (processId) {
-      activeProcesses.set(processId, executor);
+    if (processSymbol) {
+      activeProcesses.set(processSymbol, executor);
     }
 
     try {
       const result = await executor.execute(stream);
 
-      if (processId) {
-        activeProcesses.delete(processId);
+      if (processSymbol) {
+        activeProcesses.delete(processSymbol);
       }
 
       return result;
     } catch (error) {
-      if (processId) {
-        activeProcesses.delete(processId);
+      if (processSymbol) {
+        activeProcesses.delete(processSymbol);
       }
       throw error;
     }
   };
 
-  const killProcess = (processId: string): boolean => {
-    const executor = activeProcesses.get(processId);
+  const killProcess = (processSymbol: symbol): boolean => {
+    const executor = activeProcesses.get(processSymbol);
     if (executor) {
       executor.kill();
-      activeProcesses.delete(processId);
+      activeProcesses.delete(processSymbol);
       return true;
     }
     return false;
   };
 
-  const isProcessActive = (processId: string): boolean => {
-    const executor = activeProcesses.get(processId);
+  const isProcessActive = (processSymbol: symbol): boolean => {
+    const executor = activeProcesses.get(processSymbol);
     return executor?.isActive() ?? false;
   };
 
   const dispose = () => {
     // 全てのアクティブなプロセスを終了
-    for (const [id, executor] of activeProcesses) {
+    for (const [symbol, executor] of activeProcesses) {
       executor.kill();
     }
     activeProcesses.clear();

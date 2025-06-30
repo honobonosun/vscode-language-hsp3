@@ -16,7 +16,7 @@ const webConfig = {
   },
   resolve: {
     mainFields: ["browser", "module", "main"],
-    extensions: [".ts", ".js"],
+    extensions: [".ts", ".js", "json"],
     alias: {
       // Node.js固有のモジュールをブラウザ対応版で置き換える場合
     },
@@ -31,7 +31,7 @@ const webConfig = {
     rules: [
       {
         test: /\.ts$/,
-        exclude: /node_modules/,
+        exclude: [/node_modules/, /test/],
         use: [
           {
             loader: "ts-loader",
@@ -43,10 +43,7 @@ const webConfig = {
       },
       {
         test: /\.json$/,
-        type: "asset/resource",
-        generator: {
-          filename: "locales/[name][ext]",
-        },
+        type: "json",
       },
     ],
   },
@@ -72,13 +69,13 @@ const desktopConfig = {
     vscode: "commonjs vscode",
   },
   resolve: {
-    extensions: [".ts", ".js"],
+    extensions: [".ts", ".js", "json"],
   },
   module: {
     rules: [
       {
         test: /\.ts$/,
-        exclude: /node_modules/,
+        exclude: [/node_modules/, /test/],
         use: [
           {
             loader: "ts-loader",
@@ -90,10 +87,7 @@ const desktopConfig = {
       },
       {
         test: /\.json$/,
-        type: "asset/resource",
-        generator: {
-          filename: "locales/[name][ext]",
-        },
+        type: "json",
       },
     ],
   },

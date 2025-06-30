@@ -2,5 +2,7 @@
   "activation": "Activation (Dev Mode)",
   "unread-log": "Log updated.",
   "show": "Show",
-  "reload": "Reload"
+  "reload": "Reload",
+  "show-console": "Show Developer Tools",
+  "log-output-failed": "Failed to output log. Log has been print to console."
 }

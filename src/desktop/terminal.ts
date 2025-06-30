@@ -11,6 +11,7 @@ export interface TerminalStream {
   kill(): void;
   onInput: vscode.Event<string>;
   onKill: vscode.Event<void>;
+  isStandby: () => boolean;
 }
 
 class VirtualTerminal implements vscode.Pseudoterminal {
@@ -321,6 +322,10 @@ class VirtualTerminal implements vscode.Pseudoterminal {
 
       onInput: this.inputEmitter.event,
       onKill: this.killEmitter.event,
+
+      isStandby: () => {
+        return this.isWaitingForKeyPress;
+      },
     };
   }
 

@@ -1,41 +1,37 @@
 import * as vscode from "vscode";
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import opener from "opener";
-import createConfig from "../common/config";
-import { EXTENSION_ID } from "../common/constant";
+import { ConfigInstance } from "../common/config";
 
-const createHelpman = () => {
-  const config = createConfig(EXTENSION_ID);
+const editorGetWord = (editor: vscode.TextEditor) => {
+  const selcur = editor.selection;
+  const seltext = editor.document.getText(
+    new vscode.Range(selcur.active, selcur.anchor)
+  );
+  if (seltext !== "") return seltext;
+
+  const wordRange = editor.document.getWordRangeAtPosition(selcur.active);
+  if (wordRange) return editor.document.getText(wordRange);
+};
+
+const createHelpman = (config: ConfigInstance) => {
+  const call = (editor: vscode.TextEditor) => {
+    const word = editorGetWord(editor);
+    if (!word) return;
+
+    //const url = get "helpman.path.online";
+    //opener(url.replace("%s", encodeURIComponent(word)));
+  };
+  const cmd = vscode.commands.registerTextEditorCommand(
+    "language-hsp3.helpman.search",
+    call
+  );
   return {
-    call: (editor: vscode.TextEditor) => {
-      const word = editorGetWord(editor);
-      if (config.get("")) {
-        const url = config.get("helpman.path.online") as string;
-        opener(url.replace("%s", encodeURIComponent(word)));
-      }
-    },
+    call,
     dispose: () => {
       config.dispose();
+      cmd.dispose();
     },
   };
 };
 export default createHelpman;
-
-function editorGetWord(textEditor: vscode.TextEditor): string {
-  const selection = textEditor.selection;
-  const seltext = textEditor.document.getText(
-    new vscode.Range(selection.active, selection.anchor)
-  );
-  if (seltext !== "") {
-    return seltext;
-  } else {
-    const position = textEditor.selection.start;
-    const wordRange = textEditor.document.getWordRangeAtPosition(
-      position,
-      RegExp(
-        "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)"
-      )
-    );
-    return textEditor.document.getText(wordRange);
-  }
-}

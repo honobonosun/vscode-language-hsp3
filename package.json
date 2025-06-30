@@ -154,25 +154,27 @@
         },
         "language-hsp3.executor.paths": {
           "type": "object",
-          "default": {
-            "3.51": {
-              "hide": false,
-              "path": "C:\\hsp351\\hspc.exe",
-              "encoding": "Shift_JIS",
-              "buffer": 204800,
-              "helpman": "C:\\hsp351\\helphsp\\helpman.exe",
-              "commands": {
-                "run": [
-                  "-dwCra",
-                  "%FILEPATH%"
-                ],
-                "make": [
-                  "-PmCa",
-                  "%FILEPATH%"
-                ]
+          "examples": [
+            {
+              "3.51": {
+                "hide": false,
+                "path": "C:\\hsp351\\hspc.exe",
+                "encoding": "Shift_JIS",
+                "buffer": 204800,
+                "helpman": "C:\\hsp351\\helphsp\\helpman.exe",
+                "commands": {
+                  "run": [
+                    "-dwCra",
+                    "%FILEPATH%"
+                  ],
+                  "make": [
+                    "-PmCa",
+                    "%FILEPATH%"
+                  ]
+                }
               }
             }
-          },
+          ],
           "scope": "resource"
         },
         "language-hsp3.outline.enable": {
@@ -270,24 +272,6 @@
       }
     ]
   },
-  "jest": {
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ],
-    "transform": {
-      "^.+\\.(ts|tsx)$": "ts-jest"
-    },
-    "globals": {
-      "ts-jest": {
-        "tsConfigFile": "tsconfig.json"
-      }
-    },
-    "testMatch": [
-      "**/tests/*.spec.+(ts|tsx|js)"
-    ]
-  },
   "scripts": {
     "vscode:prepublish": "npm run build",
     "prebuild": "npm run clean && npm run lint",
@@ -301,8 +285,8 @@
     "watch": "npm run dev",
     "watch:desktop": "npm run dev:desktop",
     "watch:web": "npm run dev:web",
-    "test": "npm run pretest && jest",
-    "pretest": "npm run build && npm run lint",
+    "test": "jest",
+    "pretest": "npm run lint",
     "lint": "eslint src/**/*.ts",
     "clean": "rimraf out",
     "package": "vsce package"
@@ -325,6 +309,7 @@
     "jest": "^29.7.0",
     "prettier": "^3.5.3",
     "rimraf": "^6.0.1",
+    "ts-jest": "^29.4.0",
     "ts-loader": "^9.5.2",
     "typescript": "^5.8.3",
     "webpack": "^5.99.9",
@@ -332,8 +317,10 @@
     "zod": "^3.25.34"
   },
   "dependencies": {
+    "glob": "^11.0.3",
     "i18next": "^25.2.1",
     "iconv-lite": "^0.4.24",
+    "minimatch": "^10.0.1",
     "opener": "^1.5.1",
     "string-width": "^7.2.0",
     "untildify": "^5.0.0"

@@ -4,144 +4,55 @@ import * as vscode from "vscode";
 import createConfig from "../common/config";
 import { createLanguageConfigurationManager } from "../common/langCfg";
 import { EXTENSION_ID, LANGUAGE_ID, OUTPUT_NAME } from "../common/constant";
-import createLogger, { LogLevel } from "../common/log";
+import createLogger from "../common/log";
 import { terminalManager } from "./terminal";
 import createExecutor from "./executor";
-import * as path from "path";
-import * as fs from "fs";
+import createHelpman from "./helpman";
+import i18n from "../common/i18n";
+import createToolset from "./toolset";
+import createExtensionManager from "../common/extmgr";
 
-function buildingMessage(): vscode.Disposable {
-  return vscode.window.setStatusBarMessage(`$(zap)Running"}`);
-}
-
-/**
- * 安全に現在開いているエディタのuriを取得します。
- */
-function safeUri(fileUri: vscode.Uri): vscode.Uri {
-  if (fileUri) {
-    return fileUri;
-  }
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) {
-    throw new Error("No active editor exists.");
-  }
-  if (editor.document.isUntitled) {
-    throw new Error("Editor content not saved in file.");
-  }
-  // 未保存の場合、通知する。
-  if (editor.document.isDirty) {
-    vscode.window.showInformationMessage(
-      "Changes to the editor have not been saved to the [" +
-        editor.document.uri.fsPath +
-        "] file."
-    );
-  }
-  return editor.document.uri;
-}
-
-export function activate(context: vscode.ExtensionContext): void {
-  if (context.extensionMode === vscode.ExtensionMode.Development)
-    console.log("activate vscode-language-hsp3");
-
-  const logger = createLogger(OUTPUT_NAME);
+export async function activate(
+  context: vscode.ExtensionContext
+): Promise<void> {
+  const debugMode = context.extensionMode === vscode.ExtensionMode.Development;
   const config = createConfig(EXTENSION_ID);
-  context.subscriptions.push(logger, config);
 
-  const { log } = logger.section("launcher");
+  await i18n.init(vscode.env.language, {
+    debug: debugMode,
+  });
+  const logger = createLogger(OUTPUT_NAME, {
+    consoleDubbing: debugMode,
+  });
+  if (debugMode) logger.info(i18n.t("activation"));
+
   const executor = createExecutor();
-
+  const helpman = createHelpman(config);
+  const extmgr = createExtensionManager(logger);
+  const toolset = await createToolset(context, logger, config, extmgr);
   context.subscriptions.push(
-    vscode.commands.registerCommand(
-      "language-hsp3.run",
-      async (fileUri: vscode.Uri) => {
-        try {
-          const targetUri = safeUri(fileUri);
-          const filePath = targetUri.fsPath;
-          const fileName = path.basename(filePath, path.extname(filePath));
-          const workDir = path.dirname(filePath);
-
-          // HSP3コンパイラの設定を取得
-          const hspConfig = "-r";
-          const hspcPath = "hspc.exe";
-
-          log(LogLevel.Info, `Running HSP3 compilation: ${filePath}`);
-
-          // ターミナル名を生成
-          const terminalName = `HSP: ${fileName}`;
-
-          // 既存のターミナルがあれば再利用、なければ新規作成
-          let terminal, stream;
-          if (terminalManager.hasTerminal(terminalName)) {
-            ({ terminal, stream } = terminalManager.getTerminal(terminalName));
-            stream.cancelKeyWait();
-          } else {
-            ({ terminal, stream } = terminalManager.createTerminal({
-              name: terminalName,
-              iconPath: new vscode.ThemeIcon("play"),
-              showOnCreate: true,
-            }));
-          }
-
-          // hspcコマンドを実行
-          const result = await executor.execute(
-            stream,
-            {
-              command: "node",
-              args: [
-                "G:\\Work\\VSCodeProjects\\vscode-language-hsp3\\test\\test.js",
-              ],
-              cwd: workDir,
-              encoding: "utf8",
-            },
-            terminalName
-          );
-
-          if (result.exitCode === 0) {
-            log(LogLevel.Info, "HSP compilation completed successfully");
-            stream.writeLine("✅ Compilation completed successfully!");
-            // 実行ファイルが生成されているかチェック
-            const exePath = path.join(workDir, fileName + ".exe");
-            if (fs.existsSync(exePath)) {
-              if (fs.existsSync(exePath)) {
-                stream.writeLine(`📁 Output: ${exePath}`);
-              }
-            } else {
-              log(
-                LogLevel.Error,
-                `HSP compilation failed with exit code: ${result.exitCode}`
-              );
-              stream.writeError("❌ Compilation failed!");
-            }
-          }
-        } catch (error) {
-          const message =
-            error instanceof Error ? error.message : String(error);
-          log(LogLevel.Error, `Failed to run HSP: ${message}`);
-          vscode.window.showErrorMessage(`HSP3実行エラー: ${message}`);
-        }
-      }
-    ),
-    vscode.commands.registerCommand(
-      "language-hsp3.make",
-      (fileUri: vscode.Uri) => {
-        log(LogLevel.Warn, "make");
-      }
-    ),
-    vscode.commands.registerCommand(
-      "language-hsp3.RunWithArgs",
-      (fileUri: vscode.Uri) => {}
-    ),
-    // Executorのクリーンアップを追加
-    {
-      dispose: () => {
-        executor.dispose();
-        terminalManager.dispose();
-      },
-    }
+    logger,
+    config,
+    executor,
+    helpman,
+    toolset,
+    extmgr
   );
 
-  //const outline = new Outline(config);
-  //context.subscriptions.push(outline);
+  context.subscriptions.push(
+    vscode.commands.registerTextEditorCommand(
+      "language-hsp3.run",
+      (editor) => {}
+    ),
+    vscode.commands.registerTextEditorCommand(
+      "language-hsp3.make",
+      (editor) => {}
+    ),
+    vscode.commands.registerTextEditorCommand(
+      "language-hsp3.RunWithArgs",
+      (editor) => {}
+    )
+  );
 
   // 一行コメント記号の設定変更に追従する。
   const langConfigManager = createLanguageConfigurationManager(
@@ -162,3 +73,5 @@ export function activate(context: vscode.ExtensionContext): void {
 export function deactivate(): void {
   console.log("language-hsp3 deactivate.");
 }
+
+const createTask = () => {};

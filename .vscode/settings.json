@@ -8,10 +8,8 @@
   },
   // Turn off tsc task auto detection since we have the necessary tasks as npm scripts
   "typescript.tsc.autoDetect": "off",
-  "[typescript]": {
-    // ここでは LF に固定する。
-    "files.eol": "\n"
-  },
+  "[typescript]": { "files.eol": "\n" },
+  "[json]": { "files.eol": "\n" },
   "i18n-ally.localesPaths": ["locales", "out/desktop/locales"],
   "i18n-ally.sourceLanguage": "ja"
 }

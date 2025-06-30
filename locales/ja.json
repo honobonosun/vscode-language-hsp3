@@ -2,5 +2,7 @@
   "activation": "アクティベーション（開発者モード）",
   "unread-log": "ログが更新されました。",
   "show": "表示",
-  "reload": "再読み込み"
+  "reload": "再読み込み",
+  "show-console": "開発者ツールを開く",
+  "log-output-failed": "ログの出力に失敗しました。ログはコンソールに出力されました。"
 }

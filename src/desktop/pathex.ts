@@ -1,11 +1,11 @@
 import untildify from "untildify";
 import path from "path";
+import { minimatch } from "minimatch";
 import { Result } from "../common/types";
 
 const hasOwnProp = (obj: object, prop: string | number | symbol): boolean => {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 };
-
 // Result型の定義
 
 // エラー型を明確に定義
@@ -24,8 +24,14 @@ export interface SecureExpandOptions {
 // expandPath用の拡張オプション
 export interface PathExpandOptions extends SecureExpandOptions {
   includeProcessEnv?: boolean;
-  trustedKeys?: Array<string>;
-  ignoredKeys?: Array<string>;
+  trustedPatterns?: Array<string>;
+  ignoredPatterns?: Array<string>;
+}
+
+// 危険な文字をチェックする関数
+function checkDangerousChars(path: string): boolean {
+  const dangerousChars = /[;&|`]/;
+  return dangerousChars.test(path);
 }
 
 export function secureExpandPathSafe(
@@ -46,9 +52,8 @@ export function secureExpandPathSafe(
     };
   }
 
-  // 危険な文字をチェック
-  const dangerousChars = /[;&|`(){}[\]]/;
-  if (dangerousChars.test(userPath)) {
+  // 初回の危険な文字チェック
+  if (checkDangerousChars(userPath)) {
     return {
       success: false,
       error: {
@@ -58,6 +63,7 @@ export function secureExpandPathSafe(
     };
   }
 
+  // 環境変数展開後に再度危険な文字をチェック
   let expandedPath = userPath;
 
   // 1. 環境変数を安全に展開（ホワイトリスト形式、UnixとWindowsの両方をサポート）
@@ -69,6 +75,17 @@ export function secureExpandPathSafe(
       return match; // 許可されていない変数はそのまま
     }
   );
+
+  // 展開後の危険な文字チェック
+  if (checkDangerousChars(expandedPath)) {
+    return {
+      success: false,
+      error: {
+        type: "dangerous_chars",
+        message: "Expanded path contains dangerous characters",
+      },
+    };
+  }
 
   // 2. チルダを安全に展開
   expandedPath = untildify(expandedPath);
@@ -90,28 +107,40 @@ export function secureExpandPathSafe(
   return { success: true, value: resolved };
 }
 
-// デフォルトの許可された環境変数を提供
+// デフォルトの許可された環境変数を提供（パターンマッチング版）
 export const defaultAllowedVars = ({
   allowedVars = {},
   includeProcessEnv = false,
-  trustedKeys = [],
-  ignoredKeys = [],
+  trustedPatterns = [],
+  ignoredPatterns = [],
 }: {
   allowedVars: Record<string, string>;
   includeProcessEnv: boolean;
-  trustedKeys: Array<string>;
-  ignoredKeys: Array<string>;
+  trustedPatterns: Array<string>;
+  ignoredPatterns: Array<string>;
 }): Record<string, string> => {
-  const result: Record<string, string> = allowedVars;
+  const result: Record<string, string> = { ...allowedVars };
 
   if (includeProcessEnv) {
     Object.entries(process.env).forEach(([key, value]) => {
-      if (!hasOwnProp(allowedVars, key)) {
+      if (!hasOwnProp(allowedVars, key) && value) {
+        // ブラックリストチェック（優先）
+        const isIgnored = ignoredPatterns.some((pattern) =>
+          minimatch(key, pattern, { nocase: true })
+        );
+
+        if (isIgnored) {
+          return; // 無視リストにマッチしたらスキップ
+        }
+
+        // ホワイトリストチェック
         const shouldInclude =
-          trustedKeys.length > 0
-            ? trustedKeys.includes(key)
-            : !ignoredKeys.includes(key);
-        if (shouldInclude && value) {
+          trustedPatterns.length === 0 ||
+          trustedPatterns.some((pattern) =>
+            minimatch(key, pattern, { nocase: true })
+          );
+
+        if (shouldInclude) {
           result[key] = value;
         }
       }
@@ -130,7 +159,7 @@ export function expandPath(
   const defaultVars = defaultAllowedVars({
     allowedVars: options.allowedVars || {},
     includeProcessEnv: options.includeProcessEnv ?? true,
-    trustedKeys: options.trustedKeys || [
+    trustedPatterns: options.trustedPatterns || [
       "HOME",
       "USERPROFILE",
       "APPDATA",
@@ -138,13 +167,18 @@ export function expandPath(
       "TEMP",
       "TMP",
       "PATH",
+      "PROGRAMFILES*", // PROGRAMFILESやPROGRAMFILES(X86)など
+      "SYSTEM*", // SYSTEMROOTやSYSTEMDRIVEなど
+      "USER*", // USERNAMEやUSERDOMAINなど
     ],
-    ignoredKeys: options.ignoredKeys || [
-      "PASSWORD",
-      "SECRET",
-      "TOKEN",
-      "KEY",
-      "PRIVATE",
+    ignoredPatterns: options.ignoredPatterns || [
+      "*PASSWORD*",
+      "*SECRET*",
+      "*TOKEN*",
+      "*KEY*",
+      "*PRIVATE*",
+      "*CREDENTIAL*",
+      "*AUTH*",
     ],
   });
 
