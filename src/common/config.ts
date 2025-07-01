@@ -16,8 +16,8 @@ const createConfig = (section?: string) => {
   return {
     ...cfg,
     dispose: () => {
-      subscription.dispose();
       listeners.clear();
+      subscription.dispose();
     },
     addListener: (listener: ConfigListener): symbol => {
       const id = Symbol("configListener");

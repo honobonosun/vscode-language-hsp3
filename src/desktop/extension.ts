@@ -71,12 +71,14 @@ export async function activate(
     EXTENSION_ID
   );
   langConfigManager.updateConfiguration();
+  const langConfigListenerId = config.addListener((e) => {
+    if (e.affectsConfiguration(`${EXTENSION_ID}.line-comment`)) {
+      langConfigManager.updateConfiguration();
+    }
+  });
   context.subscriptions.push(
-    vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration(EXTENSION_ID))
-        langConfigManager.updateConfiguration();
-    }),
-    langConfigManager
+    langConfigManager,
+    new vscode.Disposable(() => config.removeListener(langConfigListenerId))
   );
 }
 
