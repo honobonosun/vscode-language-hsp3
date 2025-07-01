@@ -41,7 +41,7 @@ export async function activate(
     }
   });
 
-  const executor = createExecutor();
+  const executor = createExecutor(config);
   const helpman = createHelpman(config);
   const extmgr = createExtensionManager(logger);
   const toolset = await createToolset(context, logger, config, extmgr);

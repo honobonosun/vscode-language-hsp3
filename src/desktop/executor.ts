@@ -1,6 +1,9 @@
 import { spawn, ChildProcess } from "child_process";
 import { TerminalStream } from "./terminal";
 import { ConfigInstance } from "../common/config";
+import * as vscode from "vscode";
+import { substituteVariables } from "./utils/substitution";
+import { CliPtyExecutor } from "./ptyExecutor";
 
 export interface ExecutorOptions {
   command: string;
@@ -8,6 +11,7 @@ export interface ExecutorOptions {
   cwd?: string;
   encoding?: string;
   env?: NodeJS.ProcessEnv;
+  enableSubstitution?: boolean;
 }
 
 export interface ProcessResult {
@@ -143,7 +147,7 @@ class ProcessExecutor {
   }
 }
 
-const createExecutor = () => {
+const createExecutor = (config: ConfigInstance) => {
   const activeProcesses = new Map<symbol, ProcessExecutor>();
 
   const execute = async (
@@ -151,6 +155,22 @@ const createExecutor = () => {
     options: ExecutorOptions,
     processSymbol?: symbol
   ): Promise<ProcessResult> => {
+    // 変数置換
+    if (options.enableSubstitution !== false) {
+      // TODO: コンテキストを渡して substituteVariables を使用した置換を実装
+    }
+
+    // usePty設定によるPseudoterminalモード切替
+    if (config.get<boolean>("usePty", false)) {
+      const ptyExecutor = new CliPtyExecutor(options);
+      const terminal = vscode.window.createTerminal({
+        name: options.command,
+        pty: ptyExecutor,
+      });
+      terminal.show();
+      return Promise.resolve({ exitCode: 0, stdout: "", stderr: "" });
+    }
+
     const executor = new ProcessExecutor(options);
 
     if (processSymbol) {
