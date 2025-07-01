@@ -4,5 +4,7 @@
   "show": "表示",
   "reload": "再読み込み",
   "show-console": "開発者ツールを開く",
-  "log-output-failed": "ログの出力に失敗しました。ログはコンソールに出力されました。"
+  "log-output-console": "ログは開発者ツールのコンソールに出力されました。",
+  "log-output-failed": "拡張機能「{extensionName}」の読み込みに失敗しました。詳細は開発者ツールのコンソールをご確認ください。",
+  "debug": "デバッグ"
 }

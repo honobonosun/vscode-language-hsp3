@@ -2,7 +2,7 @@ import vscode from "vscode";
 import { TOOLSET_HSP3_EXTENSION_ID, EXTENSION_ID } from "../common/constant";
 import { ConfigInstance } from "../common/config";
 import { ExtMgrInstance } from "../common/extmgr";
-import { LoggerInstance } from "../common/log";
+import { LoggerInstance } from "../common/logger";
 import { z } from "zod";
 import { Result } from "../common/types";
 import LanguageStatusManager from "./executorLanguageStatusManager";
@@ -16,16 +16,10 @@ import {
 /*
 設計変更メモ（2025-06-30）
 
-ToDo: executor選択・保存の不具合修正
-- [ ] 既定のExecutorItem生成を関数化する
-- [ ] executorリスト（listing）の取得と選択状態（CurrentExecutors）の整合性を常に保つ
-- [ ] showSelectで選択後、必ず最新のlisting()からuniqueIdを保存する
-- [ ] 初回起動やCurrentExecutorsが空の場合は既定値（default run/make/help）を自動選択し、infoレベルでログ出力する
-- [ ] 設定変更等で選択中Executorが消えた場合は、そのカテゴリのみ未選択（undefined）に戻し、infoまたはwarnレベルでログ出力する
-- [ ] languageStatusManager.updateCurrentExecutor()で、CurrentExecutorsが未選択（undefined）の場合は「未選択」とUIに明示表示する
-- [ ] validateCurrentExecutorsで不整合があった場合、該当カテゴリは未選択（undefined）にする
-- [ ] コード全体でlist変数の扱いを整理し、listing()の結果を一貫して利用する
-- [ ] 上記修正後、選択・保存・表示の一連の流れをテストする
+ToDo:
+- listing() 内の詳細ログ出力(info)を debug レベルに変更する
+- showSelect() 内の詳細ログ出力(info)を debug レベルに変更する
+- 初期化処理におけるデフォルト選択ログ(info)を debug レベルに変更する
 
 【仕様メモ】
 - 復元に使用するCurrentExecutorsはカテゴリ毎に設定を保持し、未設定（undefined）が許容されている。
@@ -81,8 +75,8 @@ interface ToolsetAPI {
 
 // uniqueIdを生成する関数
 const generateUniqueId = (item: ExecutorItem) => {
-  // コマンド、引数、パス、カテゴリを連結してハッシュ化または文字列化
-  return `${item.command}-${item.args.join(",")}-${item.encoding}-${item.category}`;
+  // 名前、コマンド、引数、パス、カテゴリを連結してハッシュ化または文字列化
+  return `${item.name}-${item.command}-${item.args.join(",")}-${item.encoding}-${item.category}`;
 };
 
 // config executor.paths
@@ -106,6 +100,52 @@ const getValidatedExecutorPaths = (
   }
 };
 
+// 既定のExecutorItemを生成する関数
+const getDefaultExecutorItems = (config: ConfigInstance): ExecutorItem[] => {
+  let command =
+    config.get<string>("language-hsp3.compiler") ?? "C:\\hsp351\\hspc.exe";
+  let helpman =
+    config.get<string>("language-hsp3.helpman.path.local") ??
+    "C:\\hsp351\\hdl.exe";
+  const defaultItems = [
+    {
+      name: "default run",
+      command,
+      args: config.get<string[]>("language-hsp3.runCommands") ?? [
+        "-dwCra",
+        "%FILEPATH%",
+      ],
+      encoding: "Shift_JIS",
+      category: "run" as keyof typeof ExecutorItemCategory,
+      uniqueId: "",
+    },
+    {
+      name: "default make",
+      command,
+      args: config.get<string[]>("language-hsp3.makeCommands") ?? [
+        "-PmCa",
+        "%FILEPATH%",
+      ],
+      encoding: "Shift_JIS",
+      category: "make" as keyof typeof ExecutorItemCategory,
+      uniqueId: "",
+    },
+    {
+      name: "default help",
+      command: helpman,
+      args: ["${editor_keyword}"],
+      encoding: "Shift_JIS",
+      category: "help" as keyof typeof ExecutorItemCategory,
+      uniqueId: "",
+    },
+  ];
+  // uniqueIdを生成
+  defaultItems.forEach((item) => {
+    item.uniqueId = generateUniqueId(item);
+  });
+  return defaultItems;
+};
+
 const createToolset = async (
   context: vscode.ExtensionContext,
   logger: LoggerInstance,
@@ -124,43 +164,8 @@ const createToolset = async (
     const hsp3root = api?.agent.hsp3root(); // 現在未使用
 
     // 既定のExecutorを設定する
-    let command =
-      config.get<string>("language-hsp3.compiler") ?? "C:\\hsp351\\hspc.exe";
-    let helpman =
-      config.get<string>("language-hsp3.helpman.path.local") ??
-      "C:\\hsp351\\hdl.exe";
-    const defaultItems = [
-      {
-        name: "default run",
-        command,
-        args: ["-dwCra", "%FILEPATH%"],
-        encoding: "Shift_JIS",
-        category: "run" as keyof typeof ExecutorItemCategory,
-        uniqueId: "",
-      },
-      {
-        name: "default make",
-        command,
-        args: ["-PmCa", "%FILEPATH%"],
-        encoding: "Shift_JIS",
-        category: "make" as keyof typeof ExecutorItemCategory,
-        uniqueId: "",
-      },
-      {
-        name: "default help",
-        command: helpman,
-        args: ["${editor_keyword}"],
-        encoding: "utShift_JISf8",
-        category: "help" as keyof typeof ExecutorItemCategory,
-        uniqueId: "",
-      },
-    ];
-
-    // デフォルトアイテムにuniqueIdを生成して追加
-    defaultItems.forEach((item) => {
-      item.uniqueId = generateUniqueId(item);
-      result.push(item);
-    });
+    const defaultItems = getDefaultExecutorItems(config);
+    result.push(...defaultItems);
 
     const paths = getValidatedExecutorPaths(config);
     // executorがある環境
@@ -193,6 +198,18 @@ const createToolset = async (
         }
       }
     }
+
+    // 設計変更メモの要求: listing時は見つかった内容をlogでinfoレベルで出力する
+    logger.debug(
+      `Executor listing completed: ${result.length} executors found`
+    );
+    logger.debug(`Default executors: ${defaultItems.length}`);
+    if (paths.success) {
+      logger.debug(
+        `Configuration executors: ${result.length - defaultItems.length}`
+      );
+    }
+
     return result;
   };
 
@@ -212,10 +229,11 @@ const createToolset = async (
       if (currentUniqueId && availableUniqueIds.has(currentUniqueId)) {
         validated[category] = currentUniqueId;
       } else if (currentUniqueId) {
-        // 保存されているuniqueIdが見つからない場合はログに記録
+        // 保存されているuniqueIdが見つからない場合はwarnログを記録し、未選択(undefined)にする
         logger.warn(
           `Executor with uniqueId "${currentUniqueId}" for ${category} not found in available list. Available: ${Array.from(availableUniqueIds).join(", ")}`
         );
+        validated[category] = undefined;
       }
     });
 
@@ -226,7 +244,8 @@ const createToolset = async (
   const languageStatusManager = new LanguageStatusManager(
     context,
     listing,
-    validateCurrentExecutors
+    validateCurrentExecutors,
+    logger
   );
 
   // 設定変更の監視
@@ -264,16 +283,27 @@ const createToolset = async (
   );
 
   const showSelect = async (preselectedCategory?: string) => {
+    // 最新のlisting()を必ず取得
     const list = listing();
+    logger.debug(`[showSelect] Available executors: ${list.length}`);
+    logger.debug(
+      `[showSelect] Available items: ${list.map((item) => `${item.name}(${item.category}):${item.uniqueId}`).join(", ")}`
+    );
+
     const category =
       preselectedCategory ||
       (await vscode.window.showQuickPick(["run", "make", "help"]));
 
     if (!category) return;
+    logger.debug(`[showSelect] Selected category: ${category}`);
 
     const filteredList = list.filter(
       (item) => item.category === category || item.category === "custom"
     );
+    logger.debug(
+      `[showSelect] Filtered list for category: ${filteredList.map((item) => `${item.name}:${item.uniqueId}`).join(", ")}`
+    );
+
     const quickPickItems = filteredList.map((item) => ({
       label: item.name,
       description: [item.command, ...item.args].join(" "),
@@ -285,17 +315,56 @@ const createToolset = async (
     });
 
     const selItem = sel?.item;
-    if (!selItem) return;
+    if (!selItem) {
+      logger.debug("[showSelect] No item selected, returning");
+      return;
+    }
+    logger.debug(
+      `[showSelect] Selected item: ${selItem.name}, uniqueId: ${selItem.uniqueId}`
+    );
 
-    // ワークスペースの保存する
+    // ワークスペースの保存する（listing()の最新uniqueIdを保存）
     const cur = context.workspaceState.get<CurrentExecutors>(CUREXEC) || {};
     const save: CurrentExecutors = { ...cur, [category]: selItem.uniqueId };
+    logger.debug(`[showSelect] Saving state: ${JSON.stringify(save)}`);
     await context.workspaceState.update(CUREXEC, save);
 
+    // 保存後の確認
+    const saved = context.workspaceState.get<CurrentExecutors>(CUREXEC) || {};
+    logger.debug(
+      `[showSelect] Confirmed saved state: ${JSON.stringify(saved)}`
+    );
+
     // 言語バーを更新
+    logger.debug("[showSelect] Updating language status manager");
     languageStatusManager.updateCurrentExecutor();
     return;
   };
+
+  // --- 初期化時にCurrentExecutorsの整合性を検証・修正・ログ出力 ---
+  // 初回起動やCurrentExecutorsが空の場合は既定値を自動選択
+  let cur = context.workspaceState.get<CurrentExecutors>(CUREXEC) || {};
+  list = listing();
+  let validatedCur = validateCurrentExecutors(cur, list);
+  let updated = false;
+  (["run", "make", "help"] as const).forEach((category) => {
+    if (!validatedCur[category]) {
+      // 未設定なら既定値を自動選択
+      const defaultItem = list.find(
+        (item) => item.category === category && item.name.startsWith("default")
+      );
+      if (defaultItem) {
+        validatedCur[category] = defaultItem.uniqueId;
+        logger.debug(
+          `初期化: ${category} executorを既定値(${defaultItem.name})で自動選択しました。`
+        );
+        updated = true;
+      }
+    }
+  });
+  if (JSON.stringify(cur) !== JSON.stringify(validatedCur) || updated) {
+    await context.workspaceState.update(CUREXEC, validatedCur);
+  }
 
   // 初期表示を更新
   languageStatusManager.updateCurrentExecutor();

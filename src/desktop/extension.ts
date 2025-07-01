@@ -4,7 +4,7 @@ import * as vscode from "vscode";
 import createConfig from "../common/config";
 import { createLanguageConfigurationManager } from "../common/langCfg";
 import { EXTENSION_ID, LANGUAGE_ID, OUTPUT_NAME } from "../common/constant";
-import createLogger from "../common/log";
+import createLogger from "../common/logger";
 import { terminalManager } from "./terminal";
 import createExecutor from "./executor";
 import createHelpman from "./helpman";
@@ -15,16 +15,27 @@ import createExtensionManager from "../common/extmgr";
 export async function activate(
   context: vscode.ExtensionContext
 ): Promise<void> {
-  const debugMode = context.extensionMode === vscode.ExtensionMode.Development;
   const config = createConfig(EXTENSION_ID);
+  const isDevMode = context.extensionMode === vscode.ExtensionMode.Development;
+  const userDebugMode = config.get<boolean>("debugMode", false);
+  const debugMode = isDevMode || userDebugMode;
 
   await i18n.init(vscode.env.language, {
     debug: debugMode,
   });
   const logger = createLogger(OUTPUT_NAME, {
-    consoleDubbing: debugMode,
+    debugMode: debugMode,
   });
   if (debugMode) logger.info(i18n.t("activation"));
+
+  // 設定変更監視: debugMode
+  config.addListener((e) => {
+    if (e.affectsConfiguration(`${EXTENSION_ID}.debugMode`)) {
+      const newDebug = config.get<boolean>("debugMode", false);
+      logger.setDebugMode(newDebug);
+      logger.info(`Debug mode ${newDebug ? "enabled" : "disabled"}`);
+    }
+  });
 
   const executor = createExecutor();
   const helpman = createHelpman(config);

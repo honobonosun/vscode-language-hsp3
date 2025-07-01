@@ -4,5 +4,7 @@
   "show": "Show",
   "reload": "Reload",
   "show-console": "Show Developer Tools",
-  "log-output-failed": "Failed to output log. Log has been print to console."
+  "log-output-console": "Log has been output to Developer Tools console.",
+  "log-output-failed": "Failed to load extension \"{extensionName}\". See the Developer Tools console for details.",
+  "debug": "debug"
 }

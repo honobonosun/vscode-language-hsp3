@@ -221,6 +221,12 @@
           "markdownDescription": "Specify the URL for the online help. `%s` is replaced by the search character. The code page is UTF-8 fixed.",
           "scope": "resource"
         },
+        "language-hsp3.debugMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "詳細なデバッグログを有効にします",
+          "scope": "machine"
+        },
         "language-hsp3.line-comment": {
           "type": "string",
           "enum": [

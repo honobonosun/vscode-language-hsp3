@@ -11,5 +11,6 @@
   "[typescript]": { "files.eol": "\n" },
   "[json]": { "files.eol": "\n" },
   "i18n-ally.localesPaths": ["locales", "out/desktop/locales"],
-  "i18n-ally.sourceLanguage": "ja"
+  "i18n-ally.sourceLanguage": "ja",
+  "i18n-ally.keystyle": "nested"
 }

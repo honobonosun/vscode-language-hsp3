@@ -1,5 +1,5 @@
 import vscode from "vscode";
-import { LoggerInstance } from "./log";
+import { LoggerInstance } from "./logger";
 import { Result } from "./types";
 import i18n from "./i18n";
 
@@ -17,16 +17,17 @@ const createExtensionManager = (logger: LoggerInstance) => {
     if (success) {
       log.info(msg);
     } else {
-      log.warn(msg);
+      log.warn(msg, { consoleDubbing: true });
 
       if (result && result.error instanceof Error)
-        log.warn(result.error.message);
+        log.warn(result.error.message, { consoleDubbing: true });
       else if (result && typeof result.error === "string")
-        log.error(result.error);
+        log.error(result.error, { consoleDubbing: true });
       else {
         if (result) {
-          console.error(result.error);
-          log.error(i18n.t("log-output-failed"));
+          log.error(i18n.t("log-output-failed", { extensionName: name }), {
+            consoleDubbing: true,
+          });
         }
       }
     }
