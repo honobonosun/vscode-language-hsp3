@@ -205,3 +205,4 @@ const createExecutor = () => {
 };
 
 export default createExecutor;
+export type ExecutorInstance = ReturnType<typeof createExecutor>;

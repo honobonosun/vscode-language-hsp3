@@ -12,6 +12,10 @@ import i18n from "../common/i18n";
 import createToolset from "./toolset";
 import createExtensionManager from "../common/extmgr";
 
+import { createRunCommand } from "./commands/run";
+import { createMakeCommand } from "./commands/make";
+import { createRunWithArgsCommand } from "./commands/runWithArgs";
+
 export async function activate(
   context: vscode.ExtensionContext
 ): Promise<void> {
@@ -53,15 +57,15 @@ export async function activate(
   context.subscriptions.push(
     vscode.commands.registerTextEditorCommand(
       "language-hsp3.run",
-      (editor) => {}
+      createRunCommand(config, executor)
     ),
     vscode.commands.registerTextEditorCommand(
       "language-hsp3.make",
-      (editor) => {}
+      createMakeCommand(config, executor)
     ),
     vscode.commands.registerTextEditorCommand(
       "language-hsp3.RunWithArgs",
-      (editor) => {}
+      createRunWithArgsCommand(config, executor)
     )
   );
 
