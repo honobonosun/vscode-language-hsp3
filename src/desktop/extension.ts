@@ -5,7 +5,6 @@ import createConfig from "../common/config";
 import { createLanguageConfigurationManager } from "../common/langCfg";
 import { EXTENSION_ID, LANGUAGE_ID, OUTPUT_NAME } from "../common/constant";
 import createLogger from "../common/logger";
-import { terminalManager } from "./terminal";
 import createExecutor from "./executor";
 import createHelpman from "./helpman";
 import i18n from "../common/i18n";
@@ -57,15 +56,21 @@ export async function activate(
   context.subscriptions.push(
     vscode.commands.registerTextEditorCommand(
       "language-hsp3.run",
-      createRunCommand(config, executor)
+      createRunCommand(executor, toolset)
     ),
     vscode.commands.registerTextEditorCommand(
       "language-hsp3.make",
-      createMakeCommand(config, executor)
+      createMakeCommand(executor, toolset)
     ),
     vscode.commands.registerTextEditorCommand(
       "language-hsp3.RunWithArgs",
-      createRunWithArgsCommand(config, executor)
+      createRunWithArgsCommand(executor, toolset)
+    ),
+    vscode.commands.registerCommand(
+      "language-hsp3.changeOfExecutor",
+      async () => {
+        await toolset.showSelect();
+      }
     )
   );
 

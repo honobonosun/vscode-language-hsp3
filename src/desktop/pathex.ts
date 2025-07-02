@@ -2,6 +2,7 @@ import untildify from "untildify";
 import path from "path";
 import { minimatch } from "minimatch";
 import { Result } from "../common/types";
+import { evalVars } from "./utils";
 
 const hasOwnProp = (obj: object, prop: string | number | symbol): boolean => {
   return Object.prototype.hasOwnProperty.call(obj, prop);
@@ -14,11 +15,24 @@ export type PathError =
   | { type: "dangerous_chars"; message: string }
   | { type: "path_traversal"; message: string };
 
+// デフォルトの危険文字パターンを定義
+const defaultDangerousCharsPattern = /[;&|`]/;
+
+// 危険な文字をチェックする関数
+function checkDangerousChars(
+  path: string,
+  pattern: RegExp = defaultDangerousCharsPattern
+): boolean {
+  return pattern.test(path);
+}
+
 // secureExpandPathSafe用のオプション
 export interface SecureExpandOptions {
   baseDir?: string;
   allowedVars?: Record<string, string>;
   allowOutsideBase?: boolean;
+  /** チェックに使用するパターン。undefined:既定パターン(defaultDangerousCharsPattern)、null:チェックをスキップ */
+  dangerousCharsPattern?: RegExp | null;
 }
 
 // expandPath用の拡張オプション
@@ -26,12 +40,6 @@ export interface PathExpandOptions extends SecureExpandOptions {
   includeProcessEnv?: boolean;
   trustedPatterns?: Array<string>;
   ignoredPatterns?: Array<string>;
-}
-
-// 危険な文字をチェックする関数
-function checkDangerousChars(path: string): boolean {
-  const dangerousChars = /[;&|`]/;
-  return dangerousChars.test(path);
 }
 
 export function secureExpandPathSafe(
@@ -42,6 +50,7 @@ export function secureExpandPathSafe(
     baseDir = process.cwd(),
     allowedVars = {},
     allowOutsideBase = false,
+    dangerousCharsPattern = defaultDangerousCharsPattern,
   } = options;
 
   // 入力検証
@@ -53,7 +62,10 @@ export function secureExpandPathSafe(
   }
 
   // 初回の危険な文字チェック
-  if (checkDangerousChars(userPath)) {
+  if (
+    dangerousCharsPattern &&
+    checkDangerousChars(userPath, dangerousCharsPattern)
+  ) {
     return {
       success: false,
       error: {
@@ -67,17 +79,19 @@ export function secureExpandPathSafe(
   let expandedPath = userPath;
 
   // 1. 環境変数を安全に展開（ホワイトリスト形式、UnixとWindowsの両方をサポート）
-  expandedPath = expandedPath.replace(
-    /\$\{?(\w+)\}?|%(\w+)%/g,
-    (match: string, unixVar: string, winVar: string) => {
-      const varName = unixVar || winVar;
-      if (hasOwnProp(allowedVars, varName)) return allowedVars[varName];
-      return match; // 許可されていない変数はそのまま
-    }
-  );
+  const isWindows = process.platform === "win32";
+  const lookupVars: Record<string, string> = isWindows
+    ? Object.fromEntries(
+        Object.entries(allowedVars).map(([k, v]) => [k.toUpperCase(), v])
+      )
+    : allowedVars;
+  expandedPath = evalVars(expandedPath, lookupVars);
 
   // 展開後の危険な文字チェック
-  if (checkDangerousChars(expandedPath)) {
+  if (
+    dangerousCharsPattern &&
+    checkDangerousChars(expandedPath, dangerousCharsPattern)
+  ) {
     return {
       success: false,
       error: {
@@ -155,11 +169,15 @@ export function expandPath(
   userPath: string,
   options: PathExpandOptions = {}
 ): Result<string, PathError> {
+  const {
+    dangerousCharsPattern = defaultDangerousCharsPattern,
+    ...restOptions
+  } = options;
   // defaultAllowedVarsを使用してallowedVarsを構築
   const defaultVars = defaultAllowedVars({
-    allowedVars: options.allowedVars || {},
-    includeProcessEnv: options.includeProcessEnv ?? true,
-    trustedPatterns: options.trustedPatterns || [
+    allowedVars: restOptions.allowedVars || {},
+    includeProcessEnv: restOptions.includeProcessEnv ?? true,
+    trustedPatterns: restOptions.trustedPatterns || [
       "HOME",
       "USERPROFILE",
       "APPDATA",
@@ -167,11 +185,11 @@ export function expandPath(
       "TEMP",
       "TMP",
       "PATH",
-      "PROGRAMFILES*", // PROGRAMFILESやPROGRAMFILES(X86)など
-      "SYSTEM*", // SYSTEMROOTやSYSTEMDRIVEなど
-      "USER*", // USERNAMEやUSERDOMAINなど
+      "PROGRAMFILES*",
+      "SYSTEM*",
+      "USER*",
     ],
-    ignoredPatterns: options.ignoredPatterns || [
+    ignoredPatterns: restOptions.ignoredPatterns || [
       "*PASSWORD*",
       "*SECRET*",
       "*TOKEN*",
@@ -181,9 +199,38 @@ export function expandPath(
       "*AUTH*",
     ],
   });
-
   return secureExpandPathSafe(userPath, {
-    ...options,
+    ...restOptions,
     allowedVars: defaultVars,
+    dangerousCharsPattern,
   });
+}
+
+// 文字列内の環境変数置き換え用オプション
+export interface VarsExpandOptions {
+  /** 追加で許可する変数マップ */
+  allowedVars?: Record<string, string>;
+  /** process.env を取り込むか (既定: true) */
+  includeProcessEnv?: boolean;
+  /** 取り込む変数のホワイトリストパターン */
+  trustedPatterns?: Array<string>;
+  /** 除外する変数のブラックリストパターン */
+  ignoredPatterns?: Array<string>;
+}
+
+/**
+ * 文字列内の環境変数置き換えを行う。
+ * ${VAR} または %VAR% 形式をサポートします。
+ */
+export function expandVars(
+  input: string,
+  options: VarsExpandOptions = {}
+): string {
+  const defaultVars = defaultAllowedVars({
+    allowedVars: options.allowedVars || {},
+    includeProcessEnv: options.includeProcessEnv ?? true,
+    trustedPatterns: options.trustedPatterns || [],
+    ignoredPatterns: options.ignoredPatterns || [],
+  });
+  return evalVars(input, defaultVars);
 }

@@ -3,6 +3,8 @@ import { TOOLSET_HSP3_EXTENSION_ID, EXTENSION_ID } from "../common/constant";
 import { ConfigInstance } from "../common/config";
 import { ExtMgrInstance } from "../common/extmgr";
 import { LoggerInstance } from "../common/logger";
+import path from "path";
+import { substituteVariables } from "./utils/substitution";
 import { z } from "zod";
 import { Result } from "../common/types";
 import LanguageStatusManager from "./executorLanguageStatusManager";
@@ -12,23 +14,7 @@ import {
   CUREXEC,
   ExecutorItemCategory,
 } from "./types/executor";
-
-/*
-設計変更メモ（2025-06-30）
-
-ToDo:
-- listing() 内の詳細ログ出力(info)を debug レベルに変更する
-- showSelect() 内の詳細ログ出力(info)を debug レベルに変更する
-- 初期化処理におけるデフォルト選択ログ(info)を debug レベルに変更する
-
-【仕様メモ】
-- 復元に使用するCurrentExecutorsはカテゴリ毎に設定を保持し、未設定（undefined）が許容されている。
-- 初回起動やCurrentExecutorsが空の場合は既定値（default run/make/help）を自動選択し、infoレベルでログ出力する。
-- 設定変更等で選択中Executorが消えた場合は、そのカテゴリのみ未選択（undefined）に戻し、infoまたはwarnレベルでログ出力する。
-- 言語バーは、該当カテゴリが未選択（undefined）の場合、「未選択」と明示表示する。
-- 既定のCurrentExecutorsは116行目から定義している。
-- listing時は見つかった内容をlogでinfoレベルで出力する。
-*/
+import type { ExecutionParams } from "./executor";
 
 // Executor設定のスキーマ
 const executorPathSchema = z.object({
@@ -48,6 +34,11 @@ type ExecutorPath = z.infer<typeof executorPathSchema>;
 type ExecutablePaths = z.infer<typeof executablePathsSchema>;
 
 type UniqueId = string;
+// uniqueId を生成するために必要なプロパティのみを受け取る型
+type UniqueIdSource = Pick<
+  ExecutorItem,
+  "name" | "command" | "args" | "encoding" | "category"
+>;
 
 const getCurrentPlatform = (): string => {
   return process.platform;
@@ -74,7 +65,7 @@ interface ToolsetAPI {
 }
 
 // uniqueIdを生成する関数
-const generateUniqueId = (item: ExecutorItem) => {
+const generateUniqueId = (item: UniqueIdSource) => {
   // 名前、コマンド、引数、パス、カテゴリを連結してハッシュ化または文字列化
   return `${item.name}-${item.command}-${item.args.join(",")}-${item.encoding}-${item.category}`;
 };
@@ -146,12 +137,41 @@ const getDefaultExecutorItems = (config: ConfigInstance): ExecutorItem[] => {
   return defaultItems;
 };
 
+// 新しい executor.toolset 設定のスキーマ
+const executorToolsetSchema = z
+  .array(
+    z.object({
+      name: z.string().min(1),
+      category: z.enum(["run", "make", "help", "custom"]),
+      continueOnError: z.boolean().default(false),
+      commands: z.array(
+        z.object({
+          command: z.string().min(1),
+          args: z.array(z.string()).default([]),
+          encoding: z.string().default("utf8"),
+          env: z.record(z.string(), z.string()).default({}),
+          shell: z.union([
+            z.object({ use: z.literal(false) }).default({ use: false }),
+            z.object({
+              use: z.literal(true),
+              path: z.string(),
+              args: z.array(z.string()).default([]),
+            }),
+          ]),
+        })
+      ),
+    })
+  )
+  .default([]);
+type ExecutorToolsetConfig = z.infer<typeof executorToolsetSchema>;
+
 const createToolset = async (
   context: vscode.ExtensionContext,
   logger: LoggerInstance,
   config: ConfigInstance,
   extmgr: ExtMgrInstance
 ) => {
+  const log = logger.section("toolset");
   // toolset-hsp3 extnsion API の読み込み
   await extmgr.load(TOOLSET_HSP3_EXTENSION_ID);
 
@@ -166,6 +186,38 @@ const createToolset = async (
     // 既定のExecutorを設定する
     const defaultItems = getDefaultExecutorItems(config);
     result.push(...defaultItems);
+
+    // 新しい executor.toolset 設定を処理
+    const rawToolset = config.get("executor.toolset");
+    let toolsetConfig: ExecutorToolsetConfig = [];
+    try {
+      toolsetConfig = executorToolsetSchema.parse(rawToolset);
+    } catch (error: unknown) {
+      // 例外を文字列化してログ出力
+      const msg = error instanceof Error ? error.message : String(error);
+      log.error(`Invalid executor.toolset configuration: ${msg}`);
+    }
+    for (const executor of toolsetConfig) {
+      for (const cmdConfig of executor.commands) {
+        const item: ExecutorItem = {
+          name: executor.name,
+          command: cmdConfig.command,
+          args: cmdConfig.args,
+          encoding: cmdConfig.encoding,
+          category: executor.category,
+          uniqueId: generateUniqueId({
+            name: executor.name,
+            command: cmdConfig.command,
+            args: cmdConfig.args,
+            encoding: cmdConfig.encoding,
+            category: executor.category,
+          }),
+          env: cmdConfig.env,
+          shell: cmdConfig.shell,
+        };
+        result.push(item);
+      }
+    }
 
     const paths = getValidatedExecutorPaths(config);
     // executorがある環境
@@ -200,12 +252,10 @@ const createToolset = async (
     }
 
     // 設計変更メモの要求: listing時は見つかった内容をlogでinfoレベルで出力する
-    logger.debug(
-      `Executor listing completed: ${result.length} executors found`
-    );
-    logger.debug(`Default executors: ${defaultItems.length}`);
+    log.debug(`Executor listing completed: ${result.length} executors found`);
+    log.debug(`Default executors: ${defaultItems.length}`);
     if (paths.success) {
-      logger.debug(
+      log.debug(
         `Configuration executors: ${result.length - defaultItems.length}`
       );
     }
@@ -230,7 +280,7 @@ const createToolset = async (
         validated[category] = currentUniqueId;
       } else if (currentUniqueId) {
         // 保存されているuniqueIdが見つからない場合はwarnログを記録し、未選択(undefined)にする
-        logger.warn(
+        log.warn(
           `Executor with uniqueId "${currentUniqueId}" for ${category} not found in available list. Available: ${Array.from(availableUniqueIds).join(", ")}`
         );
         validated[category] = undefined;
@@ -256,7 +306,7 @@ const createToolset = async (
       event.affectsConfiguration("language-hsp3.compiler") ||
       event.affectsConfiguration("language-hsp3.helpman.path.local")
     ) {
-      logger.info("Executor configuration changed, updating executor list");
+      log.info("Executor configuration changed, updating executor list");
 
       // リストを再構築
       list = listing();
@@ -285,8 +335,8 @@ const createToolset = async (
   const showSelect = async (preselectedCategory?: string) => {
     // 最新のlisting()を必ず取得
     const list = listing();
-    logger.debug(`[showSelect] Available executors: ${list.length}`);
-    logger.debug(
+    log.debug(`[showSelect] Available executors: ${list.length}`);
+    log.debug(
       `[showSelect] Available items: ${list.map((item) => `${item.name}(${item.category}):${item.uniqueId}`).join(", ")}`
     );
 
@@ -295,12 +345,12 @@ const createToolset = async (
       (await vscode.window.showQuickPick(["run", "make", "help"]));
 
     if (!category) return;
-    logger.debug(`[showSelect] Selected category: ${category}`);
+    log.debug(`[showSelect] Selected category: ${category}`);
 
     const filteredList = list.filter(
       (item) => item.category === category || item.category === "custom"
     );
-    logger.debug(
+    log.debug(
       `[showSelect] Filtered list for category: ${filteredList.map((item) => `${item.name}:${item.uniqueId}`).join(", ")}`
     );
 
@@ -316,27 +366,25 @@ const createToolset = async (
 
     const selItem = sel?.item;
     if (!selItem) {
-      logger.debug("[showSelect] No item selected, returning");
+      log.debug("[showSelect] No item selected, returning");
       return;
     }
-    logger.debug(
+    log.debug(
       `[showSelect] Selected item: ${selItem.name}, uniqueId: ${selItem.uniqueId}`
     );
 
     // ワークスペースの保存する（listing()の最新uniqueIdを保存）
     const cur = context.workspaceState.get<CurrentExecutors>(CUREXEC) || {};
     const save: CurrentExecutors = { ...cur, [category]: selItem.uniqueId };
-    logger.debug(`[showSelect] Saving state: ${JSON.stringify(save)}`);
+    log.debug(`[showSelect] Saving state: ${JSON.stringify(save)}`);
     await context.workspaceState.update(CUREXEC, save);
 
     // 保存後の確認
     const saved = context.workspaceState.get<CurrentExecutors>(CUREXEC) || {};
-    logger.debug(
-      `[showSelect] Confirmed saved state: ${JSON.stringify(saved)}`
-    );
+    log.debug(`[showSelect] Confirmed saved state: ${JSON.stringify(saved)}`);
 
     // 言語バーを更新
-    logger.debug("[showSelect] Updating language status manager");
+    log.debug("[showSelect] Updating language status manager");
     languageStatusManager.updateCurrentExecutor();
     return;
   };
@@ -355,7 +403,7 @@ const createToolset = async (
       );
       if (defaultItem) {
         validatedCur[category] = defaultItem.uniqueId;
-        logger.debug(
+        log.debug(
           `初期化: ${category} executorを既定値(${defaultItem.name})で自動選択しました。`
         );
         updated = true;
@@ -370,9 +418,70 @@ const createToolset = async (
   languageStatusManager.updateCurrentExecutor();
   languageStatusManager.setBusy(false);
 
+  // カレントExecutorから実行オプションを生成する関数
+  const getExecutionOptions = (
+    category: keyof CurrentExecutors,
+    filePath: string,
+    overrideArgs?: string[]
+  ): ExecutionParams | undefined => {
+    const cur = context.workspaceState.get<CurrentExecutors>(CUREXEC) || {};
+    const uniqueId = cur[category];
+    if (!uniqueId) {
+      vscode.window.showErrorMessage(
+        `${category} executor が選択されていません。`
+      );
+      return;
+    }
+    const items = listing();
+    const item = items.find((i) => i.uniqueId === uniqueId);
+    if (!item) {
+      vscode.window.showErrorMessage(
+        `選択されたExecutorが見つかりません: ${uniqueId}`
+      );
+      // 言語バー（Language Status）を最新の情報で更新する
+      languageStatusManager.updateCurrentExecutor();
+      return;
+    }
+    const argsTemplates = overrideArgs ?? item.args;
+    const args: string[] = [];
+    // toolset-hsp3 APIからHSP3_ROOTを取得
+    const api = extmgr.export(TOOLSET_HSP3_EXTENSION_ID) as
+      | ToolsetAPI
+      | undefined;
+    const hsp3root = api?.agent.hsp3root();
+    for (const arg of argsTemplates) {
+      const result = substituteVariables(arg, {
+        filePath,
+        editorPath: filePath,
+        hsp3Root: hsp3root,
+      });
+      if (!result.success) {
+        log.error(`変数置換に失敗: ${result.error.message}`);
+        return;
+      }
+      args.push(result.value);
+    }
+    const cwd = path.dirname(filePath);
+    // オプションを生成
+    const options: ExecutionParams = {
+      name: item.name,
+      command: item.command,
+      args,
+      cwd,
+      env: item.env,
+      encoding: item.encoding,
+      mode: item.shell?.use ? "shell" : "direct",
+      ...(item.shell?.use
+        ? { shellPath: item.shell.path, shellArgs: item.shell.args }
+        : {}),
+    };
+    return options;
+  };
+
   return {
     list: () => listing(),
     showSelect,
+    getExecutionOptions,
     dispose: () => {
       languageStatusManager.dispose();
       config.removeListener(configListenerId);
@@ -380,5 +489,5 @@ const createToolset = async (
     },
   };
 };
-export type ToolsetInstance = ReturnType<typeof createToolset>;
+export type ToolsetInstance = Awaited<ReturnType<typeof createToolset>>;
 export default createToolset;

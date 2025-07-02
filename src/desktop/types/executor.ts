@@ -5,6 +5,8 @@ export interface ExecutorItem {
   encoding: string;
   category: string;
   uniqueId: string;
+  env?: Record<string, string>;
+  shell?: { use: boolean; path?: string; args?: string[] };
 }
 
 export interface CurrentExecutors {

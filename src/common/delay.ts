@@ -1,5 +1,3 @@
-import { unknown } from "zod";
-
 export default function createDelayTimer<T extends unknown[] = []>(
   fn: (...args: T) => void
 ) {

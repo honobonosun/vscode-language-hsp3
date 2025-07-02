@@ -235,6 +235,137 @@
           ],
           "default": ";",
           "description": "行をコメントアウトするときに使う記号を指定します。(既定は ;)"
+        },
+        "language-hsp3.executor.toolset": {
+          "type": "array",
+          "description": "Executor toolset settings.",
+          "scope": "resource",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Executorの名前"
+              },
+              "category": {
+                "type": "string",
+                "enum": [
+                  "run",
+                  "make",
+                  "help",
+                  "custom"
+                ],
+                "description": "Executorのカテゴリ"
+              },
+              "continueOnError": {
+                "type": "boolean",
+                "default": false,
+                "description": "エラー発生時も続行するか"
+              },
+              "commands": {
+                "type": "array",
+                "description": "実行するコマンド群",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "command": {
+                      "type": "string"
+                    },
+                    "args": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "default": []
+                    },
+                    "encoding": {
+                      "type": "string",
+                      "default": "utf8"
+                    },
+                    "env": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "default": {}
+                    },
+                    "shell": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "use": {
+                              "const": false
+                            }
+                          },
+                          "required": [
+                            "use"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "use": {
+                              "const": true
+                            },
+                            "path": {
+                              "type": "string"
+                            },
+                            "args": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "default": []
+                            }
+                          },
+                          "required": [
+                            "use",
+                            "path"
+                          ]
+                        }
+                      ],
+                      "default": {
+                        "use": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "command",
+                    "args",
+                    "encoding",
+                    "env",
+                    "shell"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "name",
+              "category",
+              "commands"
+            ]
+          },
+          "default": []
+        },
+        "language-hsp3.env.whitelist": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "環境変数ホワイトリスト",
+          "scope": "machine"
+        },
+        "language-hsp3.env.blacklist": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "環境変数ブラックリスト",
+          "scope": "machine"
         }
       }
     },

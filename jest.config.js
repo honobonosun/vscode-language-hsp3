@@ -12,7 +12,6 @@ module.exports = {
     "!src/**/*.test.{ts,tsx}",
     "!src/**/*.spec.{ts,tsx}",
   ],
-  setupFilesAfterEnv: ["<rootDir>/test/setup.ts"],
   clearMocks: true,
   restoreMocks: true,
   testTimeout: 10000,
