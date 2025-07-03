@@ -1,7 +1,6 @@
 "use strict";
 import { execFile } from "child_process";
 import { promisify } from "util";
-import { Result } from "../common/types";
 
 /**
  * 配列変数で渡したファイルパスをwinepathで変換します。
@@ -13,11 +12,10 @@ export async function winepath(
   paths: string[],
   options: { transfer: "windows" | "unix" }
 ) {
+  const totalLength = paths.reduce((sum, p) => sum + p.length, 0);
+  const maxBuffer = totalLength * 4;
   const command = [options.transfer === "unix" ? "-u" : "-w", ...paths];
   const asyncFileExecutor = promisify(execFile);
-  const r = await asyncFileExecutor("winepath", command, {
-    maxBuffer: 1024 * paths.length,
-  });
-
-  return;
+  const r = await asyncFileExecutor("winepath", command, { maxBuffer });
+  return r.stdout.trim().split(/\r?\n/);
 }

@@ -56,7 +56,7 @@ export async function activate(
   context.subscriptions.push(
     vscode.commands.registerTextEditorCommand(
       "language-hsp3.run",
-      createRunCommand(executor, toolset)
+      createRunCommand(executor, toolset, logger)
     ),
     vscode.commands.registerTextEditorCommand(
       "language-hsp3.make",

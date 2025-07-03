@@ -1,95 +1,115 @@
 import * as vscode from "vscode";
-import { spawn, IPty, IPtyForkOptions } from "node-pty";
+import * as pty from "node-pty";
+import { LoggerInstance } from "../../common/logger";
 
-export interface PseudoTerminalOptions {
-  /** ターミナルに表示する名前 */
-  name: string;
-  /** 実行するコマンド */
-  command: string;
-  /** コマンド引数 */
-  args: string[];
-  /** ワーキングディレクトリ */
-  cwd?: string;
-  /** 環境変数 */
-  env?: NodeJS.ProcessEnv;
-  /** エンコーディング（未使用の場合は省略可） */
-  encoding?: string;
-  /** 直接実行 or シェル経由(shell) */
-  mode?: "direct" | "shell";
-  /** シェルパス(shell モード時必須) */
-  shellPath?: string;
-  /** シェル引数(shell モード時使用) */
-  shellArgs?: string[];
-  /** シェル起動後に実行するコマンド列 */
-  preCommands?: string[];
-}
-
-export class NodePtyTerminal implements vscode.Pseudoterminal {
-  private ptyProcess?: IPty;
+export class PseudoTerminal implements vscode.Pseudoterminal {
   private writeEmitter = new vscode.EventEmitter<string>();
-  private closeEmitter = new vscode.EventEmitter<number>();
+  public readonly onDidWrite = this.writeEmitter.event;
 
-  public onDidWrite: vscode.Event<string> = this.writeEmitter.event;
-  public onDidClose: vscode.Event<number> = this.closeEmitter.event;
+  private closeEmitter = new vscode.EventEmitter<number | void>();
+  public readonly onDidClose = this.closeEmitter.event;
 
-  constructor(private options: PseudoTerminalOptions) {}
+  private ptyProcess: pty.IPty;
+  private terminal: vscode.Terminal;
+  private isKilled = false;
+  private log: ReturnType<LoggerInstance["section"]>;
 
-  public open(initialDimensions?: vscode.TerminalDimensions): void {
-    // 初期サイズ
-    const cols = initialDimensions?.columns;
-    const rows = initialDimensions?.rows;
-    // 環境変数のマージ
-    const env = { ...process.env, ...(this.options.env || {}) };
-    const spawnOptions: IPtyForkOptions = {
-      cwd: this.options.cwd,
-      env,
-      cols,
-      rows,
-      encoding: this.options.encoding || "utf8",
-    };
+  constructor(
+    logger: LoggerInstance,
+    private shellPath: string,
+    private shellArgs: string[] = [],
+    private cwd?: string,
+    private env?: { [key: string]: string }
+  ) {
+    this.log = logger.section("PseudoTerminal");
 
-    // 実行コマンドと引数を決定
-    const exec =
-      this.options.mode === "shell" && this.options.shellPath
-        ? this.options.shellPath
-        : this.options.command;
-    const args =
-      this.options.mode === "shell" && this.options.shellArgs
-        ? this.options.shellArgs
-        : this.options.args;
+    this.log.debug(
+      `Creating PseudoTerminal: shell=${shellPath}, args=${JSON.stringify(shellArgs)}, cwd=${cwd}`
+    );
 
-    // プロセス生成
-    this.ptyProcess = spawn(exec, args, spawnOptions);
+    this.ptyProcess = pty.spawn(this.shellPath, this.shellArgs, {
+      name: "xterm-color",
+      cwd: this.cwd,
+      env: this.env,
+    });
 
-    // 出力イベント
+    this.log.debug(
+      `Pty process created: pid=${this.ptyProcess.pid}, cols=${this.ptyProcess.cols}, rows=${this.ptyProcess.rows}`
+    );
+
     this.ptyProcess.onData((data) => {
       this.writeEmitter.fire(data);
     });
-    // プロセス終了イベント
-    this.ptyProcess.onExit(({ exitCode }) => {
-      this.closeEmitter.fire(exitCode);
+    this.ptyProcess.onExit((event) => {
+      this.log.debug(
+        `Pty process exited: exitCode=${event.exitCode}, signal=${event.signal}`
+      );
+      this.isKilled = true;
+      this.closeEmitter.fire(event.exitCode);
     });
+    this.terminal = vscode.window.createTerminal({
+      name: this.shellPath,
+      pty: this,
+    });
+    this.terminal.show();
+  }
 
-    // シェルモード時のプリコマンド実行
-    if (this.options.mode === "shell" && this.options.preCommands) {
-      for (const cmd of this.options.preCommands) {
-        this.ptyProcess.write(cmd + "\r");
+  open(initialDimensions: vscode.TerminalDimensions | undefined): void {
+    this.log.debug(
+      `Terminal opened: dimensions=${JSON.stringify(initialDimensions)}, pid=${this.ptyProcess?.pid}, killed=${this.isKilled}`
+    );
+    if (initialDimensions && this.ptyProcess && !this.isKilled) {
+      try {
+        this.ptyProcess.resize(
+          initialDimensions.columns,
+          initialDimensions.rows
+        );
+        this.log.debug(
+          `Resize successful: ${initialDimensions.columns}x${initialDimensions.rows}`
+        );
+      } catch (error) {
+        this.log.warn(`Failed to resize pty process: ${error}`);
       }
     }
   }
 
-  public handleInput(data: string): void {
-    // ユーザ入力をプロセスへ転送
-    this.ptyProcess?.write(data);
+  close(): void {
+    this.log.debug(
+      `Closing terminal: pid=${this.ptyProcess?.pid}, killed=${this.isKilled}`
+    );
+    if (!this.isKilled) {
+      this.ptyProcess.kill();
+      this.isKilled = true;
+    }
+    this.terminal.dispose();
   }
 
-  public close(): void {
-    // ターミナルが閉じられた時に呼ばれる
-    this.ptyProcess?.kill();
+  handleInput(data: string): void {
+    this.ptyProcess.write(data);
   }
 
-  public setDimensions(dimensions: vscode.TerminalDimensions): void {
-    // ウィンドウサイズ変更
-    this.ptyProcess?.resize(dimensions.columns, dimensions.rows);
+  setDimensions(dimensions: vscode.TerminalDimensions): void {
+    this.log.debug(
+      `Setting dimensions: ${JSON.stringify(dimensions)}, pid=${this.ptyProcess?.pid}, killed=${this.isKilled}`
+    );
+    if (this.ptyProcess && !this.isKilled) {
+      try {
+        this.ptyProcess.resize(dimensions.columns, dimensions.rows);
+        this.log.debug(
+          `Dimension resize successful: ${dimensions.columns}x${dimensions.rows}`
+        );
+      } catch (error) {
+        this.log.warn(`Failed to resize pty process: ${error}`);
+      }
+    }
+  }
+
+  public sendText(text: string, addNewLine: boolean = true): void {
+    this.terminal.sendText(text, addNewLine);
+  }
+
+  /** 直接 pty シェルに書き込む */
+  public write(data: string): void {
+    this.ptyProcess.write(data);
   }
 }

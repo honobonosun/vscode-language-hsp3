@@ -10,29 +10,11 @@ export function createMakeCommand(
 ): (editor: vscode.TextEditor) => void {
   return async (editor) => {
     const doc = editor.document;
-    if (doc.isDirty) {
-      const saved = await doc.save();
-      if (!saved) {
-        return;
-      }
-    }
+    if (doc.isDirty) return; // todo: 未保存を通知
+
     const filePath = doc.fileName;
     // 共通化したツールセットから実行オプションを取得
-    const execOpts = toolset.getExecutionOptions("make", filePath);
-    if (!execOpts) return;
-    const { command, args, cwd, env, encoding, mode, shellPath, shellArgs } =
-      execOpts;
-    const termName = `Make: ${path.basename(filePath)}`;
-    executor.execute({
-      name: termName,
-      command,
-      args,
-      cwd,
-      env,
-      encoding,
-      mode,
-      shellPath,
-      shellArgs,
-    });
+    const execOpts = toolset.getExecutionParams("make", filePath);
+    if (!execOpts) return; // todo: 未選択をユーザーへ通知
   };
 }

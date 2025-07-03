@@ -426,7 +426,8 @@
     "pretest": "npm run lint",
     "lint": "eslint src/**/*.ts",
     "clean": "rimraf out",
-    "package": "vsce package"
+    "package": "vsce package",
+    "emit": "tsc --noEmit"
   },
   "devDependencies": {
     "@eslint/js": "^9.27.0",
@@ -449,6 +450,7 @@
     "ts-jest": "^29.4.0",
     "ts-loader": "^9.5.2",
     "typescript": "^5.8.3",
+    "typescript-language-server": "^4.3.4",
     "webpack": "^5.99.9",
     "webpack-cli": "^6.0.1",
     "zod": "^3.25.34"

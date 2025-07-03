@@ -13,8 +13,8 @@ import {
   CurrentExecutors,
   CUREXEC,
   ExecutorItemCategory,
+  ExecutionParams,
 } from "./types/executor";
-import type { ExecutionParams } from "./executor";
 
 // Executor設定のスキーマ
 const executorPathSchema = z.object({
@@ -419,7 +419,7 @@ const createToolset = async (
   languageStatusManager.setBusy(false);
 
   // カレントExecutorから実行オプションを生成する関数
-  const getExecutionOptions = (
+  const getExecutionParams = (
     category: keyof CurrentExecutors,
     filePath: string,
     overrideArgs?: string[]
@@ -442,15 +442,32 @@ const createToolset = async (
       languageStatusManager.updateCurrentExecutor();
       return;
     }
-    const argsTemplates = overrideArgs ?? item.args;
+    // テンプレート args と overrideArgs の統合（withArgs プレースホルダ対応）
+    const hasWithArgsPlaceholder = item.args.some(
+      (t) => t === "${withArgs}" || t === "%withArgs%"
+    );
+    const argsTemplates = overrideArgs
+      ? hasWithArgsPlaceholder
+        ? item.args
+        : overrideArgs
+      : item.args;
     const args: string[] = [];
     // toolset-hsp3 APIからHSP3_ROOTを取得
     const api = extmgr.export(TOOLSET_HSP3_EXTENSION_ID) as
       | ToolsetAPI
       | undefined;
     const hsp3root = api?.agent.hsp3root();
-    for (const arg of argsTemplates) {
-      const result = substituteVariables(arg, {
+    for (const template of argsTemplates) {
+      // ${withArgs} / %withArgs% placeholder は overrideArgs 配列を展開
+      if (
+        overrideArgs &&
+        hasWithArgsPlaceholder &&
+        (template === "${withArgs}" || template === "%withArgs%")
+      ) {
+        args.push(...overrideArgs);
+        continue;
+      }
+      const result = substituteVariables(template, {
         filePath,
         editorPath: filePath,
         hsp3Root: hsp3root,
@@ -468,7 +485,7 @@ const createToolset = async (
       command: item.command,
       args,
       cwd,
-      env: item.env,
+      env: item.env || {},
       encoding: item.encoding,
       mode: item.shell?.use ? "shell" : "direct",
       ...(item.shell?.use
@@ -481,7 +498,7 @@ const createToolset = async (
   return {
     list: () => listing(),
     showSelect,
-    getExecutionOptions,
+    getExecutionParams,
     dispose: () => {
       languageStatusManager.dispose();
       config.removeListener(configListenerId);
