@@ -51,9 +51,10 @@ The extension supports both desktop and web environments:
 
 #### Helper Tools
 - **Helpman** (`src/desktop/helpman.ts`): HDL documentation search
-- **TerminalManager** (`src/desktop/terminal/TerminalManager.ts`): VS Code standard terminal integration
-- **Toolset** (`src/desktop/toolset.ts`): Advanced multi-command execution system
+- **TerminalManager** (`src/desktop/terminal/TerminalManager.ts`): Multi-terminal management with VS Code standard terminal integration
+- **Toolset** (`src/desktop/toolset.ts`): Advanced multi-command execution system with enhanced variable substitution
 - **Argument Parser** (`src/desktop/utils/argParser.ts`): Command-line argument parsing with quote handling
+- **Variable Substitution** (`src/desktop/utils/substitution.ts`): Enhanced variable expansion with file path detection
 
 ### Key Features
 
@@ -73,10 +74,21 @@ Supports running HSP3 compiler through Wine on Linux/macOS via the `wineMode` se
 
 #### VS Code Terminal Integration
 Uses VS Code standard terminal API for compiler execution and output display:
+- **Multi-Terminal Management**: TerminalManager handles multiple concurrent terminal instances with unique IDs
 - **Direct Mode**: Creates terminal with `shellPath` and `shellArgs` for direct command execution
 - **Shell Mode**: Creates terminal with specified shell (or VS Code default) and sends commands via `sendText()`
+- **Resource Management**: Automatic cleanup of terminal resources on extension deactivation
+- **Execution Tracking**: Terminal instances are tracked with metadata including creation time and options
 - Supports both vscode.dev and desktop environments
 - No external dependencies required for terminal functionality
+
+#### Enhanced Variable Substitution
+Advanced variable expansion system with intelligent path handling:
+- **File Path Detection**: Automatically identifies file path variables (`*FILEPATH*`, `*EDITORPATH*`, etc.) using minimatch patterns
+- **Selective Path Expansion**: Only applies `expandPath` to actual file path variables, leaving option arguments untouched
+- **Callback Support**: Allows custom variable classification logic via callback functions
+- **Security**: Uses secure path expansion (`expandPath`) for file variables while performing simple string replacement for others
+- **Pattern Matching**: Supports configurable patterns for identifying file path variables
 
 #### Internationalization
 Uses i18next for localization support (Japanese and English).
@@ -98,7 +110,7 @@ Uses Webpack with separate configurations for desktop (Node.js target) and web (
 - **i18next**: Internationalization support
 - **iconv-lite**: Character encoding conversion
 
-Note: node-pty dependency has been removed in favor of VS Code standard terminal API for better compatibility and build reliability.
+Note: node-pty dependency has been completely removed in favor of VS Code standard terminal API for better compatibility, build reliability, and reduced bundle size. The new TerminalManager provides superior terminal management with proper resource cleanup.
 
 ### Testing
 Jest is configured with TypeScript support. Tests should be placed alongside source files with `.test.ts` or `.spec.ts` extensions.
@@ -108,6 +120,27 @@ Jest is configured with TypeScript support. Tests should be placed alongside sou
 - Prettier for code formatting
 - Strict TypeScript configuration
 - Uses functional programming patterns with factory functions
+
+### Technical Implementation Details
+
+#### TerminalManager Architecture
+The TerminalManager follows a centralized resource management pattern:
+- **Instance Management**: Maintains a Map of terminal instances with unique string IDs
+- **Lifecycle Control**: Handles creation, tracking, and disposal of terminal resources
+- **Mode Support**: Supports both direct execution and shell-based command execution
+- **Resource Cleanup**: Provides `disposeAll()` method for extension deactivation
+
+#### Variable Substitution System
+The enhanced `substituteVariables` function provides intelligent variable expansion:
+```typescript
+substituteVariables(template, context, {
+  filePathPatterns: ["*FILEPATH*", "*EDITORPATH*", "*PATH*", "*DIR*"],
+  isFilePathVariable: (varName) => varName.endsWith("PATH")
+});
+```
+- File path variables are processed with secure path expansion
+- Non-file variables use simple string replacement to prevent unintended path resolution
+- Supports both pattern matching and callback-based variable classification
 
 ## Extension Capabilities
 
@@ -129,3 +162,68 @@ All extension settings are prefixed with `language-hsp3.` and support workspace-
 
 ### Security
 The extension includes security constraints for untrusted workspaces, restricting access to compiler paths and execution commands. Environment variable access is controlled through whitelist/blacklist configurations.
+
+## Research & Investigation Results
+
+### Terminal Exit Code Detection (2025-07-05)
+
+**Status**: Not implemented but feasible with current VS Code API
+
+#### Current Implementation Gap
+- No `onDidCloseTerminal` event handlers in TerminalManager.ts
+- No `terminal.exitStatus` checking
+- `continueOnError` setting exists in schema but not functionally implemented
+- Sequential command execution lacks exit code validation
+
+#### VS Code Terminal API Capabilities
+- `onDidCloseTerminal` event provides exit status information
+- `exitStatus.code` contains process exit code (0=success, non-0=error)
+- `exitStatus.reason` provides termination reason
+- Terminal exit code detection is fully supported by current VS Code API
+
+#### Recommended Implementation
+```typescript
+vscode.window.onDidCloseTerminal(terminal => {
+  if (terminal.exitStatus) {
+    handleCommandResult(terminal.exitStatus.code, continueOnError);
+  }
+});
+```
+
+#### Terminal Modes Behavior
+- **Direct Mode**: Process ends → Terminal closes (VS Code default behavior)
+- **Shell Mode**: Shell remains → Terminal stays open
+- **Persistence Options**: `hideFromUser`, `isTransient` available but not utilized
+
+### Terminal Output Capture (2025-07-05)
+
+**Status**: Shell Integration API available (VS Code v1.99+) - **Not applicable to current project**
+
+#### API Evolution
+- `onDidWriteTerminalData` API: Deprecated due to performance concerns, never stable
+- Shell Integration API: Current solution (VS Code v1.99+)
+
+#### Shell Integration API Features
+- `window.onDidStartTerminalShellExecution` - Command start events
+- `window.onDidEndTerminalShellExecution` - Command end events
+- `TerminalShellExecution.read()` - Stream access to command output
+
+#### Version Constraints & Project Impact
+- **Minimum Version**: VS Code v1.99+ required
+- **Project Compatibility**: Not applicable due to version constraints
+- **Alternative Approaches**: File-based output redirection, external process communication
+
+#### Shell Integration Setup
+```bash
+# Manual setup for zsh users
+[[ "$TERM_PROGRAM" == "vscode" ]] && . "$(code --locate-shell-integration-path zsh)"
+```
+
+#### Supported Shells
+- Linux/macOS: bash, fish, pwsh, zsh
+- Windows: Git Bash, pwsh
+
+#### Reference Documentation
+- [Shell Integration API解説 (Zenn)](https://zenn.dev/jtechjapan_pub/articles/de02f0f2652366)
+- [VS Code Shell Integration 公式ドキュメント](https://code.visualstudio.com/docs/terminal/shell-integration)
+- [VS Code v1.99 リリースノート](https://code.visualstudio.com/updates/v1_99)

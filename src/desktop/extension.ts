@@ -40,10 +40,10 @@ export async function activate(
     }
   });
 
-  const executor = createExecutor(config);
   const helpman = createHelpman(config);
   const extmgr = createExtensionManager(logger);
   const toolset = await createToolset(context, logger, config, extmgr);
+  const executor = createExecutor(config, logger, toolset);
   context.subscriptions.push(
     logger,
     config,
@@ -57,21 +57,22 @@ export async function activate(
     vscode.commands.registerTextEditorCommand(
       "language-hsp3.run",
       createRunCommand(executor, toolset, logger)
-    ),
-    vscode.commands.registerTextEditorCommand(
-      "language-hsp3.make",
-      createMakeCommand(executor, toolset)
-    ),
-    vscode.commands.registerTextEditorCommand(
-      "language-hsp3.RunWithArgs",
-      createRunWithArgsCommand(executor, toolset)
-    ),
-    vscode.commands.registerCommand(
-      "language-hsp3.changeOfExecutor",
-      async () => {
-        await toolset.showSelect();
-      }
     )
+    // 一時的にコメントアウト
+    // vscode.commands.registerTextEditorCommand(
+    //   "language-hsp3.make",
+    //   createMakeCommand(executor, toolset)
+    // ),
+    // vscode.commands.registerTextEditorCommand(
+    //   "language-hsp3.RunWithArgs",
+    //   createRunWithArgsCommand(executor, toolset)
+    // ),
+    // vscode.commands.registerCommand(
+    //   "language-hsp3.changeOfExecutor",
+    //   async () => {
+    //     await toolset.showSelect();
+    //   }
+    // )
   );
 
   // 一行コメント記号の設定変更に追従する。

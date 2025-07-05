@@ -3,46 +3,70 @@ import type { LoggerInstance } from "../../common/logger";
 
 export interface TerminalOptions {
   mode: "direct" | "shell";
-  command?: string;
-  args?: string[];
   shellPath?: string;
   shellArgs?: string[];
   commands?: string[];
   cwd?: string;
   env?: Record<string, string>;
+  name?: string;
+  waitForKeyPress?: boolean;
+}
+
+export interface ManagedTerminal {
+  id: string;
+  terminal: vscode.Terminal;
+  options: TerminalOptions;
+  createdAt: Date;
 }
 
 export class TerminalManager {
-  private terminal: vscode.Terminal;
+  private terminals: Map<string, ManagedTerminal> = new Map();
   private logger: LoggerInstance;
+  private terminalCounter = 0;
 
-  constructor(logger: LoggerInstance, options: TerminalOptions) {
+  constructor(logger: LoggerInstance) {
     this.logger = logger;
-    this.terminal = this.createTerminal(options);
-    this.terminal.show();
   }
 
-  private createTerminal(options: TerminalOptions): vscode.Terminal {
-    const { mode, cwd, env } = options;
+  public createTerminal(options: TerminalOptions): string {
+    const id = `hsp3-terminal-${++this.terminalCounter}`;
+    const terminal = this.buildTerminal(options);
+
+    const managedTerminal: ManagedTerminal = {
+      id,
+      terminal,
+      options,
+      createdAt: new Date(),
+    };
+
+    this.terminals.set(id, managedTerminal);
+    terminal.show();
+
+    this.logger.debug(`Terminal created: ${id}`);
+    return id;
+  }
+
+  private buildTerminal(options: TerminalOptions): vscode.Terminal {
+    const { mode, cwd, env, name = "HSP3", waitForKeyPress = false } = options;
 
     if (mode === "direct") {
-      const { command, args = [] } = options;
-      if (!command) {
-        throw new Error("Command is required for direct mode");
+      const { shellPath, shellArgs = [] } = options;
+      if (!shellPath) {
+        throw new Error("shellPath is required for direct mode");
       }
 
       return vscode.window.createTerminal({
-        name: "HSP3",
+        name,
         cwd,
         env,
-        shellPath: command,
-        shellArgs: args,
+        shellPath,
+        shellArgs,
       });
     } else {
       const { shellPath, shellArgs, commands = [] } = options;
-      
+
       const terminal = vscode.window.createTerminal({
-        name: "HSP3",
+        name,
         cwd,
         env,
         shellPath,
@@ -50,19 +74,67 @@ export class TerminalManager {
       });
 
       // コマンドを順次実行
-      commands.forEach(command => {
+      commands.forEach((command) => {
         terminal.sendText(command, true);
       });
+
+      // キー入力待機コマンドを追加
+      if (waitForKeyPress) {
+        const waitCommand = this.getWaitCommand();
+        terminal.sendText(waitCommand, true);
+      }
 
       return terminal;
     }
   }
 
-  public sendText(text: string, addNewLine: boolean = true): void {
-    this.terminal.sendText(text, addNewLine);
+  private getWaitCommand(): string {
+    // プラットフォームに応じたキー入力待機コマンドを返す
+    switch (process.platform) {
+      case "win32":
+        return "pause";
+      case "darwin":
+      case "linux":
+        return 'read -p "Press any key to continue..." -n1';
+      default:
+        return "read -p \"Press any key to continue...\" -n1";
+    }
   }
 
-  public dispose(): void {
-    this.terminal.dispose();
+  public sendText(
+    terminalId: string,
+    text: string,
+    addNewLine: boolean = true
+  ): void {
+    const managedTerminal = this.terminals.get(terminalId);
+    if (!managedTerminal) {
+      throw new Error(`Terminal not found: ${terminalId}`);
+    }
+    managedTerminal.terminal.sendText(text, addNewLine);
+  }
+
+  public disposeTerminal(terminalId: string): void {
+    const managedTerminal = this.terminals.get(terminalId);
+    if (managedTerminal) {
+      managedTerminal.terminal.dispose();
+      this.terminals.delete(terminalId);
+      this.logger.debug(`Terminal disposed: ${terminalId}`);
+    }
+  }
+
+  public disposeAll(): void {
+    for (const [id, managedTerminal] of this.terminals) {
+      managedTerminal.terminal.dispose();
+      this.logger.debug(`Terminal disposed: ${id}`);
+    }
+    this.terminals.clear();
+  }
+
+  public getTerminalCount(): number {
+    return this.terminals.size;
+  }
+
+  public getTerminalIds(): string[] {
+    return Array.from(this.terminals.keys());
   }
 }

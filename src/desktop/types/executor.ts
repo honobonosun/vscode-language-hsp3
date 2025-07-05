@@ -7,6 +7,7 @@ export interface ExecutorItem {
   uniqueId: string;
   env?: Record<string, string>;
   shell?: { use: boolean; path?: string; args?: string[] };
+  waitForKeyPress?: boolean;
 }
 
 // category毎に現在指定されているコマンドを保存する
@@ -40,4 +41,5 @@ export interface ExecutionParams {
   mode: ExecutionMode;
   shellPath?: string;
   shellArgs?: string[];
+  waitForKeyPress?: boolean;
 }

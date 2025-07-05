@@ -93,19 +93,14 @@ const getValidatedExecutorPaths = (
 
 // 既定のExecutorItemを生成する関数
 const getDefaultExecutorItems = (config: ConfigInstance): ExecutorItem[] => {
-  let command =
-    config.get<string>("language-hsp3.compiler") ?? "C:\\hsp351\\hspc.exe";
+  let command = config.get<string>("compiler") ?? "echo";
   let helpman =
-    config.get<string>("language-hsp3.helpman.path.local") ??
-    "C:\\hsp351\\hdl.exe";
+    config.get<string>("helpman.path.local") ?? "C:\\hsp351\\hdl.exe";
   const defaultItems = [
     {
       name: "default run",
       command,
-      args: config.get<string[]>("language-hsp3.runCommands") ?? [
-        "-dwCra",
-        "%FILEPATH%",
-      ],
+      args: config.get<string[]>("runCommands") ?? ["-dwCra", "%FILEPATH%"],
       encoding: "Shift_JIS",
       category: "run" as keyof typeof ExecutorItemCategory,
       uniqueId: "",
@@ -113,10 +108,7 @@ const getDefaultExecutorItems = (config: ConfigInstance): ExecutorItem[] => {
     {
       name: "default make",
       command,
-      args: config.get<string[]>("language-hsp3.makeCommands") ?? [
-        "-PmCa",
-        "%FILEPATH%",
-      ],
+      args: config.get<string[]>("makeCommands") ?? ["-PmCa", "%FILEPATH%"],
       encoding: "Shift_JIS",
       category: "make" as keyof typeof ExecutorItemCategory,
       uniqueId: "",
@@ -144,6 +136,7 @@ const executorToolsetSchema = z
       name: z.string().min(1),
       category: z.enum(["run", "make", "help", "custom"]),
       continueOnError: z.boolean().default(false),
+      waitForKeyPress: z.boolean().default(false),
       commands: z.array(
         z.object({
           command: z.string().min(1),
@@ -214,6 +207,7 @@ const createToolset = async (
           }),
           env: cmdConfig.env,
           shell: cmdConfig.shell,
+          waitForKeyPress: executor.waitForKeyPress,
         };
         result.push(item);
       }
@@ -242,6 +236,7 @@ const createToolset = async (
               encoding: executorPath.encoding,
               category: category as keyof typeof ExecutorItemCategory,
               uniqueId: "",
+              waitForKeyPress: true,
             };
             // uniqueIdを生成
             item.uniqueId = generateUniqueId(item);
@@ -457,7 +452,10 @@ const createToolset = async (
       | ToolsetAPI
       | undefined;
     const hsp3root = api?.agent.hsp3root();
+    log.debug(`Processing args templates: ${JSON.stringify(argsTemplates)}`);
+    log.debug(`FilePath: ${filePath}`);
     for (const template of argsTemplates) {
+      log.debug(`Processing template: "${template}"`);
       // ${withArgs} / %withArgs% placeholder は overrideArgs 配列を展開
       if (
         overrideArgs &&
@@ -467,18 +465,32 @@ const createToolset = async (
         args.push(...overrideArgs);
         continue;
       }
-      const result = substituteVariables(template, {
-        filePath,
-        editorPath: filePath,
-        hsp3Root: hsp3root,
-      });
+      const result = substituteVariables(
+        template,
+        {
+          filePath,
+          editorPath: filePath,
+          hsp3Root: hsp3root,
+        },
+        {
+          filePathPatterns: [
+            "*FILEPATH*",
+            "*EDITORPATH*",
+            "*PATH*",
+            "*DIR*",
+            "HSP3_ROOT",
+          ],
+        }
+      );
       if (!result.success) {
         log.error(`変数置換に失敗: ${result.error.message}`);
         return;
       }
+      log.debug(`Template "${template}" -> "${result.value}"`);
       args.push(result.value);
     }
     const cwd = path.dirname(filePath);
+    log.debug(`Final args array: ${JSON.stringify(args)}`);
     // オプションを生成
     const options: ExecutionParams = {
       name: item.name,
@@ -488,6 +500,7 @@ const createToolset = async (
       env: item.env || {},
       encoding: item.encoding,
       mode: item.shell?.use ? "shell" : "direct",
+      waitForKeyPress: item.waitForKeyPress,
       ...(item.shell?.use
         ? { shellPath: item.shell.path, shellArgs: item.shell.args }
         : {}),
