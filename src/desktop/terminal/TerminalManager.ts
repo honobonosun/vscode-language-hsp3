@@ -22,10 +22,12 @@ export interface ManagedTerminal {
 export class TerminalManager {
   private terminals: Map<string, ManagedTerminal> = new Map();
   private logger: LoggerInstance;
+  private log: ReturnType<LoggerInstance['section']>;
   private terminalCounter = 0;
 
   constructor(logger: LoggerInstance) {
     this.logger = logger;
+    this.log = logger.section("terminal-manager");
   }
 
   public createTerminal(options: TerminalOptions): string {
@@ -42,12 +44,13 @@ export class TerminalManager {
     this.terminals.set(id, managedTerminal);
     terminal.show();
 
-    this.logger.debug(`Terminal created: ${id}`);
+    this.log.debug(`Terminal created: ${id}`);
     return id;
   }
 
   private buildTerminal(options: TerminalOptions): vscode.Terminal {
     const { mode, cwd, env, name = "HSP3", waitForKeyPress = false } = options;
+    this.log.debug(`Building terminal with waitForKeyPress: ${waitForKeyPress}`);
 
     if (mode === "direct") {
       const { shellPath, shellArgs = [] } = options;
@@ -81,7 +84,10 @@ export class TerminalManager {
       // キー入力待機コマンドを追加
       if (waitForKeyPress) {
         const waitCommand = this.getWaitCommand();
+        this.log.debug(`Adding wait command: ${waitCommand}`);
         terminal.sendText(waitCommand, true);
+      } else {
+        this.log.debug("waitForKeyPress is false, not adding wait command");
       }
 
       return terminal;
@@ -118,14 +124,14 @@ export class TerminalManager {
     if (managedTerminal) {
       managedTerminal.terminal.dispose();
       this.terminals.delete(terminalId);
-      this.logger.debug(`Terminal disposed: ${terminalId}`);
+      this.log.debug(`Terminal disposed: ${terminalId}`);
     }
   }
 
   public disposeAll(): void {
     for (const [id, managedTerminal] of this.terminals) {
       managedTerminal.terminal.dispose();
-      this.logger.debug(`Terminal disposed: ${id}`);
+      this.log.debug(`Terminal disposed: ${id}`);
     }
     this.terminals.clear();
   }

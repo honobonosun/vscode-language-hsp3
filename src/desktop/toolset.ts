@@ -104,6 +104,8 @@ const getDefaultExecutorItems = (config: ConfigInstance): ExecutorItem[] => {
       encoding: "Shift_JIS",
       category: "run" as keyof typeof ExecutorItemCategory,
       uniqueId: "",
+      waitForKeyPress: true,
+      shell: { use: true },
     },
     {
       name: "default make",
@@ -112,6 +114,8 @@ const getDefaultExecutorItems = (config: ConfigInstance): ExecutorItem[] => {
       encoding: "Shift_JIS",
       category: "make" as keyof typeof ExecutorItemCategory,
       uniqueId: "",
+      waitForKeyPress: true,
+      shell: { use: true },
     },
     {
       name: "default help",
@@ -120,6 +124,8 @@ const getDefaultExecutorItems = (config: ConfigInstance): ExecutorItem[] => {
       encoding: "Shift_JIS",
       category: "help" as keyof typeof ExecutorItemCategory,
       uniqueId: "",
+      waitForKeyPress: true,
+      shell: { use: true },
     },
   ];
   // uniqueIdを生成
@@ -270,6 +276,8 @@ const createToolset = async (
               category: category as keyof typeof ExecutorItemCategory,
               uniqueId: "",
               waitForKeyPress: true,
+              // executor.pathsから生成されるアイテムは強制的にシェルモードにする
+              shell: { use: true },
             };
             // uniqueIdを生成
             item.uniqueId = generateUniqueId(item);

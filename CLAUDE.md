@@ -227,3 +227,135 @@ vscode.window.onDidCloseTerminal(terminal => {
 - [Shell Integration API解説 (Zenn)](https://zenn.dev/jtechjapan_pub/articles/de02f0f2652366)
 - [VS Code Shell Integration 公式ドキュメント](https://code.visualstudio.com/docs/terminal/shell-integration)
 - [VS Code v1.99 リリースノート](https://code.visualstudio.com/updates/v1_99)
+
+### Multi-Command Execution & Terminal Persistence (2025-07-05)
+
+**Status**: Fully implemented and tested successfully
+
+#### Implementation Summary
+Redesigned the toolset system to support multiple commands with enhanced terminal persistence and environment variable management.
+
+#### Key Changes
+
+##### 1. Toolset Configuration Restructure
+- **Previous**: Each command in `executor.toolset.commands[]` created separate `ExecutorItem`
+- **Current**: Single `ExecutorItem` per toolset with `commands[]` array for sequential execution
+- **Schema**: Simplified structure with toolset-level settings + command-level environment variable overrides
+
+```json
+{
+  "language-hsp3.executor.toolset": [
+    {
+      "name": "HSP3 Build Process",
+      "category": "run",
+      "encoding": "Shift_JIS", 
+      "shell": {"use": true, "path": "cmd"},
+      "env": {"HSP_ROOT": "/path/to/hsp", "DEBUG_MODE": "1"},
+      "waitForKeyPress": true,
+      "commands": [
+        {
+          "command": "hspcmp",
+          "args": ["-dwCra", "%FILEPATH%"],
+          "env": {"COMPILE_MODE": "release"}
+        },
+        {
+          "command": "echo",
+          "args": ["Build complete"],
+          "env": {"DEBUG_MODE": null, "NOTIFY": "true"}
+        }
+      ]
+    }
+  ]
+}
+```
+
+##### 2. Environment Variable Merging System
+Implemented value-based control for environment variable manipulation:
+- **String values**: Set or overwrite variable
+- **`null` values**: Remove variable from environment
+- **Inheritance**: Command-level variables override toolset-level variables
+
+```typescript
+const mergeEnvironmentVariables = (
+  baseEnv: Record<string, string>,
+  commandEnv: Record<string, string | null>
+): Record<string, string> => {
+  const result = { ...baseEnv };
+  for (const [key, value] of Object.entries(commandEnv)) {
+    if (value === null) {
+      delete result[key];  // Remove variable
+    } else {
+      result[key] = value; // Set/overwrite variable
+    }
+  }
+  return result;
+};
+```
+
+##### 3. Terminal Persistence with `waitForKeyPress`
+- **Problem**: Terminal closing immediately after command completion
+- **Solution**: Platform-specific wait commands automatically added after all commands
+  - **Windows**: `pause`
+  - **Linux/macOS**: `read -p "Press any key to continue..." -n1`
+
+##### 4. Executor Function Consolidation
+- **Previous**: Separate `executeRun()` and `executeMake()` with code duplication
+- **Current**: Unified `execute(category, options)` function with category parameter
+- **Backward Compatibility**: Wrapper functions maintained for existing API
+
+##### 5. Forced Shell Mode Implementation
+**Critical Fix**: Direct mode didn't support `waitForKeyPress` or multiple commands
+- **Solution**: All executors (default + `executor.paths`) forced to shell mode with `shell: { use: true }`
+- **Result**: Consistent behavior for terminal persistence across all execution paths
+
+#### Technical Architecture
+
+##### ExecutionParams Structure (New)
+```typescript
+export interface ExecutionParams {
+  name: string;
+  cwd: string; 
+  env: Record<string, string>;
+  encoding: string;
+  mode: ExecutionMode;
+  shellPath?: string;
+  shellArgs?: string[];
+  waitForKeyPress?: boolean;
+  commands: Array<{
+    command: string;
+    args: string[];
+    env: Record<string, string>;
+  }>;
+}
+```
+
+##### Multi-Command Processing Flow
+1. **Variable Substitution**: Each command's args processed individually with context
+2. **Environment Merging**: Toolset-level env + command-level overrides
+3. **Sequential Execution**: Commands sent to terminal via `sendText()` in order
+4. **Terminal Persistence**: Wait command appended if `waitForKeyPress: true`
+
+#### Validation & Error Handling
+- **Schema Validation**: Zod schema requires minimum 1 command per toolset
+- **Runtime Safety**: Empty commands array triggers warning and skip
+- **User-Friendly Messages**: Clear error messages for configuration issues
+
+#### Testing Results
+- ✅ Multiple commands execute sequentially
+- ✅ Environment variables merge correctly (set/override/delete)
+- ✅ Terminal persists with `waitForKeyPress`
+- ✅ Backward compatibility maintained
+- ✅ Both `executor.paths` and `executor.toolset` configurations work
+- ✅ Build and type checking pass
+
+#### Debug Logging Enhancement
+Added structured logging with sections for better debugging:
+- `terminal-manager`: Terminal creation and command execution
+- `toolset`: Command processing and variable substitution
+- `executor`: High-level execution coordination
+
+#### Future Considerations
+While implementing multi-command support, identified potential future enhancements:
+- **Dynamic Script Generation**: For more complex command sequences
+- **Shell Integration API**: When VS Code v1.99+ becomes minimum requirement
+- **Exit Code Handling**: For conditional execution based on command results
