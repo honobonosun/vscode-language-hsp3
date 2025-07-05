@@ -8,6 +8,12 @@ export interface ExecutorItem {
   env?: Record<string, string>;
   shell?: { use: boolean; path?: string; args?: string[] };
   waitForKeyPress?: boolean;
+  // 複数コマンド対応
+  commands?: Array<{
+    command: string;
+    args: string[];
+    env?: Record<string, string | null>;
+  }>;
 }
 
 // category毎に現在指定されているコマンドを保存する
@@ -33,8 +39,6 @@ export type ExecutionMode = "direct" | "shell";
 // executorに渡すコマンドのパラメータ
 export interface ExecutionParams {
   name: string;
-  command: string;
-  args: string[];
   cwd: string;
   env: Record<string, string>;
   encoding: string;
@@ -42,4 +46,10 @@ export interface ExecutionParams {
   shellPath?: string;
   shellArgs?: string[];
   waitForKeyPress?: boolean;
+  // 複数コマンド対応（メインプロパティに変更）
+  commands: Array<{
+    command: string;
+    args: string[];
+    env: Record<string, string>;
+  }>;
 }

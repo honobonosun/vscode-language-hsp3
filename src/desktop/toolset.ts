@@ -129,7 +129,7 @@ const getDefaultExecutorItems = (config: ConfigInstance): ExecutorItem[] => {
   return defaultItems;
 };
 
-// 新しい executor.toolset 設定のスキーマ
+// 新しい executor.toolset 設定のスキーマ（シンプル版: ツールセットレベルのみ）
 const executorToolsetSchema = z
   .array(
     z.object({
@@ -137,26 +137,53 @@ const executorToolsetSchema = z
       category: z.enum(["run", "make", "help", "custom"]),
       continueOnError: z.boolean().default(false),
       waitForKeyPress: z.boolean().default(false),
-      commands: z.array(
-        z.object({
-          command: z.string().min(1),
-          args: z.array(z.string()).default([]),
-          encoding: z.string().default("utf8"),
-          env: z.record(z.string(), z.string()).default({}),
-          shell: z.union([
-            z.object({ use: z.literal(false) }).default({ use: false }),
-            z.object({
-              use: z.literal(true),
-              path: z.string(),
-              args: z.array(z.string()).default([]),
-            }),
-          ]),
-        })
-      ),
+      // ツールセットレベルの設定（全コマンド共通）
+      encoding: z.string().default("utf8"),
+      env: z.record(z.string(), z.string()).default({}),
+      shell: z
+        .union([
+          z.object({ use: z.literal(false) }).default({ use: false }),
+          z.object({
+            use: z.literal(true),
+            path: z.string(),
+            args: z.array(z.string()).default([]),
+          }),
+        ])
+        .default({ use: false }),
+      commands: z
+        .array(
+          z.object({
+            command: z.string().min(1, "コマンドが必要です"),
+            args: z.array(z.string()).default([]),
+            // コマンドレベルの環境変数オーバーライドのみ（値による制御）
+            env: z
+              .record(z.string(), z.union([z.string(), z.null()]))
+              .default({}),
+          })
+        )
+        .min(1, "少なくとも1つのコマンドが必要です"),
     })
   )
   .default([]);
 type ExecutorToolsetConfig = z.infer<typeof executorToolsetSchema>;
+
+// 環境変数マージ関数（案1: 値による制御）
+const mergeEnvironmentVariables = (
+  baseEnv: Record<string, string>,
+  commandEnv: Record<string, string | null>
+): Record<string, string> => {
+  const result = { ...baseEnv };
+
+  for (const [key, value] of Object.entries(commandEnv)) {
+    if (value === null) {
+      delete result[key]; // 削除
+    } else {
+      result[key] = value; // 設定/上書き
+    }
+  }
+
+  return result;
+};
 
 const createToolset = async (
   context: vscode.ExtensionContext,
@@ -191,26 +218,32 @@ const createToolset = async (
       log.error(`Invalid executor.toolset configuration: ${msg}`);
     }
     for (const executor of toolsetConfig) {
-      for (const cmdConfig of executor.commands) {
-        const item: ExecutorItem = {
-          name: executor.name,
-          command: cmdConfig.command,
-          args: cmdConfig.args,
-          encoding: cmdConfig.encoding,
-          category: executor.category,
-          uniqueId: generateUniqueId({
-            name: executor.name,
-            command: cmdConfig.command,
-            args: cmdConfig.args,
-            encoding: cmdConfig.encoding,
-            category: executor.category,
-          }),
-          env: cmdConfig.env,
-          shell: cmdConfig.shell,
-          waitForKeyPress: executor.waitForKeyPress,
-        };
-        result.push(item);
+      // commands配列が空の場合はスキップ（実行時安全チェック）
+      if (!executor.commands || executor.commands.length === 0) {
+        log.warn(`Toolset "${executor.name}" has no commands, skipping`);
+        continue;
       }
+
+      // 複数のコマンドを1つのExecutorItemとして処理（新しいアプローチ）
+      const item: ExecutorItem = {
+        name: executor.name,
+        command: executor.commands[0].command,
+        args: executor.commands[0].args,
+        encoding: executor.encoding,
+        category: executor.category,
+        uniqueId: generateUniqueId({
+          name: executor.name,
+          command: executor.commands[0].command,
+          args: executor.commands[0].args,
+          encoding: executor.encoding,
+          category: executor.category,
+        }),
+        env: executor.env,
+        shell: executor.shell,
+        waitForKeyPress: executor.waitForKeyPress,
+        commands: executor.commands, // 全コマンドを保持
+      };
+      result.push(item);
     }
 
     const paths = getValidatedExecutorPaths(config);
@@ -437,70 +470,99 @@ const createToolset = async (
       languageStatusManager.updateCurrentExecutor();
       return;
     }
-    // テンプレート args と overrideArgs の統合（withArgs プレースホルダ対応）
-    const hasWithArgsPlaceholder = item.args.some(
-      (t) => t === "${withArgs}" || t === "%withArgs%"
-    );
-    const argsTemplates = overrideArgs
-      ? hasWithArgsPlaceholder
-        ? item.args
-        : overrideArgs
-      : item.args;
-    const args: string[] = [];
+    const cwd = path.dirname(filePath);
     // toolset-hsp3 APIからHSP3_ROOTを取得
     const api = extmgr.export(TOOLSET_HSP3_EXTENSION_ID) as
       | ToolsetAPI
       | undefined;
     const hsp3root = api?.agent.hsp3root();
-    log.debug(`Processing args templates: ${JSON.stringify(argsTemplates)}`);
-    log.debug(`FilePath: ${filePath}`);
-    for (const template of argsTemplates) {
-      log.debug(`Processing template: "${template}"`);
-      // ${withArgs} / %withArgs% placeholder は overrideArgs 配列を展開
-      if (
-        overrideArgs &&
-        hasWithArgsPlaceholder &&
-        (template === "${withArgs}" || template === "%withArgs%")
-      ) {
-        args.push(...overrideArgs);
-        continue;
-      }
-      const result = substituteVariables(
-        template,
-        {
-          filePath,
-          editorPath: filePath,
-          hsp3Root: hsp3root,
-        },
-        {
-          filePathPatterns: [
-            "*FILEPATH*",
-            "*EDITORPATH*",
-            "*PATH*",
-            "*DIR*",
-            "HSP3_ROOT",
-          ],
-        }
+
+    // 複数コマンドを処理
+    const processedCommands: Array<{
+      command: string;
+      args: string[];
+      env: Record<string, string>;
+    }> = [];
+
+    // item.commandsが存在する場合は複数コマンド、そうでなければ単一コマンド
+    const commandsToProcess = item.commands || [
+      { command: item.command, args: item.args, env: {} },
+    ];
+
+    for (const cmdConfig of commandsToProcess) {
+      // テンプレート args と overrideArgs の統合（withArgs プレースホルダ対応）
+      const hasWithArgsPlaceholder = cmdConfig.args.some(
+        (t) => t === "${withArgs}" || t === "%withArgs%"
       );
-      if (!result.success) {
-        log.error(`変数置換に失敗: ${result.error.message}`);
-        return;
+      const argsTemplates = overrideArgs
+        ? hasWithArgsPlaceholder
+          ? cmdConfig.args
+          : overrideArgs
+        : cmdConfig.args;
+
+      const args: string[] = [];
+      log.debug(`Processing args templates: ${JSON.stringify(argsTemplates)}`);
+
+      for (const template of argsTemplates) {
+        log.debug(`Processing template: "${template}"`);
+        // ${withArgs} / %withArgs% placeholder は overrideArgs 配列を展開
+        if (
+          overrideArgs &&
+          hasWithArgsPlaceholder &&
+          (template === "${withArgs}" || template === "%withArgs%")
+        ) {
+          args.push(...overrideArgs);
+          continue;
+        }
+        const result = substituteVariables(
+          template,
+          {
+            filePath,
+            editorPath: filePath,
+            hsp3Root: hsp3root,
+          },
+          {
+            filePathPatterns: [
+              "*FILEPATH*",
+              "*EDITORPATH*",
+              "*PATH*",
+              "*DIR*",
+              "HSP3_ROOT",
+            ],
+          }
+        );
+        if (!result.success) {
+          log.error(`変数置換に失敗: ${result.error.message}`);
+          return;
+        }
+        log.debug(`Template "${template}" -> "${result.value}"`);
+        args.push(result.value);
       }
-      log.debug(`Template "${template}" -> "${result.value}"`);
-      args.push(result.value);
+
+      // コマンドレベルの環境変数マージ
+      const mergedEnv = mergeEnvironmentVariables(
+        item.env || {},
+        cmdConfig.env || {}
+      );
+
+      processedCommands.push({
+        command: cmdConfig.command,
+        args,
+        env: mergedEnv,
+      });
     }
-    const cwd = path.dirname(filePath);
-    log.debug(`Final args array: ${JSON.stringify(args)}`);
+
+    log.debug(`Processed ${processedCommands.length} commands`);
+
     // オプションを生成
     const options: ExecutionParams = {
       name: item.name,
-      command: item.command,
-      args,
       cwd,
       env: item.env || {},
       encoding: item.encoding,
       mode: item.shell?.use ? "shell" : "direct",
       waitForKeyPress: item.waitForKeyPress,
+      commands: processedCommands,
       ...(item.shell?.use
         ? { shellPath: item.shell.path, shellArgs: item.shell.args }
         : {}),

@@ -21,7 +21,7 @@ export function createRunWithArgsCommand(
     const input =
       (await vscode.window.showInputBox({
         prompt: "実行時の引数を入力してください",
-        value: defaultOpts.args.join(" "),
+        value: defaultOpts.commands[0]?.args.join(" ") || "",
       })) ?? "";
 
     const parts = parseArgs(input);
