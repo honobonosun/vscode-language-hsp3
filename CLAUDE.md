@@ -42,7 +42,7 @@ The extension supports both desktop and web environments:
 - Manages HSP3 compiler execution
 - Supports multiple compiler versions through `executor.paths` configuration
 - Handles encoding conversion (Shift_JIS ↔ UTF-8)
-- Integrates with PseudoTerminal for real-time output display
+- Integrates with TerminalManager for VS Code standard terminal execution
 
 #### Language Support
 - **Parser** (`src/desktop/hsp/parser.ts`): HSP3 syntax analysis
@@ -51,7 +51,7 @@ The extension supports both desktop and web environments:
 
 #### Helper Tools
 - **Helpman** (`src/desktop/helpman.ts`): HDL documentation search
-- **PseudoTerminal** (`src/desktop/terminal/PseudoTerminal.ts`): Node.js PTY-based terminal integration
+- **TerminalManager** (`src/desktop/terminal/TerminalManager.ts`): VS Code standard terminal integration
 - **Toolset** (`src/desktop/toolset.ts`): Advanced multi-command execution system
 - **Argument Parser** (`src/desktop/utils/argParser.ts`): Command-line argument parsing with quote handling
 
@@ -64,14 +64,19 @@ The extension can manage multiple HSP3 compiler installations through the `langu
 Supports complex multi-command workflows through `language-hsp3.executor.toolset` configuration:
 - Sequential command execution with error handling
 - Per-command environment variables and encoding settings  
-- Shell vs. direct execution modes
+- Shell vs. direct execution modes (using VS Code standard terminal API)
 - Continuation on error control
+- Shell configuration is optional (uses VS Code default when omitted)
 
 #### Wine Compatibility
 Supports running HSP3 compiler through Wine on Linux/macOS via the `wineMode` setting.
 
-#### Real-time Terminal Integration
-Uses Node.js PTY for real-time compiler output display in dedicated VS Code terminals.
+#### VS Code Terminal Integration
+Uses VS Code standard terminal API for compiler execution and output display:
+- **Direct Mode**: Creates terminal with `shellPath` and `shellArgs` for direct command execution
+- **Shell Mode**: Creates terminal with specified shell (or VS Code default) and sends commands via `sendText()`
+- Supports both vscode.dev and desktop environments
+- No external dependencies required for terminal functionality
 
 #### Internationalization
 Uses i18next for localization support (Japanese and English).
@@ -89,10 +94,11 @@ Uses i18next for localization support (Japanese and English).
 Uses Webpack with separate configurations for desktop (Node.js target) and web (webworker target) versions.
 
 ### Key Dependencies
-- **node-pty**: Real-time terminal integration for desktop version
 - **zod**: Configuration schema validation
 - **i18next**: Internationalization support
 - **iconv-lite**: Character encoding conversion
+
+Note: node-pty dependency has been removed in favor of VS Code standard terminal API for better compatibility and build reliability.
 
 ### Testing
 Jest is configured with TypeScript support. Tests should be placed alongside source files with `.test.ts` or `.spec.ts` extensions.

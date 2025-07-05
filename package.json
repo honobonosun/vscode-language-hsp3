@@ -460,7 +460,6 @@
     "i18next": "^25.2.1",
     "iconv-lite": "^0.4.24",
     "minimatch": "^10.0.1",
-    "node-pty": "^1.0.0",
     "opener": "^1.5.1",
     "string-width": "^7.2.0",
     "untildify": "^5.0.0"
