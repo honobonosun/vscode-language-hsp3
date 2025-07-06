@@ -1,3 +1,4 @@
+import * as vscode from "vscode";
 import { ConfigInstance } from "../common/config";
 import { LoggerInstance } from "../common/logger";
 import { ToolsetInstance } from "./toolset";
@@ -11,15 +12,16 @@ export interface ExecutorOptions {
 const createExecutor = (
   config: ConfigInstance,
   logger: LoggerInstance,
-  toolset: ToolsetInstance
+  toolset: ToolsetInstance,
+  context?: vscode.ExtensionContext
 ) => {
-  const terminalManager = new TerminalManager(logger);
+  const terminalManager = new TerminalManager(logger, config, context);
   const log = logger.section("executor");
 
-  const execute = (
+  const execute = async (
     category: "run" | "make" | "help",
     options: ExecutorOptions
-  ): string | undefined => {
+  ): Promise<string | undefined> => {
     const { filePath, overrideArgs } = options;
 
     // toolsetから実行パラメータを取得
@@ -44,6 +46,7 @@ const createExecutor = (
       env: executionParams.env,
       name: `HSP3 ${category.charAt(0).toUpperCase() + category.slice(1)} - ${executionParams.name}`,
       waitForKeyPress: executionParams.waitForKeyPress,
+      preserveFocus: config.get<boolean>("terminal.preserveFocus", false),
     };
 
     if (executionParams.mode === "direct") {
@@ -79,7 +82,7 @@ const createExecutor = (
     }
 
     try {
-      const terminalId = terminalManager.createTerminal(terminalOptions);
+      const terminalId = await terminalManager.createTerminal(terminalOptions);
       log.info(
         `${category} command executed successfully. Terminal ID: ${terminalId}`
       );
@@ -91,11 +94,15 @@ const createExecutor = (
   };
 
   // 後方互換性のためのラッパー関数
-  const executeRun = (options: ExecutorOptions): string | undefined => {
+  const executeRun = async (
+    options: ExecutorOptions
+  ): Promise<string | undefined> => {
     return execute("run", options);
   };
 
-  const executeMake = (options: ExecutorOptions): string | undefined => {
+  const executeMake = async (
+    options: ExecutorOptions
+  ): Promise<string | undefined> => {
     return execute("make", options);
   };
 

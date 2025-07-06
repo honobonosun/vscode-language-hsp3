@@ -228,6 +228,52 @@ vscode.window.onDidCloseTerminal(terminal => {
 - [VS Code Shell Integration 公式ドキュメント](https://code.visualstudio.com/docs/terminal/shell-integration)
 - [VS Code v1.99 リリースノート](https://code.visualstudio.com/updates/v1_99)
 
+### Terminal Management Implementation (2025-07-05)
+
+**Status**: Implemented with terminal count control and cleanup functionality
+
+#### Implemented Features
+- **Terminal Count Limit**: Maximum terminal count control (default: 5)
+- **Auto Cleanup**: Optional automatic deletion of oldest terminals
+- **Notification System**: User notification with globalState persistence
+- **Persistence Control**: `isTransient: true` to disable terminal restoration
+
+#### Configuration Settings
+```json
+{
+  "language-hsp3.terminal.maxCount": 5,
+  "language-hsp3.terminal.autoCleanup": false,
+  "language-hsp3.terminal.enablePersistence": false
+}
+```
+
+#### Architecture Changes
+- **TerminalManager**: Enhanced with count checking and cleanup
+- **Executor**: Updated to async/await pattern for terminal creation
+- **Extension Context**: Passed to TerminalManager for globalState access
+
+#### Verification Results
+- ✅ Terminal count limiting works correctly
+- ✅ `isTransient: true` property correctly applied (logs confirm)
+- ✅ Settings properly read: `persistence: false, isTransient: true`
+- ✅ VS Code API v1.70.0 supports `isTransient` property
+
+#### Outstanding Issue: Terminal Restoration
+**Problem**: Terminals still restore despite `isTransient: true` setting
+**Environment**: `terminal.integrated.enablePersistentSessions: true` (user setting)
+**Status**: Under investigation
+
+**Technical Details**:
+- Code implementation is correct per API documentation
+- `isTransient` documentation states: "This will only take effect when `terminal.integrated.enablePersistentSessions` is enabled"
+- Logs show proper application of settings
+- Possible VS Code behavior inconsistency or additional restoration mechanisms
+
+**Next Steps**: 
+- Investigate VS Code terminal restoration behavior with `isTransient: true`
+- Consider alternative approaches if API behavior is inconsistent
+- Document current limitations for users
+
 ### Multi-Command Execution & Terminal Persistence (2025-07-05)
 
 **Status**: Fully implemented and tested successfully
@@ -359,3 +405,78 @@ While implementing multi-command support, identified potential future enhancemen
 - **Dynamic Script Generation**: For more complex command sequences
 - **Shell Integration API**: When VS Code v1.99+ becomes minimum requirement
 - **Exit Code Handling**: For conditional execution based on command results
+
+### Terminal Persistence Issue Resolution (2025-07-06)
+
+**Issue**: `language-hsp3.terminal.enablePersistence: false` setting not preventing terminal restoration despite `isTransient: true` being correctly applied.
+
+**Root Cause Identified**: The `waitForKeyPress` feature in shell mode was interfering with the `isTransient` property behavior.
+
+#### Technical Details
+- **Shell Mode Behavior**: Terminals remain open after command execution because the shell process continues running
+- **waitForKeyPress Impact**: Commands like `pause` (Windows) or `read` (Linux/macOS) change terminal session state
+- **VS Code Terminal API**: `isTransient: true` property gets overridden when interactive commands are executed
+
+#### Solution Implemented
+1. **Shell Mode Optimization**: `waitForKeyPress` is unnecessary in shell mode as terminals naturally remain open
+2. **Code Comments**: Added clarification that shell mode keeps terminals open without additional wait commands
+3. **Behavior Verification**: Confirmed that without `waitForKeyPress`, `isTransient: true` functions correctly
+
+#### Key Findings
+- **Shell Mode**: `waitForKeyPress: false` is the optimal default (shell keeps terminal open)
+- **Direct Mode**: `waitForKeyPress: true` may still be needed depending on command execution patterns
+- **Terminal Restoration**: `isTransient: true` works correctly when no interactive commands interfere
+
+#### Impact
+- **Terminal Persistence**: Now correctly respects `enablePersistence: false` setting
+- **Resource Management**: Improved terminal cleanup behavior
+- **User Experience**: Terminals no longer restore unexpectedly when persistence is disabled
+
+**Status**: ✅ **Resolved** - Terminal persistence now functions as intended in shell mode
+
+### Terminal Focus Control Implementation (2025-07-06)
+
+**Feature**: Added `language-hsp3.terminal.preserveFocus` setting to control terminal focus behavior after command execution.
+
+#### Implementation Details
+
+##### 1. Configuration Setting
+Added new VS Code configuration setting:
+```json
+{
+  "language-hsp3.terminal.preserveFocus": {
+    "type": "boolean",
+    "default": false,
+    "description": "ターミナル実行時にフォーカスを現在のエディタに保持する",
+    "scope": "application"
+  }
+}
+```
+
+##### 2. TerminalManager Enhancement
+- **TerminalOptions Interface**: Added `preserveFocus?: boolean` property
+- **Focus Control Logic**: Implemented `terminal.show(preserveFocus)` with configuration fallback
+- **Logging**: Added debug logging for focus behavior tracking
+
+##### 3. Executor Integration
+- **Configuration Integration**: Executor reads `terminal.preserveFocus` setting and passes to TerminalManager
+- **Per-execution Control**: Options parameter allows override of global setting
+
+#### VS Code API Integration
+- **API Method**: `terminal.show(preserveFocus?: boolean)` - VS Code Extension API
+- **Behavior**: When `preserveFocus: true`, terminal is revealed without stealing focus from current editor
+- **Known Limitations**: May not work correctly when terminal is hidden or not running (VS Code API limitation)
+
+#### User Experience
+- **Default Behavior**: `false` - maintains existing behavior (focus moves to terminal)
+- **Improved Workflow**: `true` - keeps focus in editor for seamless coding experience
+- **Per-execution Override**: Developer can override global setting if needed
+
+#### Testing Results
+- ✅ Configuration setting properly defined in package.json
+- ✅ TerminalManager correctly implements focus control
+- ✅ Executor passes configuration to TerminalManager
+- ✅ ESLint and TypeScript checks pass
+- ✅ Backward compatibility maintained
+
+**Status**: ✅ **Implemented** - Terminal focus control now available via `language-hsp3.terminal.preserveFocus` setting

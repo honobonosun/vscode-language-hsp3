@@ -31,7 +31,7 @@ export function createRunCommand(
       }
 
       // executorでrun実行
-      const terminalId = executor.executeRun({ filePath });
+      const terminalId = await executor.executeRun({ filePath });
 
       if (terminalId) {
         log.info(

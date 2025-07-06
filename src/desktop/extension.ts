@@ -43,7 +43,7 @@ export async function activate(
   const helpman = createHelpman(config);
   const extmgr = createExtensionManager(logger);
   const toolset = await createToolset(context, logger, config, extmgr);
-  const executor = createExecutor(config, logger, toolset);
+  const executor = createExecutor(config, logger, toolset, context);
   context.subscriptions.push(
     logger,
     config,

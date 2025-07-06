@@ -366,6 +366,32 @@
           "default": [],
           "description": "環境変数ブラックリスト",
           "scope": "machine"
+        },
+        "language-hsp3.terminal.maxCount": {
+          "type": "integer",
+          "default": 5,
+          "minimum": 1,
+          "maximum": 20,
+          "description": "HSP3ターミナルの最大数制限",
+          "scope": "application"
+        },
+        "language-hsp3.terminal.autoCleanup": {
+          "type": "boolean",
+          "default": false,
+          "description": "ターミナル数制限超過時の自動削除を有効にする",
+          "scope": "application"
+        },
+        "language-hsp3.terminal.enablePersistence": {
+          "type": "boolean",
+          "default": false,
+          "description": "VS Code再起動時のターミナル復元を有効にする",
+          "scope": "application"
+        },
+        "language-hsp3.terminal.preserveFocus": {
+          "type": "boolean",
+          "default": false,
+          "description": "ターミナル実行時にフォーカスを現在のエディタに保持する",
+          "scope": "application"
         }
       }
     },
