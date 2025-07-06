@@ -480,3 +480,73 @@ Added new VS Code configuration setting:
 - ✅ Backward compatibility maintained
 
 **Status**: ✅ **Implemented** - Terminal focus control now available via `language-hsp3.terminal.preserveFocus` setting
+
+### Terminal Wait Command Control Implementation (2025-07-06)
+
+**Feature**: Added `language-hsp3.terminal.waitForKeyPress` setting to control automatic insertion of key press waiting commands in shell mode execution.
+
+#### Implementation Details
+
+##### 1. Configuration Setting
+Added new VS Code configuration setting:
+```json
+{
+  "language-hsp3.terminal.waitForKeyPress": {
+    "type": "boolean",
+    "default": false,
+    "description": "シェルモードでの実行後にキー入力待機コマンドを自動挿入する",
+    "scope": "application"
+  }
+}
+```
+
+##### 2. Code Integration
+- **Executor Integration**: Modified `src/desktop/executor.ts` to read setting and pass to TerminalManager
+- **Toolset Integration**: Updated `src/desktop/toolset.ts` to use setting for both default executors and executor.paths configurations
+- **Scope Management**: Proper variable scoping to avoid config.get() calls in loops
+
+##### 3. Default Behavior Change
+- **Previous Default**: `waitForKeyPress: true` (hardcoded)
+- **New Default**: `waitForKeyPress: false` (user-configurable)
+- **Rationale**: Shell mode terminals naturally remain open, making wait commands optional
+
+#### Technical Implementation
+
+##### Variable Scoping Optimization
+```typescript
+// In getDefaultExecutorItems function
+const waitForKeyPress = config.get<boolean>(
+  "terminal.waitForKeyPress",
+  false
+);
+
+// In executor.paths loop
+const waitForKeyPress = config.get<boolean>(
+  "terminal.waitForKeyPress", 
+  false
+);
+```
+
+##### Executor Integration
+```typescript
+const terminalOptions: TerminalOptions = {
+  // ... other options
+  waitForKeyPress: config.get<boolean>("terminal.waitForKeyPress", false),
+  // ... other options
+};
+```
+
+#### User Experience
+- **Default Behavior**: `false` - no automatic wait commands (shell mode keeps terminal open)
+- **Optional Wait**: `true` - inserts platform-specific wait commands (pause/read)
+- **Consistent Control**: Setting applies to all executor types (default, paths, toolset)
+
+#### Testing Results
+- ✅ Configuration setting properly defined in package.json
+- ✅ Default executors use configurable setting
+- ✅ Executor.paths configurations use configurable setting
+- ✅ Variable scoping prevents repeated config.get() calls
+- ✅ ESLint and TypeScript checks pass
+- ✅ Backward compatibility maintained
+
+**Status**: ✅ **Implemented** - Terminal wait command control now available via `language-hsp3.terminal.waitForKeyPress` setting

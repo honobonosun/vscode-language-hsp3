@@ -96,6 +96,10 @@ const getDefaultExecutorItems = (config: ConfigInstance): ExecutorItem[] => {
   let command = config.get<string>("compiler") ?? "echo";
   let helpman =
     config.get<string>("helpman.path.local") ?? "C:\\hsp351\\hdl.exe";
+  const waitForKeyPress = config.get<boolean>(
+    "terminal.waitForKeyPress",
+    false
+  );
   const defaultItems = [
     {
       name: "default run",
@@ -104,7 +108,7 @@ const getDefaultExecutorItems = (config: ConfigInstance): ExecutorItem[] => {
       encoding: "Shift_JIS",
       category: "run" as keyof typeof ExecutorItemCategory,
       uniqueId: "",
-      waitForKeyPress: true,
+      waitForKeyPress,
       shell: { use: true },
     },
     {
@@ -114,7 +118,7 @@ const getDefaultExecutorItems = (config: ConfigInstance): ExecutorItem[] => {
       encoding: "Shift_JIS",
       category: "make" as keyof typeof ExecutorItemCategory,
       uniqueId: "",
-      waitForKeyPress: true,
+      waitForKeyPress,
       shell: { use: true },
     },
     {
@@ -124,7 +128,7 @@ const getDefaultExecutorItems = (config: ConfigInstance): ExecutorItem[] => {
       encoding: "Shift_JIS",
       category: "help" as keyof typeof ExecutorItemCategory,
       uniqueId: "",
-      waitForKeyPress: true,
+      waitForKeyPress,
       shell: { use: true },
     },
   ];
@@ -255,6 +259,10 @@ const createToolset = async (
     const paths = getValidatedExecutorPaths(config);
     // executorがある環境
     if (paths.success) {
+      const waitForKeyPress = config.get<boolean>(
+        "terminal.waitForKeyPress",
+        false
+      );
       // 一覧にして配列な構造体にする
       for (const [name, executorPath] of Object.entries(paths.value)) {
         // プラットフォームフィルタリングを適用
@@ -275,7 +283,7 @@ const createToolset = async (
               encoding: executorPath.encoding,
               category: category as keyof typeof ExecutorItemCategory,
               uniqueId: "",
-              waitForKeyPress: true,
+              waitForKeyPress,
               // executor.pathsから生成されるアイテムは強制的にシェルモードにする
               shell: { use: true },
             };

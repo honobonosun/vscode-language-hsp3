@@ -45,7 +45,7 @@ const createExecutor = (
       cwd: executionParams.cwd,
       env: executionParams.env,
       name: `HSP3 ${category.charAt(0).toUpperCase() + category.slice(1)} - ${executionParams.name}`,
-      waitForKeyPress: executionParams.waitForKeyPress,
+      waitForKeyPress: config.get<boolean>("terminal.waitForKeyPress", false),
       preserveFocus: config.get<boolean>("terminal.preserveFocus", false),
     };
 

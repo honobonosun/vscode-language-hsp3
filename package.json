@@ -392,6 +392,12 @@
           "default": false,
           "description": "ターミナル実行時にフォーカスを現在のエディタに保持する",
           "scope": "application"
+        },
+        "language-hsp3.terminal.waitForKeyPress": {
+          "type": "boolean",
+          "default": false,
+          "description": "シェルモードでの実行後にキー入力待機コマンドを自動挿入する",
+          "scope": "application"
         }
       }
     },
