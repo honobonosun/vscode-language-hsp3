@@ -28,6 +28,8 @@ export class TerminalManager {
   private terminalCounter = 0;
   private config: ConfigInstance;
   private context?: vscode.ExtensionContext;
+  private disposables: vscode.Disposable[] = [];
+
   constructor(
     logger: LoggerInstance,
     config: ConfigInstance,
@@ -37,6 +39,26 @@ export class TerminalManager {
     this.log = logger.section("terminal-manager");
     this.config = config;
     this.context = context;
+
+    // ターミナルが閉じられたときのイベントハンドラを設定
+    this.disposables.push(
+      vscode.window.onDidCloseTerminal((terminal) => {
+        this.handleTerminalClosed(terminal);
+      })
+    );
+  }
+
+  private handleTerminalClosed(terminal: vscode.Terminal): void {
+    // 管理されているターミナルを検索
+    for (const [id, managedTerminal] of this.terminals) {
+      if (managedTerminal.terminal === terminal) {
+        this.terminals.delete(id);
+        this.log.debug(
+          `Terminal closed and removed from manager: ${id} (remaining: ${this.terminals.size})`
+        );
+        break;
+      }
+    }
   }
 
   public async createTerminal(options: TerminalOptions): Promise<string> {
@@ -165,6 +187,10 @@ export class TerminalManager {
       this.log.debug(`Terminal disposed: ${id}`);
     }
     this.terminals.clear();
+
+    // イベントハンドラも破棄
+    this.disposables.forEach((disposable) => disposable.dispose());
+    this.disposables = [];
   }
 
   public getTerminalCount(): number {
