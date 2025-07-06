@@ -3,7 +3,7 @@
   "publisher": "honobonosun",
   "displayName": "language-hsp3",
   "description": "language-hsp3 for VSCode",
-  "version": "2.2.2",
+  "version": "2.3.0",
   "preview": true,
   "license": "MIT",
   "repository": "https://github.com/honobonosun/vscode-language-hsp3",
@@ -158,13 +158,13 @@
             {
               "3.51": {
                 "hide": false,
-                "path": "C:\\hsp351\\hspc.exe",
+                "path": "C:\\hsp36\\hspc.exe",
                 "encoding": "Shift_JIS",
                 "buffer": 204800,
-                "helpman": "C:\\hsp351\\helphsp\\helpman.exe",
+                "helpman": "C:\\hsp36\\helphsp\\helpman.exe",
                 "commands": {
                   "run": [
-                    "-dwCra",
+                    "-adw2R2D2",
                     "%FILEPATH%"
                   ],
                   "make": [
