@@ -1,0 +1,86 @@
+// HSP3 sample code for parser performance testing
+#module "TestModule"
+
+#define SAMPLE_CONST 100
+#const GLOBAL_CONST 200
+
+*start_label
+    mes "Hello, World!"
+    goto *end_label
+
+#deffunc test_func int x, int y
+    return x + y
+
+#defcfunc calc_func int a, int b
+    return a * b
+
+#modinit
+    // Module initialization
+    mes "Module initialized"
+    return
+
+#modterm
+    // Module termination
+    mes "Module terminated"
+    return
+
+#global
+
+*end_label
+    mes "End of program"
+    end
+
+// Comment test
+; Another comment
+/* Multi-line
+   comment */
+
+#func test_func2 int, str
+#cfunc test_cfunc2 int, str
+
+#cmd test_cmd str
+
+// String literals
+msg = "Test string"
+msg2 = {"Multi-line
+string"}
+
+// Numbers
+num1 = 123
+num2 = 123.456
+num3 = $FF
+num4 = %1010
+num5 = 'A'
+
+// Operators
+result = x + y - z * w / 2
+result2 = (x > y) && (z < w)
+result3 = a | b & c ^ d
+
+// Arrays and variables
+dim arr, 10, 20
+arr(0, 0) = 100
+str_var = "Test"
+
+// Complex expressions
+if (x > 0) {
+    mes "Positive"
+} else {
+    mes "Non-positive"
+}
+
+repeat 10
+    mes cnt
+loop
+
+// Nested constructs
+#module "NestedModule"
+
+#deffunc nested_func
+    *local_label
+    mes "Nested function"
+    return
+
+#global
+
+// End of file

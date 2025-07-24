@@ -486,7 +486,19 @@ const createToolset = async (
       languageStatusManager.updateCurrentExecutor();
       return;
     }
-    const cwd = path.dirname(filePath);
+    // choiceWorkDirCur設定に基づいてカレントディレクトリを決定
+    const useWorkspaceRoot = config.get<boolean>("choiceWorkDirCur", false);
+    let cwd: string = path.dirname(filePath);
+
+    if (useWorkspaceRoot) {
+      // ワークスペースのルートディレクトリを使用
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(
+        vscode.Uri.file(filePath)
+      );
+      if (workspaceFolder) {
+        cwd = workspaceFolder.uri.fsPath;
+      }
+    }
     // toolset-hsp3 APIからHSP3_ROOTを取得
     const api = extmgr.export(TOOLSET_HSP3_EXTENSION_ID) as
       | ToolsetAPI
