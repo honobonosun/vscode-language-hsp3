@@ -488,7 +488,7 @@
     "zod": "^3.25.34"
   },
   "dependencies": {
-    "glob": "^11.0.3",
+    "glob": "^11.1.0",
     "i18next": "^25.2.1",
     "iconv-lite": "^0.4.24",
     "minimatch": "^10.0.1",
