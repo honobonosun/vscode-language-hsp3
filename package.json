@@ -483,7 +483,7 @@
     "ts-loader": "^9.5.2",
     "typescript": "^5.8.3",
     "typescript-language-server": "^4.3.4",
-    "webpack": "^5.99.9",
+    "webpack": "^5.105.4",
     "webpack-cli": "^6.0.1",
     "zod": "^3.25.34"
   },
