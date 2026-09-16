@@ -4,6 +4,16 @@ All notable changes to the "dev-vscode-language-hsp3" extension will be document
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 2026/09/17 - 1.3.0
+- _add_ コマンド実行時に出力ウィンドウへフォーカスを移すかどうかを設定できるようになりました。
+  - 設定"language-hsp3.output.preserveFocus"を追加しました。
+  - 既定値は`false`です。`true`にすると、出力ウィンドウにフォーカスが移りません。
+- _fix_ 開発用の依存関係を更新しました。
+  - @typescript-eslint/eslint-plugin from 2.3.3 to 8.70.0.
+  - @typescript-eslint/parser from 2.3.3 to 8.70.0.
+  - @vscode/vsce from 2.20.1 to 4.0.0.
+  - eslint from 6.6.0 to 10.10.0.
+
 ## 2023/08/12 - 1.2.0
 - _update_ Workspace Trustに対応しました。
   - この変更により、制限モードでも構文の色分けやOutlineが使用できます。

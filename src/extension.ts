@@ -43,7 +43,7 @@ function outputWrite(
   } catch (e) {
     output.appendLine("Failed, 'encoding' is not set config.");
   } finally {
-    output.show();
+    output.show(config.outputPreserveFocus());
   }
 }
 

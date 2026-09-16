@@ -246,6 +246,13 @@ export default class Config {
     return this.config.get("useSetHSP3ROOT") as boolean;
   }
 
+  /**
+   * コマンド実行時に出力ウィンドウへフォーカスを移さないかどうか
+   */
+  public outputPreserveFocus(): boolean {
+    return this.config.get("output.preserveFocus") as boolean;
+  }
+
   // ここから先は、vscode.WorkspaceConfigurationのメソッド。
 
   public get(section: string) {
