@@ -1,4 +1,10 @@
-.vscode/**
-.vscode-test/**
-.gitignore
-vsc-extension-quickstart.md
+**
+!package.json
+!language-configuration.json
+!LICENSE
+!README.md
+!CHANGELOG.md
+!syntaxes/**
+!out/**/*.js
+!node_modules/**
+!*.png
