@@ -4,6 +4,11 @@ All notable changes to the "dev-vscode-language-hsp3" extension will be document
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 2026/09/18 - 1.3.1
+- _fix_ 複数のコマンドを並行して実行した際に、後に実行したコマンドの設定が先のコマンドへ適用される競合を修正しました。
+- _fix_ 開発用の依存関係を更新しました。
+  - @vscode/vsce from 4.0.0 to 3.9.2.
+
 ## 2026/09/17 - 1.3.0
 - _add_ コマンド実行時に出力ウィンドウへフォーカスを移すかどうかを設定できるようになりました。
   - 設定"language-hsp3.output.preserveFocus"を追加しました。
