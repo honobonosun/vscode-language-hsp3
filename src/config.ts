@@ -18,14 +18,10 @@ export interface ExecutorBody {
 }
 
 export default class Config {
-  public config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
-    "language-hsp3",
-    null
-  ); // constructorでrefresh呼んでるのに気づかないから此処で初期化。
+  private config: vscode.WorkspaceConfiguration;
 
   constructor(uri: null | vscode.Uri = null) {
-    this.refresh(uri);
-    return;
+    this.config = vscode.workspace.getConfiguration("language-hsp3", uri);
   }
 
   /**

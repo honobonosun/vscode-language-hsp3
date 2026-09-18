@@ -98,15 +98,15 @@ export function activate(context: vscode.ExtensionContext): void {
         output.appendLine((e as Error).message);
         return;
       }
-      config.refresh(uri);
-      const mes = buildingMessage(config);
-      execution(uri.fsPath, "run", config)
+      const cfg = new Config(uri);
+      const mes = buildingMessage(cfg);
+      execution(uri.fsPath, "run", cfg)
         .then(result => {
-          outputWrite(result, output, config);
+          outputWrite(result, output, cfg);
           mes.dispose();
         })
         .catch(err => {
-          outputWrite(err, output, config);
+          outputWrite(err, output, cfg);
           mes.dispose();
         });
     }
@@ -123,15 +123,15 @@ export function activate(context: vscode.ExtensionContext): void {
         output.appendLine((e as Error).message);
         return;
       }
-      config.refresh(uri);
-      const mes = buildingMessage(config);
-      execution(uri.fsPath, "make", config)
+      const cfg = new Config(uri);
+      const mes = buildingMessage(cfg);
+      execution(uri.fsPath, "make", cfg)
         .then(result => {
-          outputWrite(result, output, config);
+          outputWrite(result, output, cfg);
           mes.dispose();
         })
         .catch(err => {
-          outputWrite(err, output, config);
+          outputWrite(err, output, cfg);
           mes.dispose();
         });
     }
@@ -154,15 +154,15 @@ export function activate(context: vscode.ExtensionContext): void {
             output.appendLine((e as Error).message);
             return;
           }
-          config.refresh(uri);
-          const mes = buildingMessage(config);
-          execution(uri.fsPath, "run", config, v)
+          const cfg = new Config(uri);
+          const mes = buildingMessage(cfg);
+          execution(uri.fsPath, "run", cfg, v)
             .then(result => {
-              outputWrite(result, output, config);
+              outputWrite(result, output, cfg);
               mes.dispose();
             })
             .catch(err => {
-              outputWrite(err, output, config);
+              outputWrite(err, output, cfg);
               mes.dispose();
             });
         });
