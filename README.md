@@ -141,7 +141,7 @@ By default, the behavior is set to the same as before.
 
 ### [language-hsp3 for VSCode](https://github.com/honobonosun/vscode-language-hsp3)
 MIT License  
-Copyright (c) 2019 Honobono
+Copyright (c) 2019-2026 Honobono
 
 ### [language-hsp3](https://github.com/honobonosun/language-hsp3)
 MIT License  

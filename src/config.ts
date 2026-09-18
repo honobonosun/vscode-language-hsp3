@@ -18,14 +18,10 @@ export interface ExecutorBody {
 }
 
 export default class Config {
-  public config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
-    "language-hsp3",
-    null
-  ); // constructorでrefresh呼んでるのに気づかないから此処で初期化。
+  private config: vscode.WorkspaceConfiguration;
 
   constructor(uri: null | vscode.Uri = null) {
-    this.refresh(uri);
-    return;
+    this.config = vscode.workspace.getConfiguration("language-hsp3", uri);
   }
 
   /**
@@ -244,6 +240,13 @@ export default class Config {
 
   public useSetHSP3ROOT(): boolean {
     return this.config.get("useSetHSP3ROOT") as boolean;
+  }
+
+  /**
+   * コマンド実行時に出力ウィンドウへフォーカスを移さないかどうか
+   */
+  public outputPreserveFocus(): boolean {
+    return this.config.get("output.preserveFocus") as boolean;
   }
 
   // ここから先は、vscode.WorkspaceConfigurationのメソッド。
