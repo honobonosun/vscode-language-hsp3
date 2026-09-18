@@ -328,7 +328,7 @@
           }
         },
         {
-          "match": "^\\s*(#bootopt)\\s+(?i:(notime|utf8|hsp64))(?=[\\s|\\n|;|//|/*|*/])",
+          "match": "^\\s*(#bootopt)\\s+(?i:(notimer|utf8|hsp64))(?=[\\s|\\n|;|//|/*|*/])",
           "captures": {
             "1": {"name": "keyword.control.hsp3"},
             "2": {"name": "support.constant.hsp3"}
@@ -544,7 +544,7 @@
         },
         {
           "name": "keyword.hsp3",
-          "match": "(?i)(?<=^|[^\\w\\p{Cn}`＠])\\s*(comevarg|comevent|delcom|newcom|querycom|sarrayconv|comevdisp|assert|logmes|button|chkbox|clrobj|combox|input|listbox|mesbox|objnable|objimage|objmode|objprm|objsel|objsize|objskip|objenable|bcopy|bload|bsave|chdir|chdpm|delete|dirlist|exist|memfile|mkdir|mci|mmload|mmplay|mmstop|comres|ddim|delmod|dim|dimtype|ldim|lpoke|memcpy|memexpand|memset|newlab|newmod|poke|sdim|wpoke|lpeek|peek|wpeek|getkey|mcall|mouse|randomize|setease|sortget|sortstr|sortval|stick|abs|absf|atan|stan|callfunc|cos|dirinfo|double|expf|getease|geteasef|gettime|ginfo|int|length|length2|length3|length4|libptr|limit|limitf|logf|objinfo|powf|rnd|sin|sqrt|str|strlen|sysinfo|tan|vartype|varuse|varptr|varsize|cnvstoa|cnvstow|getstr|noteadd|notedel|noteget|noteload|notesave|notesel|noteunsel|sortnote|split|strrep|cnvatos|cnvwtos|getpath|instr|notefind|noteinfo|strf|strmid|strtrim|dup|dupptr|mref|axobj|bgscr|bmpsave|boxf|buffer|celdiv|celload|celput|chgdisp|circle|cls|color|dialog|font|gcopy|gmode|grect|gradf|groll|grotate|gsel|gsquare|gzoom|hsvcolor|line|mes|palcolor|palette|pget|picload|pos|print|pset|redraw|screen|sendmsg|syscolor|sysfont|title|width|winobj|objcolor|layerobj|rgbcolor|strexchange)(@hsp)?(?=[^\\w\\p{Cn}`＠])"
+          "match": "(?i)(?<=^|[^\\w\\p{Cn}`＠])\\s*(comevarg|comevent|delcom|newcom|querycom|sarrayconv|comevdisp|assert|logmes|button|chkbox|clrobj|combox|input|listbox|mesbox|objenable|objimage|objmode|objprm|objsel|objsize|objskip|objenable|bcopy|bload|bsave|chdir|chdpm|delete|dirlist|exist|memfile|mkdir|mci|mmload|mmplay|mmstop|comres|ddim|delmod|dim|dimtype|ldim|lpoke|memcpy|memexpand|memset|newlab|newmod|poke|sdim|wpoke|lpeek|peek|wpeek|getkey|mcall|mouse|randomize|setease|sortget|sortstr|sortval|stick|abs|absf|atan|atan|callfunc|cos|dirinfo|double|expf|getease|geteasef|gettime|ginfo|int|length|length2|length3|length4|libptr|limit|limitf|logf|objinfo|powf|rnd|sin|sqrt|str|strlen|sysinfo|tan|vartype|varuse|varptr|varsize|cnvstoa|cnvstow|getstr|noteadd|notedel|noteget|noteload|notesave|notesel|noteunsel|sortnote|split|strrep|cnvatos|cnvwtos|getpath|instr|notefind|noteinfo|strf|strmid|strtrim|dup|dupptr|mref|axobj|bgscr|bmpsave|boxf|buffer|celdiv|celload|celput|chgdisp|circle|cls|color|dialog|font|gcopy|gmode|grect|gradf|groll|grotate|gsel|gsquare|gzoom|hsvcolor|line|mes|palcolor|palette|pget|picload|pos|print|pset|redraw|screen|sendmsg|syscolor|sysfont|title|width|winobj|objcolor|layerobj|rgbcolor|strexchange)(@hsp)?(?=[^\\w\\p{Cn}`＠])"
         },
         {
           "match": "(?i)(?<=^|[^\\w\\p{Cn}`＠])\\s*((?:oncmd|onclick|onerror|onexit|onkey)(?:@hsp)?)(?:\\s*(goto|gosub))?(?=[^\\w\\p{Cn}`＠])",
