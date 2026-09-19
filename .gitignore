@@ -3,4 +3,7 @@ node_modules
 .vscode-test/
 *.vsix
 /test
-/.docs
+.docs/
+.kilo/
+.kilocode/
+.commandcode/
