@@ -1,0 +1,11 @@
+; SYNTAX TEST v1 "source.hsp3" "int64 literal scopes (pre-3.8 state)"
+
+; L-suffixed literals are unsupported yet: become constant.numeric.* after
+; the grammar update, and lose meta.identifier/invalid.illegal.
+a = 858993459200L
+;   ^^^^^^^^^^^^^ meta.identifier.hsp3 invalid.illegal.hsp3
+b = $FFFFFFFFFFFFFFFFL
+;   ^ source.hsp3 ! constant.numeric.hex.hsp3
+;    ^^^^^^^^^^^^^^^^^ meta.identifier.hsp3 ! invalid.illegal.hsp3
+c = 0xffffffffffffffffL
+;   ^^^^^^^^^^^^^^^^^^^ meta.identifier.hsp3 invalid.illegal.hsp3

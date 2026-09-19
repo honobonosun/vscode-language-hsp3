@@ -1,0 +1,27 @@
+; SYNTAX TEST v1 "source.hsp3" "keyword scopes (pre-3.8 state)"
+
+; Added in HSP3.7/3.8: become keyword.hsp3 after the grammar update.
+int64
+; <----- entity.name.function.hsp3 ! keyword.hsp3
+lldim
+; <----- entity.name.function.hsp3 ! keyword.hsp3
+logmesv
+; <------- entity.name.function.hsp3 ! keyword.hsp3
+logmesva
+; <-------- entity.name.function.hsp3 ! keyword.hsp3
+varprop
+; <------- entity.name.function.hsp3 ! keyword.hsp3
+
+; Typos removed from keyword.hsp3 (already fixed in 82404c3).
+stan
+; <---- entity.name.function.hsp3 ! keyword.hsp3
+objnable
+; <-------- entity.name.function.hsp3 ! keyword.hsp3
+
+; ginfo_accx/y/z were replaced by ginfo_accelx/y/z and ginfo_gyrox/y/z in 3.7.
+ginfo_accx
+; <---------- variable.language.hsp3
+ginfo_accelx
+; <------------ entity.name.function.hsp3 ! variable.language.hsp3
+ginfo_gyrox
+; <----------- entity.name.function.hsp3 ! variable.language.hsp3

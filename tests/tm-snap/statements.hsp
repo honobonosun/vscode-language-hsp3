@@ -1,0 +1,18 @@
+; Composite statements snapshot (ASCII only).
+
+#module m
+#deffunc myfunc int a, str b, double c
+#func dllfunc "user32" int a, var b
+#global
+
+label = 0
+dim arr, 10
+arr(0) = 1
+old.0 = 2
+goto *lbl
+*lbl
+   mes "x" : pos 10, 20 : wait 100
+
+#if 0
+dead code
+#endif

@@ -1,0 +1,37 @@
+; SYNTAX TEST v1 "source.hsp3" "preprocessor scopes (pre-3.8 state)"
+
+; Added in HSP3.7/3.8: become keyword.control.hsp3 after the grammar update.
+#use strict
+; <---- support.other.preprocessor.hsp3 ! keyword.control.hsp3
+#packdir "data/*"
+; <-------- support.other.preprocessor.hsp3 ! keyword.control.hsp3
+#epackdir "data/*"
+; <--------- support.other.preprocessor.hsp3 ! keyword.control.hsp3
+#var x
+; <---- support.other.preprocessor.hsp3 ! keyword.control.hsp3
+#varint y
+; <------- support.other.preprocessor.hsp3 ! keyword.control.hsp3
+#varstr s
+; <------- support.other.preprocessor.hsp3 ! keyword.control.hsp3
+#vardouble d
+; <---------- support.other.preprocessor.hsp3 ! keyword.control.hsp3
+#varlabel l
+; <--------- support.other.preprocessor.hsp3 ! keyword.control.hsp3
+#varint64 i64
+; <--------- support.other.preprocessor.hsp3 ! keyword.control.hsp3
+#notice warning "msg"
+; <------- support.other.preprocessor.hsp3 ! keyword.control.hsp3
+
+; Case-insensitive directives are new in 3.8.
+#Notice warning "msg"
+; <------- support.other.preprocessor.hsp3 ! keyword.control.hsp3
+#VARINT z
+; <------- support.other.preprocessor.hsp3 ! keyword.control.hsp3
+
+; Option names get support.constant.hsp3 (already works for #bootopt).
+#bootopt notimer
+; <-------- keyword.control.hsp3
+;        ^^^^^^^ support.constant.hsp3
+#notice warning "msg"
+; <------- support.other.preprocessor.hsp3 ! keyword.control.hsp3
+;       ^^^^^^^ meta.identifier.hsp3 ! support.constant.hsp3

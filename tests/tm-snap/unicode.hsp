@@ -1,0 +1,11 @@
+; UTF-8 exception: this file intentionally contains multibyte
+; characters and emoji. It is read only by the tokenizer test
+; tool (vscode-textmate), never by hspc.
+
+mes "cat emoji 🐱 in string"
+count🐱 = 1
+mes "family 👨‍👩‍👧 zwj"
+
+変数 = 1
+mes＠ "fullwidth at"
+絵文字🐱変数 = 2

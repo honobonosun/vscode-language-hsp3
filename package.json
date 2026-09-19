@@ -7,7 +7,8 @@
   "license": "MIT",
   "repository": "https://github.com/honobonosun/vscode-language-hsp3",
   "engines": {
-    "vscode": "^1.60.0"
+    "vscode": "^1.60.0",
+    "node": "^22.13.0 || >=24"
   },
   "categories": [
     "Programming Languages"
@@ -260,35 +261,20 @@
       }
     ]
   },
-  "jest": {
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ],
-    "transform": {
-      "^.+\\.(ts|tsx)$": "ts-jest"
-    },
-    "globals": {
-      "ts-jest": {
-        "tsConfigFile": "tsconfig.json"
-      }
-    },
-    "testMatch": [
-      "**/tests/*.spec.+(ts|tsx|js)"
-    ]
-  },
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "pretest": "yarn run compile && yarn run lint",
+    "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
+    "test": "npm run test:tm && npm run test:tm-snap",
+    "test:tm": "textmate-grammar-test --grammar \"tests/fixtures/grammars/*.json\" \"tests/tm/**/*.{hsp,hs}\"",
+    "test:tm-snap": "textmate-grammar-snap --grammar \"tests/fixtures/grammars/*.json\" \"tests/tm-snap/**/*.hsp\"",
+    "test:tm-snap-update": "textmate-grammar-snap --grammar \"tests/fixtures/grammars/*.json\" --updateSnapshot \"tests/tm-snap/**/*.hsp\"",
     "build": "vsce package"
   },
   "devDependencies": {
     "@types/emoji-regex": "^8.0.0",
-    "@types/jest": "^24.0.20",
     "@types/node": "^10.12.21",
     "@types/opener": "^1.4.0",
     "@types/vscode": "^1.60.0",
@@ -299,6 +285,7 @@
     "eslint-config-prettier": "^6.4.0",
     "eslint-plugin-prettier": "^3.1.1",
     "prettier": "^1.18.2",
+    "textmate-grammar-test": "^0.7.0",
     "tslint": "^5.20.0",
     "typescript": "^4.3.2"
   },

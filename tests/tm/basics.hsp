@@ -1,0 +1,13 @@
+; SYNTAX TEST v1 "source.hsp3" "basic scopes sanity check"
+
+mes "hi"
+; <- keyword.hsp3
+;   ^^^^ string.quoted.double.hsp3
+123
+; <- constant.numeric.double.hsp3
+if a = 1
+; <- keyword.control.hsp3
+*lbl
+; <- markup.bold.hsp3
+; comment text
+; ^ comment.line.hsp3
