@@ -2,7 +2,6 @@ out
 node_modules
 .vscode-test/
 *.vsix
-/test
 .docs/
 .kilo/
 .kilocode/
